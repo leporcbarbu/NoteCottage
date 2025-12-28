@@ -114,12 +114,32 @@ body {
 /* Sidebar */
 .sidebar {
     width: 300px;
+    min-width: 200px;
+    max-width: 600px;
     background-color: var(--bg-sidebar);
     color: var(--text-sidebar);
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border-sidebar);
     transition: background-color 0.3s ease;
+}
+
+/* Resize handle */
+.resize-handle {
+    width: 5px;
+    background-color: transparent;
+    cursor: col-resize;
+    position: relative;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover {
+    background-color: var(--primary-color);
+}
+
+.resize-handle.resizing {
+    background-color: var(--primary-color);
 }
 
 .sidebar-header {

@@ -346,6 +346,63 @@ function configureMarkedForWikiLinks() {
     marked.use({ extensions: [extension] });
 }
 
+// Sidebar resize functionality
+function initializeSidebarResize() {
+    const sidebar = document.querySelector('.sidebar');
+    const resizeHandle = document.querySelector('.resize-handle');
+
+    if (!sidebar || !resizeHandle) return;
+
+    // Load saved sidebar width from localStorage
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) {
+        sidebar.style.width = savedWidth + 'px';
+    }
+
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    // Mouse down on resize handle - start resizing
+    resizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = sidebar.offsetWidth;
+        resizeHandle.classList.add('resizing');
+
+        // Prevent text selection during resize
+        e.preventDefault();
+        document.body.style.userSelect = 'none';
+    });
+
+    // Mouse move - perform resize
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const deltaX = e.clientX - startX;
+        let newWidth = startWidth + deltaX;
+
+        // Enforce min and max width constraints
+        const minWidth = 200;
+        const maxWidth = 600;
+        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+        sidebar.style.width = newWidth + 'px';
+    });
+
+    // Mouse up - stop resizing and save width
+    document.addEventListener('mouseup', () => {
+        if (!isResizing) return;
+
+        isResizing = false;
+        resizeHandle.classList.remove('resizing');
+        document.body.style.userSelect = '';
+
+        // Save the new width to localStorage
+        localStorage.setItem('sidebarWidth', sidebar.offsetWidth);
+    });
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     // Apply saved theme
@@ -368,6 +425,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (trashSaved !== null) {
         trashExpanded = JSON.parse(trashSaved);
     }
+
+    // Initialize sidebar resize functionality
+    initializeSidebarResize();
 
     loadFolders();
     loadNotes();
@@ -682,6 +742,7 @@ function createNoteElement(note, depth) {
     const noteTitle = document.createElement('span');
     noteTitle.className = 'note-title-inline';
     noteTitle.textContent = note.title;
+    noteTitle.title = note.title; // Tooltip for full name on hover
 
     const noteTime = document.createElement('span');
     noteTime.className = 'note-time-inline';
@@ -768,6 +829,7 @@ function createAllNotesFolder() {
     const folderName = document.createElement('span');
     folderName.className = 'folder-name';
     folderName.textContent = 'All Notes';
+    folderName.title = 'All Notes'; // Tooltip for full name on hover
 
     const noteCountBadge = document.createElement('span');
     noteCountBadge.className = 'folder-note-count';
@@ -837,6 +899,7 @@ function createTrashFolder() {
     const folderName = document.createElement('span');
     folderName.className = 'folder-name';
     folderName.textContent = 'Trash';
+    folderName.title = 'Trash'; // Tooltip for full name on hover
 
     const noteCountBadge = document.createElement('span');
     noteCountBadge.className = 'folder-note-count';
@@ -928,6 +991,7 @@ function createTrashNoteElement(note, depth) {
     const noteTitle = document.createElement('span');
     noteTitle.className = 'note-title-inline';
     noteTitle.textContent = note.title;
+    noteTitle.title = note.title; // Tooltip for full name on hover
 
     const noteTime = document.createElement('span');
     noteTime.className = 'note-time-inline';
@@ -997,6 +1061,7 @@ function createFolderElement(folder, depth) {
     const folderName = document.createElement('span');
     folderName.className = 'folder-name';
     folderName.textContent = folder.name;
+    folderName.title = folder.name; // Tooltip for full name on hover
 
     // Note count badge
     const noteCountBadge = document.createElement('span');
