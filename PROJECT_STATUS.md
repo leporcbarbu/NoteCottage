@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
-**Last Updated:** December 27, 2024
-**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, and dark mode
+**Last Updated:** December 28, 2025
+**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, and dark mode
 
 ## Project Overview
 
@@ -62,6 +62,7 @@ NodeTest/
 ✅ **SQLite Database** - Persistent storage with proper schema
 ✅ **Full-Text Search** - SQLite FTS5 for fast searching (searches both title and content)
 ✅ **SQL Injection Protection** - Prepared statements throughout
+✅ **Recycle Bin** - Soft delete with restore capability, permanent delete, and empty trash
 
 ### Folder Hierarchy System
 ✅ **Nested Folders** - Unlimited depth folder structure (folders within folders)
@@ -150,6 +151,7 @@ NodeTest/
 - `position` INTEGER DEFAULT 0 (for custom ordering within folder)
 - `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 - `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+- `deleted_at` DATETIME DEFAULT NULL (NULL = active, timestamp = in trash)
 
 **folders**
 - `id` INTEGER PRIMARY KEY AUTOINCREMENT
@@ -180,13 +182,19 @@ NodeTest/
 
 ### Notes
 - `GET /` - Serve main HTML page
-- `GET /api/notes` - List all notes with tags and timestamps
+- `GET /api/notes` - List all notes with tags and timestamps (excludes deleted)
 - `GET /api/notes/:id` - Get specific note with full details
 - `POST /api/notes` - Create new note (tags auto-extracted, accepts folder_id)
 - `PUT /api/notes/:id` - Update note (tags auto-updated)
 - `PUT /api/notes/:id/move` - Move note to different folder
 - `PUT /api/notes/:id/reorder` - Reorder note (change folder and position)
-- `DELETE /api/notes/:id` - Delete note
+- `DELETE /api/notes/:id` - Soft delete note (move to trash)
+
+### Trash/Recycle Bin
+- `GET /api/trash` - List all deleted notes
+- `PUT /api/trash/:id/restore` - Restore note from trash
+- `DELETE /api/trash/:id` - Permanently delete specific note
+- `DELETE /api/trash` - Empty trash (permanently delete all)
 
 ### Folders
 - `GET /api/folders` - Get folder tree (hierarchical structure)
@@ -380,6 +388,8 @@ Persists across browser sessions.
 - Wiki-link autocomplete makes linking notes effortless
 - Backlinks panel shows note connections clearly
 - New notes intelligently created in selected folder (or as subfolders)
+- Recycle bin provides safety net for accidental deletions with easy restore
+- Trash folder integrates seamlessly with existing sidebar UI
 - Dark mode is smooth with good color choices
 - SQL injection protection is solid
 - Timezone handling works correctly
@@ -485,13 +495,38 @@ Persists across browser sessions.
   - Prevents viewing stale preview data
   - Works seamlessly with existing autosave system
 
+**Session 7 (December 28, 2025):**
+- ✅ **Implemented Recycle Bin** - Soft delete with restore and permanent delete capabilities
+  - Added `deleted_at` column to notes table for soft delete tracking
+  - All note queries now filter `WHERE deleted_at IS NULL` to exclude deleted notes
+  - DELETE operation now sets `deleted_at = CURRENT_TIMESTAMP` instead of permanent deletion
+  - Virtual "Trash" folder in sidebar with expand/collapse functionality
+  - Shows deleted notes with "Deleted X ago" timestamps
+  - Right-click context menu on trash notes to restore or permanently delete
+  - Right-click Trash folder to empty all deleted notes at once
+  - Read-only view for trash notes (prevents accidental editing)
+  - Trash state persists in localStorage
+  - Comprehensive API endpoints:
+    - `GET /api/trash` - List all deleted notes
+    - `PUT /api/trash/:id/restore` - Restore specific note
+    - `DELETE /api/trash/:id` - Permanently delete specific note
+    - `DELETE /api/trash` - Empty entire trash
+  - Updated delete confirmation to mention trash and restore capability
+  - Automatic trash count badge on Trash folder
+- ✅ **Git Integration** - Initialized version control for project
+  - Created `.gitignore` to exclude node_modules, database files, and IDE folders
+  - Initial commit with all source files
+  - Configured git user identity
+
 ### Areas to Explore
 If continuing development, consider:
-1. **Graph View** - Visual network of linked notes (now possible with wiki-links)
-2. **Multi-user Support** - Each user has their own note stash with authentication (high complexity, high value for sharing)
+1. **Cottage/Cozy Theming** - Warmer color palette, rounded corners, softer visual aesthetic
+2. **Graph View** - Visual network of linked notes (now possible with wiki-links)
 3. **Image Support** - Images within notes and possibly standalone image notes with tags (medium complexity, high value)
-4. **Keyboard Shortcuts for Folders** - Arrow keys to navigate tree, Enter to open
-5. **Create from Broken Link** - Click broken wiki-link to create that note
+4. **Security Hardening** - CSRF protection, rate limiting, input validation for production deployment
+5. **Multi-user Support** - Each user has their own note stash with authentication (high complexity, high value for sharing)
+6. **Keyboard Shortcuts for Folders** - Arrow keys to navigate tree, Enter to open
+7. **Create from Broken Link** - Click broken wiki-link to create that note
 
 ### Technical Debt
 - Code is clean and well-structured with reusable components
@@ -529,9 +564,11 @@ This project successfully demonstrated:
 - **Title-based linking** (case-insensitive note lookup for wiki-links)
 - **Browser file downloads** (Blob API for exporting notes in multiple formats)
 - **Print API integration** (window.print() for PDF generation)
+- **Soft delete pattern** (deleted_at timestamp for recycle bin functionality)
+- **Virtual folders** (UI-only folders like "All Notes" and "Trash" without database entries)
 
 **Comparison to Flask:** Very similar patterns, but Node.js is async by default, uses CommonJS modules, and has different idioms for routing and middleware. SQLite operations in Node.js (better-sqlite3) are synchronous unlike typical async database libraries.
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, and dark mode. Database corruption issues resolved with WAL mode and graceful shutdown handlers. All known bugs have been resolved.
+**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, and dark mode. Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. All known bugs have been resolved.

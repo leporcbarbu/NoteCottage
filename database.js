@@ -156,6 +156,17 @@ function initializeDatabase() {
         }
     }
 
+    // Add deleted_at column to notes table for soft delete (recycle bin)
+    try {
+        db.exec('ALTER TABLE notes ADD COLUMN deleted_at DATETIME DEFAULT NULL');
+        console.log('Added deleted_at column to notes table');
+    } catch (error) {
+        // Column already exists, ignore error
+        if (!error.message.includes('duplicate column name')) {
+            throw error;
+        }
+    }
+
     console.log('Database initialized successfully');
 }
 
@@ -194,19 +205,20 @@ healthCheck();
 // These prevent SQL injection and are more efficient
 
 const statements = {
-    // Get all notes
+    // Get all notes (excluding deleted)
     getAllNotes: db.prepare(`
         SELECT id, title,
                substr(content, 1, 100) as preview,
                folder_id,
                created_at, updated_at
         FROM notes
+        WHERE deleted_at IS NULL
         ORDER BY updated_at DESC
     `),
 
-    // Get a single note by ID
+    // Get a single note by ID (including deleted for restore purposes)
     getNoteById: db.prepare(`
-        SELECT id, title, content, folder_id, created_at, updated_at
+        SELECT id, title, content, folder_id, created_at, updated_at, deleted_at
         FROM notes
         WHERE id = ?
     `),
@@ -224,13 +236,44 @@ const statements = {
         WHERE id = ?
     `),
 
-    // Delete a note
+    // Soft delete a note (move to trash)
     deleteNote: db.prepare(`
+        UPDATE notes
+        SET deleted_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    `),
+
+    // Permanently delete a note
+    permanentlyDeleteNote: db.prepare(`
         DELETE FROM notes
         WHERE id = ?
     `),
 
-    // Search notes using full-text search
+    // Restore a note from trash
+    restoreNote: db.prepare(`
+        UPDATE notes
+        SET deleted_at = NULL
+        WHERE id = ?
+    `),
+
+    // Get all deleted notes (trash)
+    getDeletedNotes: db.prepare(`
+        SELECT id, title,
+               substr(content, 1, 100) as preview,
+               folder_id,
+               created_at, updated_at, deleted_at
+        FROM notes
+        WHERE deleted_at IS NOT NULL
+        ORDER BY deleted_at DESC
+    `),
+
+    // Empty trash (permanently delete all notes in trash)
+    emptyTrash: db.prepare(`
+        DELETE FROM notes
+        WHERE deleted_at IS NOT NULL
+    `),
+
+    // Search notes using full-text search (excluding deleted)
     searchNotes: db.prepare(`
         SELECT notes.id, notes.title,
                substr(notes.content, 1, 100) as preview,
@@ -238,7 +281,7 @@ const statements = {
                notes.created_at, notes.updated_at
         FROM notes_fts
         JOIN notes ON notes.id = notes_fts.rowid
-        WHERE notes_fts MATCH ?
+        WHERE notes_fts MATCH ? AND notes.deleted_at IS NULL
         ORDER BY rank
     `),
 
@@ -289,7 +332,7 @@ const statements = {
         FROM notes
         JOIN note_tags ON notes.id = note_tags.note_id
         JOIN tags ON note_tags.tag_id = tags.id
-        WHERE tags.name = ?
+        WHERE tags.name = ? AND notes.deleted_at IS NULL
         ORDER BY notes.updated_at DESC
     `),
 
@@ -331,12 +374,12 @@ const statements = {
                folder_id,
                created_at, updated_at
         FROM notes
-        WHERE folder_id = ?
+        WHERE folder_id = ? AND deleted_at IS NULL
         ORDER BY updated_at DESC
     `),
 
     getNoteCountByFolder: db.prepare(`
-        SELECT COUNT(*) as count FROM notes WHERE folder_id = ?
+        SELECT COUNT(*) as count FROM notes WHERE folder_id = ? AND deleted_at IS NULL
     `),
 
     moveNoteToFolder: db.prepare(`
@@ -634,12 +677,13 @@ function reorderNote(noteId, folderId, position) {
     return result.changes > 0;
 }
 
-// Get all note titles with their IDs for wiki-link resolution
+// Get all note titles with their IDs for wiki-link resolution (excluding deleted)
 // Returns Map with lowercase title as key
 function getNotesTitleMap() {
     const stmt = db.prepare(`
         SELECT id, title, updated_at
         FROM notes
+        WHERE deleted_at IS NULL
         ORDER BY updated_at DESC
     `);
 
@@ -694,6 +738,27 @@ function buildFolderTree(folders) {
     return rootFolders;
 }
 
+// Trash/Recycle Bin operations
+
+function getDeletedNotes() {
+    return statements.getDeletedNotes.all();
+}
+
+function restoreNote(id) {
+    const result = statements.restoreNote.run(id);
+    return result.changes > 0;
+}
+
+function permanentlyDeleteNote(id) {
+    const result = statements.permanentlyDeleteNote.run(id);
+    return result.changes > 0;
+}
+
+function emptyTrash() {
+    const result = statements.emptyTrash.run();
+    return result.changes;
+}
+
 // Export database operations
 module.exports = {
     db,
@@ -725,7 +790,12 @@ module.exports = {
     reorderFolderFunc,
     reorderNote,
     // Wiki-link operations
-    getNotesTitleMap
+    getNotesTitleMap,
+    // Trash/Recycle Bin operations
+    getDeletedNotes,
+    restoreNote,
+    permanentlyDeleteNote,
+    emptyTrash
 };
 
 // Graceful shutdown handlers to prevent FTS corruption

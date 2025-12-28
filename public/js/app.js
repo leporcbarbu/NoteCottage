@@ -9,6 +9,8 @@ let folders = [];
 let currentFolderId = null;
 let expandedFolders = new Set();
 let allNotesExpanded = false; // Virtual "All Notes" folder state
+let trashExpanded = false; // Virtual "Trash" folder state
+let deletedNotes = []; // Deleted notes in trash
 
 // Theme management
 let currentTheme = localStorage.getItem('theme') || 'light';
@@ -361,9 +363,16 @@ document.addEventListener('DOMContentLoaded', () => {
         allNotesExpanded = JSON.parse(allNotesSaved);
     }
 
+    // Load "Trash" expanded state from localStorage (default false)
+    const trashSaved = localStorage.getItem('trashExpanded');
+    if (trashSaved !== null) {
+        trashExpanded = JSON.parse(trashSaved);
+    }
+
     loadFolders();
     loadNotes();
     loadTags();
+    loadTrash();
     setupEventListeners();
 });
 
@@ -486,6 +495,175 @@ async function loadFolders() {
     }
 }
 
+// Load trash (deleted notes)
+async function loadTrash() {
+    try {
+        const response = await fetch('/api/trash');
+        deletedNotes = await response.json();
+        renderFolderTree();
+    } catch (error) {
+        console.error('Failed to load trash:', error);
+        alert('Failed to load trash. Please try again.');
+    }
+}
+
+// View a deleted note (read-only)
+function viewTrashNote(note) {
+    // Show the note in read-only mode
+    currentNoteId = note.id;
+    currentNoteData = note;
+
+    welcomeScreen.style.display = 'none';
+    editorScreen.style.display = 'flex';
+
+    noteTitle.value = note.title;
+    noteContent.value = note.content;
+
+    // Disable editing
+    noteTitle.disabled = true;
+    noteContent.disabled = true;
+    saveBtn.disabled = true;
+
+    // Hide delete button, show trash-specific buttons
+    deleteBtn.style.display = 'none';
+
+    // Update preview if in preview mode
+    if (!isEditMode) {
+        renderPreview();
+    }
+
+    // Update status bar
+    updateStatusBar();
+}
+
+// Show context menu for trash note (restore or permanently delete)
+function showTrashNoteMenu(e, note) {
+    const menu = document.createElement('div');
+    menu.className = 'context-menu trash-context-menu';
+    menu.style.position = 'fixed';
+    menu.style.left = e.clientX + 'px';
+    menu.style.top = e.clientY + 'px';
+    menu.style.zIndex = '10000';
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.textContent = '♻️ Restore';
+    restoreBtn.className = 'context-menu-button';
+    restoreBtn.addEventListener('click', async () => {
+        await restoreNoteFromTrash(note.id);
+        document.body.removeChild(menu);
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️ Delete Permanently';
+    deleteBtn.className = 'context-menu-button danger';
+    deleteBtn.addEventListener('click', async () => {
+        if (confirm(`Permanently delete "${note.title}"? This cannot be undone!`)) {
+            await permanentlyDeleteNote(note.id);
+        }
+        document.body.removeChild(menu);
+    });
+
+    menu.appendChild(restoreBtn);
+    menu.appendChild(deleteBtn);
+    document.body.appendChild(menu);
+
+    // Remove menu when clicking elsewhere
+    const removeMenu = (event) => {
+        if (!menu.contains(event.target)) {
+            if (document.body.contains(menu)) {
+                document.body.removeChild(menu);
+            }
+            document.removeEventListener('click', removeMenu);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', removeMenu), 0);
+}
+
+// Restore note from trash
+async function restoreNoteFromTrash(noteId) {
+    try {
+        const response = await fetch(`/api/trash/${noteId}/restore`, {
+            method: 'PUT'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to restore note');
+        }
+
+        // Reload trash and notes
+        await loadTrash();
+        await loadNotes();
+
+        // Clear editor if this note was being viewed
+        if (currentNoteId === noteId) {
+            showWelcome();
+        }
+
+        alert('Note restored successfully!');
+    } catch (error) {
+        console.error('Error restoring note:', error);
+        alert('Failed to restore note. Please try again.');
+    }
+}
+
+// Permanently delete a note
+async function permanentlyDeleteNote(noteId) {
+    try {
+        const response = await fetch(`/api/trash/${noteId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to permanently delete note');
+        }
+
+        // Reload trash
+        await loadTrash();
+
+        // Clear editor if this note was being viewed
+        if (currentNoteId === noteId) {
+            showWelcome();
+        }
+
+        alert('Note permanently deleted!');
+    } catch (error) {
+        console.error('Error permanently deleting note:', error);
+        alert('Failed to permanently delete note. Please try again.');
+    }
+}
+
+// Empty trash (delete all notes in trash permanently)
+async function emptyTrash() {
+    if (!confirm(`Empty trash and permanently delete all ${deletedNotes.length} notes? This cannot be undone!`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/trash', {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to empty trash');
+        }
+
+        const result = await response.json();
+
+        // Reload trash
+        await loadTrash();
+
+        // Clear editor if viewing trash note
+        if (currentFolderId === 'trash' && currentNoteId) {
+            showWelcome();
+        }
+
+        alert(`Trash emptied! ${result.count} note(s) permanently deleted.`);
+    } catch (error) {
+        console.error('Error emptying trash:', error);
+        alert('Failed to empty trash. Please try again.');
+    }
+}
+
 // Create a note element for inline display
 function createNoteElement(note, depth) {
     const noteItem = document.createElement('div');
@@ -554,6 +732,10 @@ function renderFolderTree() {
         const folderElement = createFolderElement(folder, 0);
         foldersContainer.appendChild(folderElement);
     });
+
+    // Render "Trash" virtual folder at the bottom
+    const trashFolder = createTrashFolder();
+    foldersContainer.appendChild(trashFolder);
 }
 
 // Create the virtual "All Notes" folder
@@ -620,6 +802,153 @@ function createAllNotesFolder() {
     }
 
     return folderItem;
+}
+
+// Create the virtual "Trash" folder
+function createTrashFolder() {
+    const folderItem = document.createElement('div');
+    folderItem.className = 'folder-item virtual-folder trash-folder';
+    folderItem.dataset.folderId = 'trash';
+    folderItem.style.paddingLeft = '12px';
+    folderItem.style.marginTop = '8px';
+    folderItem.style.borderTop = '1px solid var(--border-color)';
+    folderItem.style.paddingTop = '8px';
+
+    const folderHeader = document.createElement('div');
+    folderHeader.className = 'folder-header';
+    if (currentFolderId === 'trash') {
+        folderHeader.classList.add('active');
+    }
+
+    const expandIcon = document.createElement('span');
+    expandIcon.className = 'folder-expand-icon';
+    expandIcon.textContent = trashExpanded ? '▼' : '▶';
+    expandIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        trashExpanded = !trashExpanded;
+        localStorage.setItem('trashExpanded', JSON.stringify(trashExpanded));
+        renderFolderTree();
+    });
+
+    const folderIcon = document.createElement('span');
+    folderIcon.className = 'folder-icon';
+    folderIcon.textContent = '🗑️';
+
+    const folderName = document.createElement('span');
+    folderName.className = 'folder-name';
+    folderName.textContent = 'Trash';
+
+    const noteCountBadge = document.createElement('span');
+    noteCountBadge.className = 'folder-note-count';
+    noteCountBadge.textContent = deletedNotes.length;
+
+    folderHeader.appendChild(expandIcon);
+    folderHeader.appendChild(folderIcon);
+    folderHeader.appendChild(folderName);
+    folderHeader.appendChild(noteCountBadge);
+
+    folderHeader.addEventListener('click', () => {
+        currentFolderId = 'trash';
+        currentTagFilter = null;
+        clearTagFilter.style.display = 'none';
+        loadTrash();
+        renderFolderTree();
+    });
+
+    // Right-click to empty trash
+    folderHeader.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (deletedNotes.length === 0) {
+            alert('Trash is already empty');
+            return;
+        }
+
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.style.position = 'fixed';
+        menu.style.left = e.clientX + 'px';
+        menu.style.top = e.clientY + 'px';
+        menu.style.zIndex = '10000';
+
+        const emptyBtn = document.createElement('button');
+        emptyBtn.textContent = '🗑️ Empty Trash';
+        emptyBtn.className = 'context-menu-button danger';
+        emptyBtn.addEventListener('click', async () => {
+            document.body.removeChild(menu);
+            await emptyTrash();
+        });
+
+        menu.appendChild(emptyBtn);
+        document.body.appendChild(menu);
+
+        // Remove menu when clicking elsewhere
+        const removeMenu = (event) => {
+            if (!menu.contains(event.target)) {
+                if (document.body.contains(menu)) {
+                    document.body.removeChild(menu);
+                }
+                document.removeEventListener('click', removeMenu);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', removeMenu), 0);
+    });
+
+    folderItem.appendChild(folderHeader);
+
+    // Show deleted notes if expanded
+    if (trashExpanded) {
+        const notesContainer = document.createElement('div');
+        notesContainer.className = 'folder-notes-container';
+
+        deletedNotes.forEach(note => {
+            const noteElement = createTrashNoteElement(note, 1);
+            notesContainer.appendChild(noteElement);
+        });
+
+        folderItem.appendChild(notesContainer);
+    }
+
+    return folderItem;
+}
+
+// Create a note element for trash
+function createTrashNoteElement(note, depth) {
+    const noteItem = document.createElement('div');
+    noteItem.className = 'note-item-inline trash-note-item';
+    noteItem.dataset.noteId = note.id;
+    noteItem.style.paddingLeft = `${depth * 20 + 12}px`;
+    noteItem.style.opacity = '0.7';
+
+    const noteIcon = document.createElement('span');
+    noteIcon.className = 'note-icon';
+    noteIcon.textContent = '🗑️';
+
+    const noteTitle = document.createElement('span');
+    noteTitle.className = 'note-title-inline';
+    noteTitle.textContent = note.title;
+
+    const noteTime = document.createElement('span');
+    noteTime.className = 'note-time-inline';
+    if (note.deleted_at) {
+        noteTime.textContent = 'Deleted ' + formatRelativeTime(note.deleted_at);
+    }
+
+    noteItem.appendChild(noteIcon);
+    noteItem.appendChild(noteTitle);
+    noteItem.appendChild(noteTime);
+
+    // Click to view (but not edit) trash note
+    noteItem.addEventListener('click', () => viewTrashNote(note));
+
+    // Right-click menu for trash operations
+    noteItem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showTrashNoteMenu(e, note);
+    });
+
+    return noteItem;
 }
 
 function createFolderElement(folder, depth) {
@@ -1395,7 +1724,7 @@ async function deleteCurrentNote() {
         return;
     }
 
-    const confirmDelete = confirm('Are you sure you want to delete this note?');
+    const confirmDelete = confirm('Move this note to trash? You can restore it later from the Trash folder.');
     if (!confirmDelete) {
         return;
     }
@@ -1411,6 +1740,7 @@ async function deleteCurrentNote() {
 
         currentNoteId = null;
         await loadNotes();
+        await loadTrash(); // Reload trash to update count
         showWelcome();
 
     } catch (error) {

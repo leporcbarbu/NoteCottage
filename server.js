@@ -217,7 +217,7 @@ app.put('/api/notes/:id', (req, res) => {
     }
 });
 
-// DELETE /api/notes/:id - Delete a note
+// DELETE /api/notes/:id - Delete a note (soft delete - moves to trash)
 app.delete('/api/notes/:id', (req, res) => {
     try {
         const noteId = parseInt(req.params.id);
@@ -232,10 +232,92 @@ app.delete('/api/notes/:id', (req, res) => {
             return res.status(404).json({ error: 'Note not found' });
         }
 
-        res.json({ message: 'Note deleted successfully' });
+        res.json({ message: 'Note moved to trash' });
     } catch (error) {
         console.error('Error deleting note:', error);
         res.status(500).json({ error: 'Failed to delete note' });
+    }
+});
+
+// GET /api/trash - Get all deleted notes
+app.get('/api/trash', (req, res) => {
+    try {
+        const deletedNotes = db.getDeletedNotes();
+
+        const formattedNotes = deletedNotes.map(note => ({
+            id: note.id.toString(),
+            title: note.title,
+            preview: note.preview,
+            folder_id: note.folder_id ? note.folder_id.toString() : null,
+            created_at: note.created_at,
+            updated_at: note.updated_at,
+            deleted_at: note.deleted_at,
+            tags: db.getTagsForNote(note.id).map(tag => tag.name)
+        }));
+
+        res.json(formattedNotes);
+    } catch (error) {
+        console.error('Error getting trash:', error);
+        res.status(500).json({ error: 'Failed to get trash' });
+    }
+});
+
+// PUT /api/trash/:id/restore - Restore a note from trash
+app.put('/api/trash/:id/restore', (req, res) => {
+    try {
+        const noteId = parseInt(req.params.id);
+
+        if (isNaN(noteId)) {
+            return res.status(400).json({ error: 'Invalid note ID' });
+        }
+
+        const restored = db.restoreNote(noteId);
+
+        if (!restored) {
+            return res.status(404).json({ error: 'Note not found in trash' });
+        }
+
+        res.json({ message: 'Note restored successfully' });
+    } catch (error) {
+        console.error('Error restoring note:', error);
+        res.status(500).json({ error: 'Failed to restore note' });
+    }
+});
+
+// DELETE /api/trash/:id - Permanently delete a note
+app.delete('/api/trash/:id', (req, res) => {
+    try {
+        const noteId = parseInt(req.params.id);
+
+        if (isNaN(noteId)) {
+            return res.status(400).json({ error: 'Invalid note ID' });
+        }
+
+        const deleted = db.permanentlyDeleteNote(noteId);
+
+        if (!deleted) {
+            return res.status(404).json({ error: 'Note not found' });
+        }
+
+        res.json({ message: 'Note permanently deleted' });
+    } catch (error) {
+        console.error('Error permanently deleting note:', error);
+        res.status(500).json({ error: 'Failed to permanently delete note' });
+    }
+});
+
+// DELETE /api/trash - Empty trash (permanently delete all notes in trash)
+app.delete('/api/trash', (req, res) => {
+    try {
+        const deletedCount = db.emptyTrash();
+
+        res.json({
+            message: `Trash emptied successfully`,
+            count: deletedCount
+        });
+    } catch (error) {
+        console.error('Error emptying trash:', error);
+        res.status(500).json({ error: 'Failed to empty trash' });
     }
 });
 
