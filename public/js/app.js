@@ -848,6 +848,14 @@ function createAllNotesFolder() {
         renderFolderTree();
     });
 
+    // Double-click to toggle expand/collapse
+    folderHeader.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        allNotesExpanded = !allNotesExpanded;
+        localStorage.setItem('allNotesExpanded', JSON.stringify(allNotesExpanded));
+        renderFolderTree();
+    });
+
     folderItem.appendChild(folderHeader);
 
     // Show notes if expanded
@@ -915,6 +923,14 @@ function createTrashFolder() {
         currentTagFilter = null;
         clearTagFilter.style.display = 'none';
         loadTrash();
+        renderFolderTree();
+    });
+
+    // Double-click to toggle expand/collapse
+    folderHeader.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        trashExpanded = !trashExpanded;
+        localStorage.setItem('trashExpanded', JSON.stringify(trashExpanded));
         renderFolderTree();
     });
 
@@ -1076,6 +1092,14 @@ function createFolderElement(folder, depth) {
 
     // Click to select folder
     folderHeader.addEventListener('click', () => selectFolder(folder.id));
+
+    // Double-click to toggle expand/collapse
+    folderHeader.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (hasChildrenOrNotes) {
+            toggleFolder(folder.id);
+        }
+    });
 
     // Add context menu for folder operations (right-click)
     folderHeader.addEventListener('contextmenu', (e) => {
