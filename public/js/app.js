@@ -808,7 +808,7 @@ function createAllNotesFolder() {
 
     const folderHeader = document.createElement('div');
     folderHeader.className = 'folder-header';
-    if (currentFolderId === null) {
+    if (currentFolderId === 'all-notes') {
         folderHeader.classList.add('active');
     }
 
@@ -841,7 +841,7 @@ function createAllNotesFolder() {
     folderHeader.appendChild(noteCountBadge);
 
     folderHeader.addEventListener('click', () => {
-        currentFolderId = null;
+        currentFolderId = 'all-notes';
         currentTagFilter = null;
         clearTagFilter.style.display = 'none';
         loadNotes();
