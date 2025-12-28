@@ -546,6 +546,7 @@ Persists across browser sessions.
   - Folder tree still expands to show the note's location
   - Breadcrumb still displays the folder path
   - Clearer visual feedback showing exactly what is selected
+  - Fixed "All Notes" folder to only highlight when explicitly clicked, not when viewing notes
 
 ### Areas to Explore
 If continuing development, consider:
