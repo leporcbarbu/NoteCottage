@@ -541,6 +541,11 @@ Persists across browser sessions.
   - Enforces min/max width constraints (200px - 600px)
   - Persists user's preferred width to localStorage
   - Prevents text selection during drag operation
+- ✅ **Simplified note selection highlighting** - Removed parent folder highlighting
+  - When a note is selected, only the note itself is highlighted (not parent folder)
+  - Folder tree still expands to show the note's location
+  - Breadcrumb still displays the folder path
+  - Clearer visual feedback showing exactly what is selected
 
 ### Areas to Explore
 If continuing development, consider:
