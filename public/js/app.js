@@ -974,6 +974,51 @@ function createTrashFolder() {
         setTimeout(() => document.addEventListener('click', removeMenu), 0);
     });
 
+    // Make Trash folder a drop target for notes
+    folderHeader.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        try {
+            const dragDataStr = e.dataTransfer.getData('application/json');
+            if (!dragDataStr) return;
+
+            const dragData = JSON.parse(dragDataStr);
+
+            // Only accept notes (not folders)
+            if (dragData.type === 'note') {
+                dragManager.showDropIndicator(folderHeader, 'inside');
+            } else {
+                dragManager.showDropIndicator(folderHeader, 'invalid');
+            }
+        } catch (err) {
+            // Ignore errors from getData in dragover
+        }
+    });
+
+    folderHeader.addEventListener('dragleave', (e) => {
+        if (!folderHeader.contains(e.relatedTarget)) {
+            dragManager.clearDropIndicators();
+        }
+    });
+
+    folderHeader.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragManager.clearDropIndicators();
+
+        try {
+            const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
+
+            // Only handle note drops
+            if (dragData.type === 'note') {
+                await handleNoteDropToTrash(dragData);
+            }
+        } catch (error) {
+            console.error('Drop to trash error:', error);
+        }
+    });
+
     folderItem.appendChild(folderHeader);
 
     // Show deleted notes if expanded
@@ -2226,5 +2271,32 @@ async function handleNoteDrop(dragData, targetFolder) {
     } catch (error) {
         console.error('Error handling note drop:', error);
         alert('Failed to move note: ' + error.message);
+    }
+}
+
+async function handleNoteDropToTrash(dragData) {
+    try {
+        // Soft delete the note
+        const response = await fetch(`/api/notes/${dragData.id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete note');
+        }
+
+        // Close editor if the deleted note was being viewed
+        if (currentNoteId === dragData.id) {
+            showWelcome();
+            currentNoteId = null;
+        }
+
+        // Reload notes and trash
+        await loadNotes();
+        await loadTrash();
+        await loadFolders();
+    } catch (error) {
+        console.error('Error moving note to trash:', error);
+        alert('Failed to move note to trash: ' + error.message);
     }
 }
