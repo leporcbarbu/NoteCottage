@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
 **Last Updated:** December 28, 2025
-**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, and dark mode
+**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, and dark mode
 
 ## Project Overview
 
@@ -138,6 +138,14 @@ NodeTest/
   - `Ctrl/Cmd + S` - Save note
   - `Ctrl/Cmd + N` - New note
   - `Ctrl/Cmd + P` - Toggle preview
+✅ **Resizable Sidebar** - Adjustable width divider between sidebar and editor
+  - Drag handle between sidebar and editor to resize
+  - Visual feedback with blue highlight on hover/drag
+  - Constrains width between 200px-600px
+  - Width preference saved to localStorage
+✅ **Tooltips** - Full names displayed on hover for truncated folder/note names
+  - Shows complete folder and note names when ellipsis truncates text
+  - Applied to all folders (regular and virtual) and note titles
 
 ## Database Schema
 
@@ -367,6 +375,8 @@ Stored in browser's localStorage:
 - `theme`: `'light'` or `'dark'` (default: `'light'`)
 - `expandedFolders`: JSON array of folder IDs that are expanded in tree view
 - `allNotesExpanded`: Boolean for "All Notes" virtual folder expansion state (default: `false`)
+- `trashExpanded`: Boolean for "Trash" virtual folder expansion state (default: `false`)
+- `sidebarWidth`: Number in pixels for sidebar width (default: `300`)
 
 Persists across browser sessions.
 
@@ -402,6 +412,8 @@ Persists across browser sessions.
 - Preview button auto-saves before showing content, ensuring accuracy
 - WAL mode and graceful shutdown prevent database corruption
 - Light mode buttons now have excellent readability and contrast
+- Resizable sidebar provides flexible workspace layout customization
+- Tooltips on hover solve truncated name visibility issues elegantly
 
 ### Recent Updates (December 27, 2024)
 
@@ -518,6 +530,18 @@ Persists across browser sessions.
   - Initial commit with all source files
   - Configured git user identity
 
+**Session 8 (December 28, 2025):**
+- ✅ **Tooltips for truncated names** - Improved visibility of long folder/note names
+  - Added `title` attributes to all folder and note name elements
+  - Shows full name on hover when text is truncated with ellipsis
+  - Applied to regular folders, virtual folders, and all note titles
+- ✅ **Resizable Sidebar** - Adjustable sidebar width for better workspace control
+  - Implemented 5px drag handle between sidebar and editor
+  - Smooth drag interaction with visual feedback (blue highlight)
+  - Enforces min/max width constraints (200px - 600px)
+  - Persists user's preferred width to localStorage
+  - Prevents text selection during drag operation
+
 ### Areas to Explore
 If continuing development, consider:
 1. **Cottage/Cozy Theming** - Warmer color palette, rounded corners, softer visual aesthetic
@@ -571,4 +595,4 @@ This project successfully demonstrated:
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, and dark mode. Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. All known bugs have been resolved.
+**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, and dark mode. Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. All known bugs have been resolved.
