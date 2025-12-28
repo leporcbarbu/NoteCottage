@@ -1658,17 +1658,19 @@ async function loadNote(noteId) {
             updatedDate.textContent = formatFullTimestamp(note.updated_at, 'Last edited');
         }
 
-        // Select and expand to parent folder
+        // Expand to parent folder (but don't highlight it)
         if (note.folder_id) {
             expandToFolder(note.folder_id);
-            currentFolderId = note.folder_id;
-            currentTagFilter = null;
-            clearTagFilter.style.display = 'none';
-            renderFolderTree();
             updateFolderLocation(note.folder_id);
         } else {
             updateFolderLocation(null);
         }
+
+        // Clear folder/tag filters when viewing a note
+        currentFolderId = null;
+        currentTagFilter = null;
+        clearTagFilter.style.display = 'none';
+        renderFolderTree();
 
         showEditor();
         updateActiveNote();
