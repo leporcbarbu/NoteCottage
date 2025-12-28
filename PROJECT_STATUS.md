@@ -414,6 +414,8 @@ Persists across browser sessions.
 - Light mode buttons now have excellent readability and contrast
 - Resizable sidebar provides flexible workspace layout customization
 - Tooltips on hover solve truncated name visibility issues elegantly
+- Double-click folder expansion is intuitive and faster than clicking arrows
+- Folder highlighting behavior is clean and unambiguous
 
 ### Recent Updates (December 27, 2024)
 
@@ -547,6 +549,10 @@ Persists across browser sessions.
   - Breadcrumb still displays the folder path
   - Clearer visual feedback showing exactly what is selected
   - Fixed "All Notes" folder to only highlight when explicitly clicked, not when viewing notes
+- ✅ **Double-click folder expansion** - More intuitive folder interaction
+  - Double-click any folder to toggle its expand/collapse state
+  - Works on "All Notes", "Trash", and all regular folders
+  - Alternative to clicking the arrow icon for faster navigation
 
 ### Areas to Explore
 If continuing development, consider:
