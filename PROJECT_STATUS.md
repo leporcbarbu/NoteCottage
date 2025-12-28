@@ -416,6 +416,7 @@ Persists across browser sessions.
 - Tooltips on hover solve truncated name visibility issues elegantly
 - Double-click folder expansion is intuitive and faster than clicking arrows
 - Folder highlighting behavior is clean and unambiguous
+- Drag-to-trash provides a natural, intuitive way to delete notes
 
 ### Recent Updates (December 27, 2024)
 
@@ -553,6 +554,12 @@ Persists across browser sessions.
   - Double-click any folder to toggle its expand/collapse state
   - Works on "All Notes", "Trash", and all regular folders
   - Alternative to clicking the arrow icon for faster navigation
+- ✅ **Drag-to-trash functionality** - Quick note deletion via drag-and-drop
+  - Drag notes directly to the Trash folder to delete them
+  - Performs soft delete (sets deleted_at timestamp)
+  - Visual drop indicator when hovering over Trash
+  - Closes editor if viewing the deleted note
+  - Trash only accepts notes (not folders)
 
 ### Areas to Explore
 If continuing development, consider:
