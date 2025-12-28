@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoteCottage - Your Personal Knowledge Garden</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components/modal.css">
+    <link rel="stylesheet" href="/css/components/emoji-picker.css">
+    <link rel="stylesheet" href="/css/components/drag.css">
+    <link rel="stylesheet" href="/css/components/context-menu.css">
+    <link rel="stylesheet" href="/css/components/tag-autocomplete.css">
+    <link rel="stylesheet" href="/css/components/wikilink-autocomplete.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for notes list -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 15px;">
+                    <h1 style="margin-bottom: 0;">NoteCottage</h1>
+                    <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+                </div>
+                <button id="newNoteBtn" class="btn btn-primary">+ New Note</button>
+            </div>
+            <div class="folders-section">
+                <div class="folders-header">
+                    <h3>Notes & Folders</h3>
+                    <button id="newFolderBtn" class="new-folder-btn" title="New Folder">+</button>
+                </div>
+                <div id="foldersTree" class="folders-tree">
+                    <!-- Folder tree and notes will be populated here -->
+                </div>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search notes...">
+            </div>
+            <div class="tags-section">
+                <div class="tags-header">
+                    <h3>Tags</h3>
+                    <button id="clearTagFilter" class="clear-filter" style="display: none;">Clear Filter</button>
+                </div>
+                <div id="tagsList" class="tags-list">
+                    <!-- Tags will be populated here -->
+                </div>
+            </div>
+            <div class="backlinks-section" style="display: none;">
+                <div class="backlinks-header">
+                    <h3>Backlinks</h3>
+                    <span id="backlinksCount" class="backlinks-count">0</span>
+                </div>
+                <div id="backlinksList" class="backlinks-list">
+                    <!-- Backlinks will be populated here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content area -->
+        <main class="main-content">
+            <div id="welcomeScreen" class="welcome-screen">
+                <h2>Welcome to NoteCottage</h2>
+                <p>Your personal space for notes and ideas.</p>
+                <p class="feature-list">
+                    <strong>Key Features:</strong><br>
+                    • Connect notes with wiki-style [[links]]<br>
+                    • Organize with folders and tags<br>
+                    • See backlinks between related notes<br>
+                    • Markdown formatting with live preview<br>
+                    • Dark mode and multiple export formats
+                </p>
+                <p>Select a note from the sidebar or create a new one to get started.</p>
+            </div>
+
+            <div id="editorScreen" class="editor-screen" style="display: none;">
+                <div class="editor-header">
+                    <div class="title-section">
+                        <input type="text" id="noteTitle" class="note-title-input" placeholder="Note Title">
+                    </div>
+                    <div class="editor-actions">
+                        <button id="viewToggle" class="btn btn-secondary">Preview</button>
+                        <button id="saveBtn" class="btn btn-success">Save</button>
+                        <div class="export-dropdown">
+                            <button id="exportBtn" class="btn btn-secondary">Export ▾</button>
+                            <div id="exportMenu" class="export-menu" style="display: none;">
+                                <button class="export-option" data-format="markdown">Markdown (.md)</button>
+                                <button class="export-option" data-format="html">HTML (.html)</button>
+                                <button class="export-option" data-format="pdf">PDF (.pdf)</button>
+                            </div>
+                        </div>
+                        <button id="deleteBtn" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+
+                <div class="editor-container">
+                    <!-- Editor view -->
+                    <div id="editorView" class="editor-view">
+                        <textarea id="noteContent" class="note-editor" placeholder="Start writing in Markdown...
+
+# Heading 1
+## Heading 2
+
+**Bold** and *italic* text
+
+- Bullet points
+- Are supported
+
+1. Numbered lists
+2. Work too
+
+`Code blocks` and more!"></textarea>
+                    </div>
+
+                    <!-- Preview view -->
+                    <div id="previewView" class="preview-view" style="display: none;">
+                        <div id="previewContent" class="preview-content"></div>
+                    </div>
+                </div>
+
+                <!-- Status bar -->
+                <div class="status-bar">
+                    <div class="status-bar-left">
+                        <span id="wordCount" class="status-item">0 words</span>
+                        <span id="folderLocation" class="status-item folder-breadcrumb"></span>
+                    </div>
+                    <div class="status-bar-center">
+                        <span id="saveStatus" class="save-status"></span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span id="createdDate" class="status-item"></span>
+                        <span id="updatedDate" class="status-item"></span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/js/wikilink-extension.js"></script>
+    <script src="/js/components/modal.js"></script>
+    <script src="/js/components/emoji-picker.js"></script>
+    <script src="/js/components/folder-form.js"></script>
+    <script src="/js/components/drag-manager.js"></script>
+    <script src="/js/components/context-menu.js"></script>
+    <script src="/js/components/tag-autocomplete.js"></script>
+    <script src="/js/components/wikilink-autocomplete.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

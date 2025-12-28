@@ -1,0 +1,83 @@
+/* Wiki-Link Autocomplete Dropdown Styles */
+
+.wikilink-autocomplete-dropdown {
+    position: fixed;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-sidebar);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 200px;
+    max-width: 400px;
+    z-index: 2000;
+    display: none;
+    animation: wikilink-autocomplete-fade-in 0.15s ease;
+}
+
+@keyframes wikilink-autocomplete-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wikilink-autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: background-color 0.15s;
+    user-select: none;
+}
+
+.wikilink-autocomplete-item::before {
+    content: '[[';
+    color: var(--text-sidebar-muted);
+    margin-right: 4px;
+    font-size: 12px;
+}
+
+.wikilink-autocomplete-item:hover,
+.wikilink-autocomplete-item.selected {
+    background-color: var(--bg-folder-hover);
+    color: var(--text-sidebar);
+}
+
+.wikilink-autocomplete-item:first-child {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.wikilink-autocomplete-item:last-child {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Scrollbar styles */
+.wikilink-autocomplete-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.wikilink-autocomplete-dropdown::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.wikilink-autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: var(--bg-folder-hover);
+    border-radius: 4px;
+}
+
+.wikilink-autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+    background: var(--bg-tag-hover);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .wikilink-autocomplete-dropdown {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}

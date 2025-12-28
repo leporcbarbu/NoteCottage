@@ -1,0 +1,94 @@
+/* Emoji Picker styles */
+
+.emoji-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.emoji-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-sidebar);
+}
+
+.emoji-tab {
+    padding: 6px 12px;
+    border: none;
+    background-color: var(--bg-secondary);
+    color: var(--text-sidebar-muted);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.emoji-tab:hover {
+    background-color: var(--bg-folder-hover);
+    color: var(--text-primary);
+}
+
+.emoji-tab.active {
+    background-color: #2980b9;
+    color: white;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.emoji-button {
+    width: 40px;
+    height: 40px;
+    border: 2px solid transparent;
+    background-color: var(--bg-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-button:hover {
+    background-color: var(--bg-folder-hover);
+    transform: scale(1.1);
+}
+
+.emoji-button.selected {
+    border-color: #2980b9;
+    background-color: rgba(41, 128, 185, 0.1);
+}
+
+/* Scrollbar styles for emoji grid */
+.emoji-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.emoji-grid::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb {
+    background: var(--bg-folder-hover);
+    border-radius: 4px;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--bg-tag-hover);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .emoji-button.selected {
+    background-color: rgba(41, 128, 185, 0.2);
+}
