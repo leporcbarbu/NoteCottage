@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
 **Last Updated:** December 29, 2025
-**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, four distinct themes (Light, Dark, Cottage, Cottage Dark), and multi-user authentication with hybrid shared/private folders (IN PROGRESS)
+**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, four distinct themes (Light, Dark, Cottage, Cottage Dark), and multi-user authentication with Private/Shared folder organization (NEARLY COMPLETE)
 
 ## Project Overview
 
@@ -1254,9 +1254,50 @@ Persists across browser sessions.
     - Fixed root-level folder creation when "All Notes" is selected
     - Fixed user dropdown menu visibility using CSS classes
     - Consolidated theme picker into user dropdown to reduce header clutter
+  - ✅ **Admin Panel UI (COMPLETE)**
+    - Created admin.html with three tabs: Statistics, User Management, System Settings
+    - Statistics tab displays user count, note count, folder count with visual cards
+    - User Management tab: table listing all users with edit/delete actions
+    - "Create User" button for admin to add users manually
+    - Edit user modal for updating username, email, display name, password, admin status
+    - Delete confirmation dialog for user removal
+    - System Settings tab: toggle registration on/off, set max users, customize app name
+    - Save settings button with visual feedback
+    - Styled with cottage theme for consistency
+    - All API endpoints fully functional and integrated
+  - ✅ **UI Polish and Fixes**
+    - Compact "New User" button (reduced padding and width)
+    - Improved admin panel spacing and layout
+    - Better stat card styling with hover effects
+    - Fixed login page to correctly detect existing users vs first-time setup
+    - Added public /api/auth/status endpoint for proper user detection
+    - Fixed user creation endpoint (folder parameter order)
+    - Fixed Modal component to support both old and new APIs
+  - ✅ **Private/Shared Folder Organization (COMPLETE)**
+    - Implemented virtual root folders: 🔒 Private and 👥 Shared
+    - Modified buildFolderTree() to create two-tier structure
+    - Top-level folders automatically sorted into Private/Shared based on is_public flag
+    - Drag-and-drop between Private/Shared sections to change folder privacy
+    - Virtual folders always expanded by default
+    - Removed redundant privacy badges (organization makes them clear)
+    - Folders now visually separated for better organization
+  - ✅ **Enhanced Folder Creation Dialog**
+    - Added parent folder selector with visual tree view
+    - Tree view shows folder hierarchy with proper indentation
+    - Click to select parent folder (highlighted in accent color)
+    - Smooth hover effects for better UX
+    - Pre-selects currently active folder as default parent
+    - Dark theme compatible with proper text colors
+    - Much more intuitive than dropdown list
+  - ✅ **UX Improvements**
+    - Reduced folder/note indentation from 20px to 12px per level (40% reduction)
+    - Prevents deeply nested folders from being cut off
+    - Better horizontal space usage
+    - Drag folder to itself now silently ignored (no error dialog)
+    - Shared Folder checkbox in creation dialog now properly respected
   - ⏳ **Remaining Tasks**
-    - Build admin panel UI (user management, settings, statistics)
     - Comprehensive multi-user testing (permissions, sessions, admin features)
+    - Optional: Invitation system for when registration is disabled
 
 ### Areas to Explore
 If continuing development, consider:
@@ -1313,4 +1354,4 @@ This project successfully demonstrated:
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application now fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support IN PROGRESS:** Session-based authentication implemented with hybrid shared/private folder model - database schema, auth system, API permissions, and frontend UI complete; admin panel UI and comprehensive testing remaining. **Next steps in roadmap:** Complete multi-user implementation (admin panel UI, testing), production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
+**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application now fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support NEARLY COMPLETE:** Session-based authentication implemented with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, and folder organization all complete. Private/Shared virtual root folders provide clear visual separation of collaborative vs personal content. Enhanced folder creation dialog with tree view selector. Admin panel fully functional with user management, system settings, and statistics. Remaining: comprehensive multi-user testing and optional invitation system. **Next steps in roadmap:** Multi-user testing and refinement, production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
