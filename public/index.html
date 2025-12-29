@@ -20,25 +20,20 @@
             <div class="sidebar-header">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 15px;">
                     <h1 style="margin-bottom: 0;">NoteCottage</h1>
-                    <div style="display: flex; gap: 10px;">
-                        <div class="theme-picker">
-                            <button id="themeButton" class="theme-button" title="Change theme">Theme</button>
-                            <div id="themeMenu" class="theme-menu" style="display: none;">
-                                <button class="theme-option" data-theme="light">☀️ Light</button>
-                                <button class="theme-option" data-theme="dark">🌙 Dark</button>
-                                <button class="theme-option" data-theme="cottage">🏡 Cottage</button>
-                                <button class="theme-option" data-theme="cottage-dark">🏡🌙 Cottage Dark</button>
-                            </div>
-                        </div>
-                        <div class="user-menu">
-                            <button id="userButton" class="theme-button" title="User menu">
-                                <span id="currentUsername">User</span>
-                            </button>
-                            <div id="userMenu" class="theme-menu" style="display: none;">
-                                <button id="userProfileBtn" class="user-menu-option">Profile</button>
-                                <button id="adminPanelBtn" class="user-menu-option" style="display: none;">Admin Panel</button>
-                                <button id="logoutBtn" class="user-menu-option">Logout</button>
-                            </div>
+                    <div class="user-menu">
+                        <button id="userButton" class="theme-button" title="User menu">
+                            <span id="currentUsername">User</span>
+                        </button>
+                        <div id="userMenu" class="theme-menu">
+                            <button id="userProfileBtn" class="user-menu-option">Profile</button>
+                            <button id="adminPanelBtn" class="user-menu-option" style="display: none;">Admin Panel</button>
+                            <div style="border-top: 1px solid #e0e0e0; margin: 4px 0;"></div>
+                            <button class="user-menu-option theme-option" data-theme="light">☀️ Light</button>
+                            <button class="user-menu-option theme-option" data-theme="dark">🌙 Dark</button>
+                            <button class="user-menu-option theme-option" data-theme="cottage">🏡 Cottage</button>
+                            <button class="user-menu-option theme-option" data-theme="cottage-dark">🏡🌙 Cottage Dark</button>
+                            <div style="border-top: 1px solid #e0e0e0; margin: 4px 0;"></div>
+                            <button id="logoutBtn" class="user-menu-option">Logout</button>
                         </div>
                     </div>
                 </div>

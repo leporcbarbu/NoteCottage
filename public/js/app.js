@@ -175,13 +175,12 @@ function closeThemeMenu() {
 // User menu functions
 function toggleUserMenu() {
     const userMenu = document.getElementById('userMenu');
-    const isVisible = userMenu.style.display === 'block';
-    userMenu.style.display = isVisible ? 'none' : 'block';
+    userMenu.classList.toggle('show');
 }
 
 function closeUserMenu() {
     const userMenu = document.getElementById('userMenu');
-    userMenu.style.display = 'none';
+    userMenu.classList.remove('show');
 }
 
 // Update user info display
@@ -534,25 +533,13 @@ function setupEventListeners() {
     searchInput.addEventListener('input', filterNotes);
     clearTagFilter.addEventListener('click', clearFilter);
 
-    // Theme picker
-    themeButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleThemeMenu();
-    });
-
-    // Theme options
+    // Theme options (now in user menu)
     document.querySelectorAll('.theme-option').forEach(option => {
         option.addEventListener('click', () => {
             setTheme(option.dataset.theme);
-            closeThemeMenu();
+            updateThemeMenuActiveState();
+            closeUserMenu(); // Close user menu after selecting theme
         });
-    });
-
-    // Close theme menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!themeButton.contains(e.target) && !themeMenu.contains(e.target)) {
-            closeThemeMenu();
-        }
     });
 
     // User menu

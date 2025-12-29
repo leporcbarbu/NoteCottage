@@ -1187,6 +1187,18 @@ body {
 }
 
 /* User Menu Styles */
+.user-menu {
+    position: relative;
+}
+
+#userMenu {
+    display: none; /* Hidden by default */
+}
+
+#userMenu.show {
+    display: block;
+}
+
 .user-menu-option {
     display: block;
     width: 100%;
