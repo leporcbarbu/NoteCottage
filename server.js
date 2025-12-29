@@ -300,6 +300,218 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
 });
 
 // ============================================
+// Admin Panel Routes (Admin Only)
+// ============================================
+
+// GET /api/admin/users - List all users
+app.get('/api/admin/users', requireAdmin, (req, res) => {
+    try {
+        const users = db.getAllUsers();
+        res.json(users);
+    } catch (error) {
+        console.error('Error getting users:', error);
+        res.status(500).json({ error: 'Failed to get users' });
+    }
+});
+
+// DELETE /api/admin/users/:id - Delete user and their private content
+app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const adminId = req.session.userId;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        // Prevent deleting yourself
+        if (userId === adminId) {
+            return res.status(400).json({ error: 'Cannot delete your own account' });
+        }
+
+        // Prevent deleting the last admin
+        const user = db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (user.is_admin) {
+            const adminCount = db.getAdminCount();
+            if (adminCount <= 1) {
+                return res.status(400).json({ error: 'Cannot delete the last admin' });
+            }
+        }
+
+        // Delete user (CASCADE will handle their folders and notes)
+        const deleted = db.deleteUser(userId);
+
+        if (!deleted) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+// PUT /api/admin/users/:id/password - Reset user's password
+app.put('/api/admin/users/:id/password', requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { newPassword } = req.body;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        if (!newPassword || newPassword.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        }
+
+        const user = db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Hash new password
+        const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+        const updated = db.updateUserPassword(userId, passwordHash);
+
+        if (!updated) {
+            return res.status(500).json({ error: 'Failed to update password' });
+        }
+
+        res.json({ message: 'Password reset successfully' });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).json({ error: 'Failed to reset password' });
+    }
+});
+
+// PUT /api/admin/users/:id/admin - Toggle admin status
+app.put('/api/admin/users/:id/admin', requireAdmin, (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { is_admin } = req.body;
+        const adminId = req.session.userId;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        // Prevent removing your own admin status
+        if (userId === adminId && !is_admin) {
+            return res.status(400).json({ error: 'Cannot remove your own admin status' });
+        }
+
+        const user = db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Prevent removing admin from last admin
+        if (user.is_admin && !is_admin) {
+            const adminCount = db.getAdminCount();
+            if (adminCount <= 1) {
+                return res.status(400).json({ error: 'Cannot remove admin status from the last admin' });
+            }
+        }
+
+        const updated = db.updateUserAdmin(userId, is_admin);
+
+        if (!updated) {
+            return res.status(500).json({ error: 'Failed to update admin status' });
+        }
+
+        res.json({ message: 'Admin status updated successfully' });
+    } catch (error) {
+        console.error('Error updating admin status:', error);
+        res.status(500).json({ error: 'Failed to update admin status' });
+    }
+});
+
+// GET /api/admin/settings - Get system settings
+app.get('/api/admin/settings', requireAdmin, (req, res) => {
+    try {
+        const settings = db.getAllSettings();
+        res.json(settings);
+    } catch (error) {
+        console.error('Error getting settings:', error);
+        res.status(500).json({ error: 'Failed to get settings' });
+    }
+});
+
+// PUT /api/admin/settings - Update system settings
+app.put('/api/admin/settings', requireAdmin, (req, res) => {
+    try {
+        const { registration_enabled, max_users, app_name } = req.body;
+
+        if (registration_enabled !== undefined) {
+            db.updateSetting('registration_enabled', registration_enabled.toString());
+        }
+
+        if (max_users !== undefined) {
+            const maxUsersInt = parseInt(max_users);
+            if (isNaN(maxUsersInt) || maxUsersInt < 1 || maxUsersInt > 20) {
+                return res.status(400).json({ error: 'Max users must be between 1 and 20' });
+            }
+            db.updateSetting('max_users', maxUsersInt.toString());
+        }
+
+        if (app_name !== undefined) {
+            if (!app_name || app_name.trim().length === 0) {
+                return res.status(400).json({ error: 'App name cannot be empty' });
+            }
+            db.updateSetting('app_name', app_name.trim());
+        }
+
+        const updatedSettings = db.getAllSettings();
+        res.json(updatedSettings);
+    } catch (error) {
+        console.error('Error updating settings:', error);
+        res.status(500).json({ error: 'Failed to update settings' });
+    }
+});
+
+// GET /api/admin/stats - Get system statistics
+app.get('/api/admin/stats', requireAdmin, (req, res) => {
+    try {
+        const userCount = db.getUserCount();
+        const allNotes = db.getAllNotes();
+        const allFolders = db.getAllFolders();
+
+        // Count public vs private notes
+        let publicNoteCount = 0;
+        let privateNoteCount = 0;
+
+        allNotes.forEach(note => {
+            const folder = db.getFolderById(note.folder_id);
+            if (folder && folder.is_public === 1) {
+                publicNoteCount++;
+            } else {
+                privateNoteCount++;
+            }
+        });
+
+        const stats = {
+            user_count: userCount,
+            total_notes: allNotes.length,
+            public_notes: publicNoteCount,
+            private_notes: privateNoteCount,
+            total_folders: allFolders.length,
+            total_tags: db.getAllTags().length
+        };
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Error getting stats:', error);
+        res.status(500).json({ error: 'Failed to get statistics' });
+    }
+});
+
+// ============================================
 // Main Application Routes
 // ============================================
 
