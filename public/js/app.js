@@ -1,3 +1,40 @@
+// Authentication and user state
+let currentUser = null;
+
+// Check authentication on page load
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+            currentUser = await response.json();
+            console.log('Logged in as:', currentUser.username);
+            return true;
+        } else {
+            // Not authenticated, redirect to login
+            window.location.href = '/login.html';
+            return false;
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html';
+        return false;
+    }
+}
+
+// Global fetch wrapper to handle 401/403 responses
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+    const response = await originalFetch(...args);
+
+    // If we get 401, redirect to login (unless it's a login endpoint)
+    if (response.status === 401 && !args[0].includes('/api/auth/')) {
+        console.log('Session expired, redirecting to login');
+        window.location.href = '/login.html';
+    }
+
+    return response;
+};
+
 // State management
 let currentNoteId = null;
 let notes = [];
@@ -418,7 +455,14 @@ function initializeSidebarResize() {
 }
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check authentication first
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+        // checkAuth() will handle redirect to login
+        return;
+    }
+
     // Apply saved theme and set active state
     setTheme(currentTheme);
     updateThemeMenuActiveState();
