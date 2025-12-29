@@ -641,7 +641,11 @@ function setupEventListeners() {
     // Folder event listeners
     const newFolderBtn = document.getElementById('newFolderBtn');
     if (newFolderBtn) {
-        newFolderBtn.addEventListener('click', () => createNewFolder(currentFolderId));
+        newFolderBtn.addEventListener('click', () => {
+            // If "All Notes" is selected, create root-level folder (no parent)
+            const parentId = (currentFolderId === 'all-notes') ? null : currentFolderId;
+            createNewFolder(parentId);
+        });
     }
 }
 
