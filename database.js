@@ -412,27 +412,35 @@ const statements = {
         DELETE FROM tags WHERE name = ?
     `),
 
-    // Folder statements
+    // Folder statements (without permission filtering - use getAllFoldersForUser instead)
     getAllFolders: db.prepare(`
-        SELECT id, name, parent_id, color, icon, position, created_at, updated_at
+        SELECT id, name, parent_id, color, icon, position, user_id, is_public, created_at, updated_at
         FROM folders
         ORDER BY parent_id ASC, position ASC, name ASC
     `),
 
+    // Get folders visible to a specific user (public folders + user's private folders)
+    getFoldersForUser: db.prepare(`
+        SELECT id, name, parent_id, color, icon, position, user_id, is_public, created_at, updated_at
+        FROM folders
+        WHERE is_public = 1 OR user_id = ?
+        ORDER BY parent_id ASC, position ASC, name ASC
+    `),
+
     getFolderById: db.prepare(`
-        SELECT id, name, parent_id, color, icon, position, created_at, updated_at
+        SELECT id, name, parent_id, color, icon, position, user_id, is_public, created_at, updated_at
         FROM folders
         WHERE id = ?
     `),
 
     createFolder: db.prepare(`
-        INSERT INTO folders (name, parent_id, color, icon, position)
-        VALUES (?, ?, ?, ?, COALESCE((SELECT MAX(position) + 1 FROM folders WHERE parent_id IS ?), 0))
+        INSERT INTO folders (name, parent_id, color, icon, user_id, is_public, position)
+        VALUES (?, ?, ?, ?, ?, ?, COALESCE((SELECT MAX(position) + 1 FROM folders WHERE parent_id IS ?), 0))
     `),
 
     updateFolder: db.prepare(`
         UPDATE folders
-        SET name = ?, parent_id = ?, color = ?, icon = ?, updated_at = CURRENT_TIMESTAMP
+        SET name = ?, parent_id = ?, color = ?, icon = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     `),
 
@@ -582,14 +590,14 @@ function getNoteById(id) {
     return statements.getNoteById.get(id);
 }
 
-function createNote(title, content, folderId = 1) {
+function createNote(title, content, folderId = 1, userId = null) {
     try {
         const insertNoteWithFolder = db.prepare(`
-            INSERT INTO notes (title, content, folder_id)
-            VALUES (?, ?, ?)
+            INSERT INTO notes (title, content, folder_id, user_id)
+            VALUES (?, ?, ?, ?)
         `);
 
-        const result = insertNoteWithFolder.run(title, content, folderId);
+        const result = insertNoteWithFolder.run(title, content, folderId, userId);
         const noteId = result.lastInsertRowid;
 
         // Automatically extract and save tags
@@ -599,7 +607,8 @@ function createNote(title, content, folderId = 1) {
             id: noteId,
             title,
             content,
-            folder_id: folderId
+            folder_id: folderId,
+            user_id: userId
         };
     } catch (error) {
         // Check if this is an FTS corruption error
@@ -609,6 +618,26 @@ function createNote(title, content, folderId = 1) {
         }
         throw error;
     }
+}
+
+function canUserAccessNote(noteId, userId) {
+    const note = getNoteById(noteId);
+    if (!note) return false;
+
+    // Note is accessible if its parent folder is accessible
+    return canUserAccessFolder(note.folder_id, userId);
+}
+
+function canUserModifyNote(noteId, userId) {
+    const note = getNoteById(noteId);
+    if (!note) return false;
+
+    const folder = getFolderById(note.folder_id);
+    if (!folder) return false;
+
+    // Can modify if: note is in public folder OR user owns the note
+    if (folder.is_public === 1) return true;
+    return note.user_id === userId;
 }
 
 function updateNote(id, content) {
@@ -708,16 +737,26 @@ function getAllFolders() {
     return statements.getAllFolders.all();
 }
 
+function getAllFoldersForUser(userId) {
+    if (!userId) {
+        // No user logged in - return only public folders
+        return statements.getAllFolders.all().filter(f => f.is_public === 1);
+    }
+    return statements.getFoldersForUser.all(userId);
+}
+
 function getFolderById(id) {
     return statements.getFolderById.get(id);
 }
 
-function createFolder(name, parentId, color = null, icon = '📁') {
+function createFolder(name, parentId, color = null, icon = '📁', userId = null, isPublic = false) {
     const result = statements.createFolder.run(
         name,
         parentId || null,
         color,
         icon,
+        userId,
+        isPublic ? 1 : 0,
         parentId || null  // for COALESCE position calculation
     );
 
@@ -726,19 +765,41 @@ function createFolder(name, parentId, color = null, icon = '📁') {
         name,
         parent_id: parentId,
         color,
-        icon
+        icon,
+        user_id: userId,
+        is_public: isPublic
     };
 }
 
-function updateFolder(id, name, parentId, color, icon) {
+function updateFolder(id, name, parentId, color, icon, isPublic) {
     const result = statements.updateFolder.run(
         name,
         parentId || null,
         color,
         icon,
+        isPublic ? 1 : 0,
         id
     );
     return result.changes > 0;
+}
+
+function canUserAccessFolder(folderId, userId) {
+    const folder = getFolderById(folderId);
+    if (!folder) return false;
+
+    // Public folders are accessible to everyone
+    if (folder.is_public === 1) return true;
+
+    // Private folders are only accessible to owner
+    return folder.user_id === userId;
+}
+
+function canUserModifyFolder(folderId, userId) {
+    const folder = getFolderById(folderId);
+    if (!folder) return false;
+
+    // Only the owner can modify a folder
+    return folder.user_id === userId;
 }
 
 function deleteFolder(id) {
@@ -1003,6 +1064,7 @@ module.exports = {
     deleteTag,
     // Folder operations
     getAllFolders,
+    getAllFoldersForUser,
     getFolderById,
     createFolder,
     updateFolder,
@@ -1012,6 +1074,11 @@ module.exports = {
     moveNoteToFolder,
     isDescendant,
     buildFolderTree,
+    canUserAccessFolder,
+    canUserModifyFolder,
+    // Note permission checks
+    canUserAccessNote,
+    canUserModifyNote,
     // Reordering operations
     reorderFolderFunc,
     reorderNote,

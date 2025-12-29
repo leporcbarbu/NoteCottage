@@ -418,22 +418,29 @@ app.get('/api/notes/:id/backlinks', (req, res) => {
 });
 
 // POST /api/notes - Create a new note
-app.post('/api/notes', (req, res) => {
+app.post('/api/notes', requireAuth, (req, res) => {
     try {
         const { title, content, folder_id } = req.body;
+        const userId = req.session.userId;
 
         if (!title || !content) {
             return res.status(400).json({ error: 'Title and content are required' });
         }
 
-        // Parse folder_id if provided, otherwise default to 1 (Uncategorized)
+        // Parse folder_id if provided, otherwise use user's default folder
         const folderId = folder_id ? parseInt(folder_id) : 1;
 
-        const newNote = db.createNote(title, content, folderId);
+        // Check if user has access to the target folder
+        if (!db.canUserAccessFolder(folderId, userId)) {
+            return res.status(403).json({ error: 'You do not have access to this folder' });
+        }
+
+        const newNote = db.createNote(title, content, folderId, userId);
 
         res.status(201).json({
             id: newNote.id.toString(),
             title: newNote.title,
+            user_id: newNote.user_id,
             message: 'Note created successfully'
         });
     } catch (error) {
@@ -443,10 +450,11 @@ app.post('/api/notes', (req, res) => {
 });
 
 // PUT /api/notes/:id - Update a note
-app.put('/api/notes/:id', (req, res) => {
+app.put('/api/notes/:id', requireAuth, (req, res) => {
     try {
         const noteId = parseInt(req.params.id);
         const { content } = req.body;
+        const userId = req.session.userId;
 
         if (isNaN(noteId)) {
             return res.status(400).json({ error: 'Invalid note ID' });
@@ -454,6 +462,11 @@ app.put('/api/notes/:id', (req, res) => {
 
         if (!content) {
             return res.status(400).json({ error: 'Content is required' });
+        }
+
+        // Check if user has permission to modify this note
+        if (!db.canUserModifyNote(noteId, userId)) {
+            return res.status(403).json({ error: 'You do not have permission to modify this note' });
         }
 
         const updated = db.updateNote(noteId, content);
@@ -473,12 +486,18 @@ app.put('/api/notes/:id', (req, res) => {
 });
 
 // DELETE /api/notes/:id - Delete a note (soft delete - moves to trash)
-app.delete('/api/notes/:id', (req, res) => {
+app.delete('/api/notes/:id', requireAuth, (req, res) => {
     try {
         const noteId = parseInt(req.params.id);
+        const userId = req.session.userId;
 
         if (isNaN(noteId)) {
             return res.status(400).json({ error: 'Invalid note ID' });
+        }
+
+        // Check if user has permission to modify this note
+        if (!db.canUserModifyNote(noteId, userId)) {
+            return res.status(403).json({ error: 'You do not have permission to delete this note' });
         }
 
         const deleted = db.deleteNote(noteId);
@@ -661,10 +680,11 @@ app.delete('/api/tags/:tagName', (req, res) => {
     }
 });
 
-// GET /api/folders - Get folder tree
-app.get('/api/folders', (req, res) => {
+// GET /api/folders - Get folder tree (filtered by user permissions)
+app.get('/api/folders', attachUser, (req, res) => {
     try {
-        const folders = db.getAllFolders();
+        const userId = req.session.userId || null;
+        const folders = db.getAllFoldersForUser(userId);
         const tree = db.buildFolderTree(folders);
         res.json(tree);
     } catch (error) {
@@ -702,10 +722,12 @@ app.get('/api/folders/:id', (req, res) => {
 });
 
 // POST /api/folders - Create new folder
-app.post('/api/folders', (req, res) => {
+app.post('/api/folders', requireAuth, (req, res) => {
     try {
-        const { name, parent_id, icon } = req.body;
-        console.log('Server received folder create request:', { name, parent_id, icon });
+        const { name, parent_id, icon, is_public } = req.body;
+        const userId = req.session.userId;
+
+        console.log('Server received folder create request:', { name, parent_id, icon, is_public, userId });
 
         if (!name || !name.trim()) {
             return res.status(400).json({ error: 'Folder name is required' });
@@ -717,13 +739,21 @@ app.post('/api/folders', (req, res) => {
             if (!parentExists) {
                 return res.status(400).json({ error: 'Parent folder not found' });
             }
+
+            // Validate user has access to parent folder
+            if (!db.canUserAccessFolder(parseInt(parent_id), userId)) {
+                return res.status(403).json({ error: 'You do not have access to the parent folder' });
+            }
         }
 
-        const newFolder = db.createFolder(name.trim(), parent_id, null, icon);
+        const isPublic = is_public === true || is_public === 'true' || is_public === 1;
+        const newFolder = db.createFolder(name.trim(), parent_id, null, icon, userId, isPublic);
 
         res.status(201).json({
             id: newFolder.id.toString(),
             name: newFolder.name,
+            user_id: newFolder.user_id,
+            is_public: newFolder.is_public,
             message: 'Folder created successfully'
         });
     } catch (error) {
@@ -733,13 +763,19 @@ app.post('/api/folders', (req, res) => {
 });
 
 // PUT /api/folders/:id - Update folder
-app.put('/api/folders/:id', (req, res) => {
+app.put('/api/folders/:id', requireAuth, (req, res) => {
     try {
         const folderId = parseInt(req.params.id);
-        const { name, parent_id, icon } = req.body;
+        const { name, parent_id, icon, is_public } = req.body;
+        const userId = req.session.userId;
 
         if (isNaN(folderId)) {
             return res.status(400).json({ error: 'Invalid folder ID' });
+        }
+
+        // Check if user has permission to modify this folder
+        if (!db.canUserModifyFolder(folderId, userId)) {
+            return res.status(403).json({ error: 'You do not have permission to modify this folder' });
         }
 
         // Prevent moving folder into itself or its descendants
@@ -750,7 +786,8 @@ app.put('/api/folders/:id', (req, res) => {
             }
         }
 
-        const updated = db.updateFolder(folderId, name, parent_id, null, icon);
+        const isPublic = is_public === true || is_public === 'true' || is_public === 1;
+        const updated = db.updateFolder(folderId, name, parent_id, null, icon, isPublic);
 
         if (!updated) {
             return res.status(404).json({ error: 'Folder not found' });
@@ -767,17 +804,18 @@ app.put('/api/folders/:id', (req, res) => {
 });
 
 // DELETE /api/folders/:id - Delete folder and cascade to notes
-app.delete('/api/folders/:id', (req, res) => {
+app.delete('/api/folders/:id', requireAuth, (req, res) => {
     try {
         const folderId = parseInt(req.params.id);
+        const userId = req.session.userId;
 
         if (isNaN(folderId)) {
             return res.status(400).json({ error: 'Invalid folder ID' });
         }
 
-        // Prevent deletion of Uncategorized folder
-        if (folderId === 1) {
-            return res.status(400).json({ error: 'Cannot delete Uncategorized folder' });
+        // Check if user has permission to modify this folder
+        if (!db.canUserModifyFolder(folderId, userId)) {
+            return res.status(403).json({ error: 'You do not have permission to delete this folder' });
         }
 
         const deleted = db.deleteFolder(folderId);
