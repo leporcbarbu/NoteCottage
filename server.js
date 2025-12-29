@@ -235,6 +235,18 @@ app.post('/api/auth/logout', (req, res) => {
     });
 });
 
+// GET /api/auth/status - Public endpoint to check if users exist (no auth required)
+app.get('/api/auth/status', (req, res) => {
+    const userCount = db.getUserCount();
+    const registrationEnabled = db.getSetting('registration_enabled');
+
+    res.json({
+        hasUsers: userCount > 0,
+        userCount: userCount,
+        registrationEnabled: registrationEnabled === 'true'
+    });
+});
+
 // GET /api/auth/me - Get current user info
 app.get('/api/auth/me', requireAuth, (req, res) => {
     const user = db.getUserById(req.session.userId);
@@ -344,8 +356,8 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
         // Create user
         const userId = db.createUser(username, email, hashedPassword, displayName, isAdmin ? 1 : 0);
 
-        // Create personal Uncategorized folder
-        db.createFolder('Uncategorized', null, userId, 0, '📝');
+        // Create personal Uncategorized folder (name, parentId, color, icon, userId, isPublic)
+        db.createFolder('Uncategorized', null, null, '📝', userId, 0);
 
         res.json({ id: userId, message: 'User created successfully' });
     } catch (error) {
@@ -1155,7 +1167,7 @@ app.delete('/api/folders/:id', requireAuth, (req, res) => {
 app.put('/api/folders/:id/reorder', (req, res) => {
     try {
         const folderId = parseInt(req.params.id);
-        const { new_position, parent_id } = req.body;
+        const { new_position, parent_id, is_public } = req.body;
 
         if (isNaN(folderId)) {
             return res.status(400).json({ error: 'Invalid folder ID' });
@@ -1193,6 +1205,11 @@ app.put('/api/folders/:id/reorder', (req, res) => {
 
         // Call reorder function
         db.reorderFolderFunc(folderId, new_position, parentIdInt);
+
+        // Update is_public if provided (for moving between Private/Shared sections)
+        if (is_public !== undefined) {
+            db.updateFolderField(folderId, 'is_public', is_public ? 1 : 0);
+        }
 
         res.json({
             id: folderId.toString(),

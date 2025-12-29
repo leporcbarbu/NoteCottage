@@ -783,6 +783,23 @@ function updateFolder(id, name, parentId, color, icon, isPublic) {
     return result.changes > 0;
 }
 
+function updateFolderField(folderId, field, value) {
+    // Whitelist allowed fields to prevent SQL injection
+    const allowedFields = ['name', 'parent_id', 'color', 'icon', 'is_public', 'position'];
+    if (!allowedFields.includes(field)) {
+        throw new Error(`Invalid field: ${field}`);
+    }
+
+    const stmt = db.prepare(`
+        UPDATE folders
+        SET ${field} = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    `);
+
+    const result = stmt.run(value, folderId);
+    return result.changes > 0;
+}
+
 function canUserAccessFolder(folderId, userId) {
     const folder = getFolderById(folderId);
     if (!folder) return false;
@@ -917,7 +934,35 @@ function getNotesTitleMap() {
 // Build hierarchical tree structure from flat folder list
 function buildFolderTree(folders) {
     const folderMap = new Map();
-    const rootFolders = [];
+
+    // Create virtual root folders for Private and Shared
+    const privateRoot = {
+        id: 'private',
+        name: 'Private',
+        parent_id: null,
+        color: null,
+        icon: '🔒',
+        position: 0,
+        user_id: null,
+        is_public: 0,
+        noteCount: 0,
+        children: [],
+        isVirtual: true
+    };
+
+    const sharedRoot = {
+        id: 'shared',
+        name: 'Shared',
+        parent_id: null,
+        color: null,
+        icon: '👥',
+        position: 1,
+        user_id: null,
+        is_public: 1,
+        noteCount: 0,
+        children: [],
+        isVirtual: true
+    };
 
     // Create map of all folders with note counts
     folders.forEach(folder => {
@@ -934,8 +979,16 @@ function buildFolderTree(folders) {
     // Build tree structure
     folderMap.forEach(folder => {
         if (folder.parent_id === null) {
-            rootFolders.push(folder);
+            // Top-level folders go under Private or Shared based on is_public flag
+            if (folder.is_public === 1) {
+                sharedRoot.children.push(folder);
+                sharedRoot.noteCount += folder.noteCount;
+            } else {
+                privateRoot.children.push(folder);
+                privateRoot.noteCount += folder.noteCount;
+            }
         } else {
+            // Child folders go under their parent as before
             const parent = folderMap.get(parseInt(folder.parent_id));
             if (parent) {
                 parent.children.push(folder);
@@ -943,7 +996,8 @@ function buildFolderTree(folders) {
         }
     });
 
-    return rootFolders;
+    // Return Private and Shared as the only root folders
+    return [privateRoot, sharedRoot];
 }
 
 // Trash/Recycle Bin operations
@@ -1074,6 +1128,7 @@ module.exports = {
     getFolderById,
     createFolder,
     updateFolder,
+    updateFolderField,
     deleteFolder,
     getNotesByFolder,
     getNoteCountByFolder,

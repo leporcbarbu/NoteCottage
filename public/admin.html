@@ -99,15 +99,16 @@
             background: white;
             border: 1px solid #d4c5b0;
             border-radius: 8px;
-            padding: 24px;
+            padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(107, 86, 71, 0.08);
         }
 
         .card h2 {
-            margin: 0 0 20px 0;
+            margin: 0 0 16px 0;
             color: #4a3f2e;
             font-size: 18px;
+            font-weight: 600;
         }
 
         .stats-grid {
@@ -120,22 +121,29 @@
             background: white;
             border: 1px solid #d4c5b0;
             border-radius: 8px;
-            padding: 20px;
+            padding: 24px 20px;
             text-align: center;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 2px 8px rgba(107, 86, 71, 0.12);
+            border-color: #c89f5d;
         }
 
         .stat-card .stat-value {
-            font-size: 36px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 700;
             color: #c89f5d;
-            margin: 10px 0;
+            margin: 8px 0 4px 0;
         }
 
         .stat-card .stat-label {
             color: #6b5647;
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         .users-table {
@@ -145,7 +153,7 @@
 
         .users-table th,
         .users-table td {
-            padding: 12px;
+            padding: 10px 12px;
             text-align: left;
             border-bottom: 1px solid #d4c5b0;
         }
@@ -193,6 +201,8 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
+            display: inline-block;
+            width: auto;
         }
 
         .btn-primary {
@@ -308,15 +318,16 @@
 
         .actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            justify-content: flex-end;
         }
 
         .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid #d4c5b0;
+            padding: 14px 0;
+            border-bottom: 1px solid #e8e0d0;
         }
 
         .setting-item:last-child {
@@ -326,13 +337,14 @@
         .setting-info h3 {
             margin: 0 0 4px 0;
             color: #4a3f2e;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: 600;
         }
 
         .setting-info p {
             margin: 0;
             color: #6b5647;
-            font-size: 14px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -373,9 +385,9 @@
         <!-- User Management Tab -->
         <div id="users-tab" class="tab-content">
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>Users</h2>
-                    <button class="btn btn-primary" id="createUserBtn">+ Create User</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2 style="margin: 0;">Users</h2>
+                    <button class="btn btn-primary btn-small" id="createUserBtn" style="white-space: nowrap;">+ New User</button>
                 </div>
                 <table class="users-table">
                     <thead>
@@ -418,7 +430,7 @@
                     </div>
                     <input type="number" id="maxUsers" style="width: 100px;" min="0" value="0">
                 </div>
-                <div style="margin-top: 20px;">
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e8e0d0;">
                     <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
                 </div>
             </div>

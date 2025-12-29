@@ -23,26 +23,24 @@ async function checkAuthStatus() {
 // Check if this is the first user (no users in database)
 async function checkFirstUser() {
     try {
-        // Try to get admin stats to see if any users exist
-        const response = await fetch('/api/admin/stats');
+        // Use public status endpoint to check if users exist
+        const response = await fetch('/api/auth/status');
 
-        if (response.status === 401) {
-            // No session, check settings to determine if users exist
-            const settingsResponse = await fetch('/api/admin/settings');
+        if (response.ok) {
+            const data = await response.json();
 
-            if (settingsResponse.status === 401) {
-                // Likely first user - show registration form
+            if (!data.hasUsers) {
+                // No users exist - show first user registration
                 isFirstUser = true;
                 showRegistrationForm(true);
             } else {
-                // Users exist but not logged in
+                // Users exist - show login or registration based on settings
+                registrationEnabled = data.registrationEnabled;
                 showLoginForm();
             }
-        } else if (response.ok) {
-            // Somehow logged in as admin, redirect to main app
-            window.location.href = '/';
         } else {
-            // Not admin, show login
+            // Error getting status - default to login form
+            console.error('Error checking auth status:', response.status);
             showLoginForm();
         }
     } catch (error) {

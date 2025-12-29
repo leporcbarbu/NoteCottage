@@ -502,6 +502,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         expandedFolders = new Set(JSON.parse(saved));
     }
 
+    // Always keep Private and Shared folders expanded by default
+    expandedFolders.add('private');
+    expandedFolders.add('shared');
+
     // Load "All Notes" expanded state from localStorage (default true)
     const allNotesSaved = localStorage.getItem('allNotesExpanded');
     if (allNotesSaved !== null) {
@@ -876,7 +880,7 @@ function createNoteElement(note, depth) {
     const noteItem = document.createElement('div');
     noteItem.className = 'note-item-inline';
     noteItem.dataset.noteId = note.id;
-    noteItem.style.paddingLeft = `${depth * 20 + 12}px`;
+    noteItem.style.paddingLeft = `${depth * 12 + 12}px`;
 
     if (currentNoteId === note.id) {
         noteItem.classList.add('active');
@@ -1189,7 +1193,7 @@ function createTrashNoteElement(note, depth) {
     const noteItem = document.createElement('div');
     noteItem.className = 'note-item-inline trash-note-item';
     noteItem.dataset.noteId = note.id;
-    noteItem.style.paddingLeft = `${depth * 20 + 12}px`;
+    noteItem.style.paddingLeft = `${depth * 12 + 12}px`;
     noteItem.style.opacity = '0.7';
 
     const noteIcon = document.createElement('span');
@@ -1227,7 +1231,13 @@ function createFolderElement(folder, depth) {
     const folderItem = document.createElement('div');
     folderItem.className = 'folder-item';
     folderItem.dataset.folderId = folder.id;
-    folderItem.style.paddingLeft = `${depth * 20 + 12}px`;
+
+    // Mark virtual folders
+    if (folder.isVirtual) {
+        folderItem.classList.add('virtual-folder');
+    }
+
+    folderItem.style.paddingLeft = `${depth * 12 + 12}px`;
 
     const isExpanded = expandedFolders.has(folder.id);
     const hasChildren = folder.children && folder.children.length > 0;
@@ -1271,19 +1281,6 @@ function createFolderElement(folder, depth) {
     folderName.textContent = folder.name;
     folderName.title = folder.name; // Tooltip for full name on hover
 
-    // Privacy badge
-    const privacyBadge = document.createElement('span');
-    privacyBadge.className = 'privacy-badge';
-    privacyBadge.style.marginLeft = '4px';
-    privacyBadge.style.fontSize = '12px';
-    if (folder.is_public === 1 || folder.is_public === true) {
-        privacyBadge.textContent = '🌍';
-        privacyBadge.title = 'Shared folder (visible to all users)';
-    } else {
-        privacyBadge.textContent = '🔒';
-        privacyBadge.title = 'Private folder (only you can see)';
-    }
-
     // Note count badge
     const noteCountBadge = document.createElement('span');
     noteCountBadge.className = 'folder-note-count';
@@ -1293,7 +1290,6 @@ function createFolderElement(folder, depth) {
     folderHeader.appendChild(expandIcon);
     folderHeader.appendChild(folderIcon);
     folderHeader.appendChild(folderName);
-    folderHeader.appendChild(privacyBadge);
     folderHeader.appendChild(noteCountBadge);
 
     // Click to select folder
@@ -1307,14 +1303,16 @@ function createFolderElement(folder, depth) {
         }
     });
 
-    // Add context menu for folder operations (right-click)
-    folderHeader.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        showFolderContextMenu(e, folder);
-    });
+    // Add context menu for folder operations (right-click) - but not for virtual folders
+    if (!folder.isVirtual) {
+        folderHeader.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showFolderContextMenu(e, folder);
+        });
+    }
 
-    // Add drag-and-drop functionality (except for Uncategorized folder)
-    if (folder.id !== '1') {
+    // Add drag-and-drop functionality (except for Uncategorized folder and virtual folders)
+    if (folder.id !== '1' && !folder.isVirtual) {
         folderHeader.draggable = true;
 
         folderHeader.addEventListener('dragstart', (e) => {
@@ -1505,6 +1503,12 @@ function updateFolderLocation(folderId) {
 }
 
 function selectFolder(folderId) {
+    // Virtual folders (Private/Shared) should just toggle expand, not select
+    if (folderId === 'private' || folderId === 'shared') {
+        toggleFolder(folderId);
+        return;
+    }
+
     // Toggle selection - if clicking the same folder, deselect it (show all notes)
     if (currentFolderId === folderId) {
         currentFolderId = 'all-notes';  // Deselect by going to "All Notes" view
@@ -1519,7 +1523,16 @@ function selectFolder(folderId) {
 }
 
 async function createNewFolder(parentId = null) {
-    const form = new FolderForm();
+    // Set default parent, filtering out virtual folders for the default
+    let defaultParent = parentId;
+    if (parentId === 'private' || parentId === 'shared') {
+        defaultParent = null; // Virtual folders shouldn't be default
+    }
+
+    const form = new FolderForm(
+        { parent_id: defaultParent },
+        { folders: folders, showParentSelector: true }
+    );
     const modal = new Modal('Create Folder', form.render());
 
     modal.onSubmit(async () => {
@@ -1532,11 +1545,12 @@ async function createNewFolder(parentId = null) {
         }
 
         try {
+            // Use the form's values (user's choices)
             const payload = {
                 name: data.name.trim(),
-                parent_id: parentId,
+                parent_id: data.parent_id || null,
                 icon: data.icon,
-                is_public: data.is_public || false
+                is_public: data.is_public
             };
 
             const response = await fetch('/api/folders', {
@@ -1566,10 +1580,13 @@ async function renameFolder(folderId, currentName) {
         // Fetch existing folder data
         const folder = await fetch(`/api/folders/${folderId}`).then(r => r.json());
 
-        const form = new FolderForm({
-            name: folder.name,
-            icon: folder.icon
-        });
+        const form = new FolderForm(
+            {
+                name: folder.name,
+                icon: folder.icon
+            },
+            { showParentSelector: false } // Don't show parent selector when editing
+        );
 
         const modal = new Modal('Edit Folder', form.render());
 
@@ -2378,11 +2395,30 @@ document.addEventListener('keydown', (e) => {
 
 async function handleFolderDrop(dragData, targetFolder, position) {
     try {
+        // Prevent dropping a folder onto itself
+        if (dragData.id === targetFolder.id) {
+            return; // Silently ignore
+        }
+
         let newParentId = targetFolder.parent_id;
         let newPosition = 0;
+        let newIsPublic = null;
 
-        if (position === 'inside') {
-            // Drop inside folder - make it a child
+        // Handle drops on virtual folders (Private/Shared)
+        if (targetFolder.isVirtual && position === 'inside') {
+            if (targetFolder.id === 'private') {
+                // Moving to Private section
+                newParentId = null;
+                newPosition = 0;
+                newIsPublic = 0;
+            } else if (targetFolder.id === 'shared') {
+                // Moving to Shared section
+                newParentId = null;
+                newPosition = 0;
+                newIsPublic = 1;
+            }
+        } else if (position === 'inside') {
+            // Drop inside regular folder - make it a child
             newParentId = targetFolder.id;
             newPosition = 0; // Insert at beginning
         } else {
@@ -2391,14 +2427,22 @@ async function handleFolderDrop(dragData, targetFolder, position) {
             newPosition = position === 'above' ? targetFolder.position : targetFolder.position + 1;
         }
 
+        // Prepare request body
+        const requestBody = {
+            new_position: newPosition,
+            parent_id: newParentId
+        };
+
+        // Add is_public if we're changing it
+        if (newIsPublic !== null) {
+            requestBody.is_public = newIsPublic;
+        }
+
         // Call reorder API
         const response = await fetch(`/api/folders/${dragData.id}/reorder`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                new_position: newPosition,
-                parent_id: newParentId
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
