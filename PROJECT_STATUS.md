@@ -434,6 +434,363 @@ Tested with `test-sql-injection.js` - all tests pass.
 
 **Strategic Note:** With HTTPS (via nginx) and/or TailScale VPN, encryption becomes less critical for small team use. Focus on convenience and collaboration first.
 
+---
+
+## Multi-User Architecture Plan (Detailed)
+
+**Status:** Planning phase - not yet implemented
+**Last Updated:** December 29, 2025
+
+### Database Schema Changes
+
+#### New Table: `users`
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    display_name TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Considerations:**
+- Username: 3-20 characters, alphanumeric + underscore
+- Email: For password recovery (future feature)
+- Password: Hashed with bcrypt (cost factor 12)
+- Display name: Optional friendly name for UI
+
+#### Modified Table: `folders`
+**Add columns:**
+```sql
+ALTER TABLE folders ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE folders ADD COLUMN is_public BOOLEAN DEFAULT 0;
+```
+
+**Privacy Model:**
+- `is_public = 1`: Shared folder (visible to all users)
+- `is_public = 0`: Private folder (visible only to owner)
+- `user_id`: Owner of the folder
+- Notes inherit privacy from parent folder
+
+**Special Folders:**
+- "Uncategorized" folder (id=1) should be user-specific or public (TBD)
+- Each user could have their own "Uncategorized" folder, OR
+- One shared "Uncategorized" for public notes
+
+#### Modified Table: `notes`
+**Add column:**
+```sql
+ALTER TABLE notes ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+```
+
+**Ownership:**
+- `user_id`: Creator/owner of the note
+- Notes in public folders: Any user can edit
+- Notes in private folders: Only owner can access
+
+#### Modified Table: `tags`
+**No changes needed** - tags remain global and shared across all users
+
+**Rationale:**
+- Tags like #javascript, #work, #ideas are naturally collaborative
+- Users can filter by tags regardless of note ownership
+- Simplifies tag autocomplete (show all tags)
+
+### Authentication System
+
+#### Session Management: express-session (Recommended)
+**Why express-session over JWT:**
+- ✅ Simpler for small-scale app (2-5 users)
+- ✅ Server-side session storage (more secure)
+- ✅ Easy session invalidation (logout, security breach)
+- ✅ Built-in CSRF protection patterns
+- ✅ No token refresh complexity
+
+**Implementation:**
+```javascript
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
+
+app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.db',
+        dir: './data'
+    }),
+    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
+}));
+```
+
+#### Password Hashing: bcrypt
+```javascript
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 12;
+
+// Register
+const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+// Login
+const isValid = await bcrypt.compare(password, user.password_hash);
+```
+
+#### Authentication Middleware
+```javascript
+function requireAuth(req, res, next) {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    next();
+}
+
+function attachUser(req, res, next) {
+    if (req.session.userId) {
+        req.user = getUserById(req.session.userId);
+    }
+    next();
+}
+```
+
+### API Changes
+
+#### New Endpoints: Authentication
+```
+POST   /api/auth/register      - Create new user account
+POST   /api/auth/login         - Login (create session)
+POST   /api/auth/logout        - Logout (destroy session)
+GET    /api/auth/me            - Get current user info
+PUT    /api/auth/profile       - Update user profile
+```
+
+#### Modified Endpoints: Permission Checks
+
+**Notes API:**
+```javascript
+// GET /api/notes - Filter by visibility
+// Return: Public notes + user's private notes
+SELECT * FROM notes
+WHERE deleted_at IS NULL
+AND (
+    folder_id IN (SELECT id FROM folders WHERE is_public = 1)
+    OR folder_id IN (SELECT id FROM folders WHERE user_id = ?)
+)
+
+// POST /api/notes - Set owner
+// Automatically set user_id to current user
+
+// PUT /api/notes/:id - Check permission
+// Allow if: user owns note OR note is in public folder
+
+// DELETE /api/notes/:id - Check permission
+// Allow if: user owns note OR user owns parent folder
+```
+
+**Folders API:**
+```javascript
+// GET /api/folders - Filter by visibility
+// Return: Public folders + user's private folders
+
+// POST /api/folders - Set owner and privacy
+// Require: name, is_public (boolean)
+// Set user_id to current user
+
+// PUT /api/folders/:id - Check permission
+// Allow if: user owns folder
+
+// DELETE /api/folders/:id - Check permission
+// Allow if: user owns folder
+```
+
+**Tags API:**
+- No changes needed (tags remain global)
+- All users can see all tags
+- Tag filtering shows notes user has permission to see
+
+### Frontend Changes
+
+#### New UI Components
+
+**1. Login/Registration Page** (`/login`)
+- Login form (username/email, password)
+- Registration form (username, email, password, confirm password)
+- "Remember me" checkbox
+- Password strength indicator
+- Form validation
+
+**2. User Indicator in Header**
+- Display current user's name/avatar
+- Dropdown menu: Profile, Settings, Logout
+
+**3. Folder Privacy Toggle**
+- When creating/editing folders:
+  - Checkbox: "🔓 Shared folder (visible to all users)"
+  - Or: "🔒 Private folder (only you can see)"
+- Visual indicators:
+  - Public folders: 🌍 globe icon or green badge
+  - Private folders: 🔒 lock icon or blue badge
+
+**4. Note Ownership Display**
+- Show "Created by [username]" in note metadata
+- For public folders only (private folders implied ownership)
+
+**5. User Settings Page** (`/settings`)
+- Change display name
+- Change password
+- Email preferences (future: notifications)
+
+#### Authentication Flow
+
+**First-time setup:**
+1. App detects no users in database
+2. Shows "Create Admin Account" screen
+3. First user becomes admin (for future admin features)
+
+**Login flow:**
+1. User visits app → redirected to `/login` if not authenticated
+2. Enters credentials → POST `/api/auth/login`
+3. On success: Create session, redirect to `/`
+4. On failure: Show error message
+
+**Session persistence:**
+- Check session on page load
+- If valid: Load user info, show app
+- If invalid: Redirect to login
+- Session cookie lasts 30 days ("Remember me")
+
+### Permission Logic
+
+#### Folder Visibility Rules
+```
+User can see folder IF:
+  - is_public = 1 (shared folder), OR
+  - user_id = current_user (owns folder)
+```
+
+#### Note Visibility Rules
+```
+User can see note IF:
+  - Parent folder is visible (by folder visibility rules)
+```
+
+#### Edit/Delete Permission Rules
+```
+User can edit/delete note IF:
+  - User owns the note (note.user_id = current_user), OR
+  - Parent folder is public (any user can edit notes in shared folders)
+
+User can edit/delete folder IF:
+  - User owns the folder (folder.user_id = current_user)
+```
+
+#### Tag Visibility Rules
+```
+All tags are visible to all users (global)
+Clicking a tag shows: Notes user has permission to see
+```
+
+### Migration Strategy
+
+**For existing single-user installations:**
+1. Add schema changes (new columns with defaults)
+2. On first run: Detect no users exist
+3. Prompt: "Create your account to continue"
+4. After account creation: Assign all existing content to this user
+5. Default all existing folders to `is_public = 0` (private)
+6. Give user option: "Make all my existing folders shared?"
+
+**Database migration script:**
+```sql
+-- Add new columns
+ALTER TABLE users ...;
+ALTER TABLE folders ADD COLUMN user_id INTEGER;
+ALTER TABLE folders ADD COLUMN is_public BOOLEAN DEFAULT 0;
+ALTER TABLE notes ADD COLUMN user_id INTEGER;
+
+-- Migrate existing data to first user (id = 1)
+UPDATE folders SET user_id = 1;
+UPDATE notes SET user_id = 1;
+```
+
+### Open Questions / Design Decisions
+
+**Q1: Should "Uncategorized" folder be per-user or shared?**
+- Option A: Per-user → Each user has "My Uncategorized" folder (cleaner)
+- Option B: Shared → One "Uncategorized" for quick public notes (simpler)
+- **Recommendation:** Option A (per-user) for better privacy defaults
+
+**Q2: Should tags be private or global?**
+- ✅ **Decided:** Global (collaborative by nature)
+
+**Q3: Can users edit notes created by others in public folders?**
+- Option A: Full collaboration (any user can edit public notes)
+- Option B: Restricted (only owner can edit, but anyone can view)
+- **Recommendation:** Option A (full collaboration) - matches Mealie's model
+
+**Q4: Admin features needed?**
+- User management (view all users, delete users)
+- System settings (allow registration, max users)
+- Audit log (who edited what)
+- **Decision:** Not for MVP, add later if needed
+
+**Q5: Password recovery?**
+- Email-based reset (requires email configuration)
+- Admin manual reset
+- Security questions
+- **Decision:** Defer to post-MVP (small team = manual admin reset)
+
+### Implementation Checklist (Not Started)
+
+- [ ] Database schema changes
+  - [ ] Create `users` table
+  - [ ] Add `user_id` to `folders` and `notes`
+  - [ ] Add `is_public` to `folders`
+  - [ ] Create migration script for existing data
+- [ ] Authentication backend
+  - [ ] Install dependencies (express-session, bcrypt, connect-sqlite3)
+  - [ ] Create session store
+  - [ ] Create auth endpoints (register, login, logout)
+  - [ ] Create authentication middleware
+  - [ ] Hash passwords with bcrypt
+- [ ] API permission checks
+  - [ ] Update all folder queries (filter by visibility)
+  - [ ] Update all note queries (filter by visibility)
+  - [ ] Add permission checks to PUT/DELETE endpoints
+  - [ ] Update note/folder creation (set user_id)
+- [ ] Frontend authentication
+  - [ ] Create login/registration page
+  - [ ] Add session check on app load
+  - [ ] Handle 401 responses (redirect to login)
+  - [ ] Add logout functionality
+- [ ] Frontend UI updates
+  - [ ] Add user indicator in header
+  - [ ] Add privacy toggle to folder form
+  - [ ] Add visual indicators (🌍 public, 🔒 private)
+  - [ ] Show note ownership in public folders
+  - [ ] Create user settings page
+- [ ] Testing
+  - [ ] Test multi-user scenarios
+  - [ ] Test permission boundaries
+  - [ ] Test session expiration
+  - [ ] Test migration from single-user
+
+### Estimated Complexity: 3-5 days
+
+**Breakdown:**
+- Database & backend auth: 1 day
+- API permission logic: 1 day
+- Frontend login/UI: 1-2 days
+- Testing & refinement: 0.5-1 day
+
+---
+
 ## How to Run
 
 ### Option 1: Docker (Recommended for Production)
