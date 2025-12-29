@@ -7,6 +7,9 @@ services:
     # Name of the container
     container_name: notecottage
 
+    # Image name (cleaner than auto-generated name)
+    image: notecottage:latest
+
     # Build from Dockerfile in current directory
     build:
       context: .
