@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
-**Last Updated:** December 28, 2025
-**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, and four distinct themes (Light, Dark, Cottage, Cottage Dark)
+**Last Updated:** December 29, 2025
+**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, four distinct themes (Light, Dark, Cottage, Cottage Dark), and multi-user authentication with hybrid shared/private folders (IN PROGRESS)
 
 ## Project Overview
 
@@ -1207,15 +1207,65 @@ Persists across browser sessions.
     - ✅ Health check passes (container reports healthy status)
     - ✅ WAL mode database files persist correctly (db, db-shm, db-wal)
 
+**Session 10 (December 29, 2025):**
+- ✅ **Multi-User Support (IN PROGRESS)** - Session-based authentication with hybrid shared/private folders
+  - ✅ **Database Schema Updates**
+    - Added `users` table (id, username, email, password_hash, display_name, is_admin, created_at)
+    - Added `system_settings` table (key-value storage for app configuration)
+    - Added `user_id` column to notes and folders tables (ownership tracking)
+    - Added `is_public` boolean to folders table (shared vs private)
+    - Per-user Uncategorized folders created automatically on registration
+    - First registered user becomes admin automatically
+  - ✅ **Authentication System**
+    - express-session with SQLite store for persistent sessions
+    - bcrypt password hashing (cost factor 12)
+    - Session middleware with 30-day cookie lifetime
+    - Auth endpoints: register, login, logout, /api/auth/me, profile
+    - Middleware: requireAuth, requireAdmin, attachUser
+    - Proper session management with secure cookies in production
+  - ✅ **API Permission Enforcement**
+    - getAllFoldersForUser() filters folders by visibility (public + owned private)
+    - Permission checking functions: canUserAccessFolder/Note, canUserModifyFolder/Note
+    - All folder/note endpoints protected with requireAuth middleware
+    - Create/update/delete operations validate ownership
+    - Shared folders (is_public=1) visible and editable by all users
+    - Private folders (is_public=0) visible only to owner
+  - ✅ **Admin Panel Backend**
+    - 7 admin-only endpoints for user and settings management
+    - User management: list users, create user, update user, delete user
+    - System settings: get/update registration toggle, max users limit
+    - Statistics endpoint: user count, note count, folder count
+    - Safeguards: can't delete self, can't delete last admin
+  - ✅ **Frontend Authentication UI**
+    - Created login.html with styled login/registration forms
+    - Password strength indicator with visual feedback
+    - First-user detection (automatically shows registration for admin account)
+    - Form validation and error/success messaging
+    - Automatic redirect after successful login/registration
+  - ✅ **Frontend Privacy Indicators**
+    - Folder form includes public/private checkbox with preview badge
+    - Visual badges in folder tree (🌍 for shared, 🔒 for private)
+    - User dropdown menu showing current username
+    - Theme picker consolidated into user menu
+    - Profile and logout options in user menu
+    - Admin panel button (visible only to admins)
+  - ✅ **UX Fixes**
+    - Fixed folder selection toggle (click twice to deselect)
+    - Fixed root-level folder creation when "All Notes" is selected
+    - Fixed user dropdown menu visibility using CSS classes
+    - Consolidated theme picker into user dropdown to reduce header clutter
+  - ⏳ **Remaining Tasks**
+    - Build admin panel UI (user management, settings, statistics)
+    - Comprehensive multi-user testing (permissions, sessions, admin features)
+
 ### Areas to Explore
 If continuing development, consider:
 1. **Graph View** - Visual network of linked notes (now possible with wiki-links)
 2. **Additional Themes** - Easy to add more themes using CSS custom properties
 3. **Image Support** - Images within notes and possibly standalone image notes with tags (medium complexity, high value)
 4. **Security Hardening** - CSRF protection, rate limiting, input validation for production deployment
-5. **Multi-user Support** - Each user has their own note stash with authentication (high complexity, high value for sharing)
-6. **Keyboard Shortcuts for Folders** - Arrow keys to navigate tree, Enter to open
-7. **Create from Broken Link** - Click broken wiki-link to create that note
+5. **Keyboard Shortcuts for Folders** - Arrow keys to navigate tree, Enter to open
+6. **Create from Broken Link** - Click broken wiki-link to create that note
 
 ### Technical Debt
 - Code is clean and well-structured with reusable components
@@ -1263,4 +1313,4 @@ This project successfully demonstrated:
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application now fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Next steps in roadmap:** Production-ready infrastructure (nginx reverse proxy, SSL/TLS), multi-user support (hybrid shared/private model), PWA for mobile access.
+**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application now fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support IN PROGRESS:** Session-based authentication implemented with hybrid shared/private folder model - database schema, auth system, API permissions, and frontend UI complete; admin panel UI and comprehensive testing remaining. **Next steps in roadmap:** Complete multi-user implementation (admin panel UI, testing), production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
