@@ -562,38 +562,46 @@ function setupEventListeners() {
     const userProfileBtn = document.getElementById('userProfileBtn');
     const adminPanelBtn = document.getElementById('adminPanelBtn');
 
-    userButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleUserMenu();
-    });
+    if (userButton && userMenu) {
+        userButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleUserMenu();
+        });
 
-    logoutBtn.addEventListener('click', async () => {
-        try {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            window.location.href = '/login.html';
-        } catch (error) {
-            console.error('Logout failed:', error);
-            // Force redirect anyway
-            window.location.href = '/login.html';
-        }
-    });
+        // Close user menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userButton.contains(e.target) && !userMenu.contains(e.target)) {
+                closeUserMenu();
+            }
+        });
+    }
 
-    userProfileBtn.addEventListener('click', () => {
-        alert('Profile settings coming soon!');
-        closeUserMenu();
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Logout failed:', error);
+                // Force redirect anyway
+                window.location.href = '/login.html';
+            }
+        });
+    }
 
-    adminPanelBtn.addEventListener('click', () => {
-        alert('Admin panel coming soon!');
-        closeUserMenu();
-    });
-
-    // Close user menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (userButton && userMenu && !userButton.contains(e.target) && !userMenu.contains(e.target)) {
+    if (userProfileBtn) {
+        userProfileBtn.addEventListener('click', () => {
+            alert('Profile settings coming soon!');
             closeUserMenu();
-        }
-    });
+        });
+    }
+
+    if (adminPanelBtn) {
+        adminPanelBtn.addEventListener('click', () => {
+            alert('Admin panel coming soon!');
+            closeUserMenu();
+        });
+    }
 
     // Word count update and autosave
     noteContent.addEventListener('input', () => {
