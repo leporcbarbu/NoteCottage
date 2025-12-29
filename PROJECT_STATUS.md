@@ -1295,6 +1295,12 @@ Persists across browser sessions.
     - Better horizontal space usage
     - Drag folder to itself now silently ignored (no error dialog)
     - Shared Folder checkbox in creation dialog now properly respected
+  - ✅ **Critical Bug Fixes**
+    - Fixed 403 Forbidden error when editing notes (missing user_id in getNoteById query)
+    - Fixed permission checks for legacy notes (created before multi-user system)
+    - Added proper handling for notes without folders or with missing folders
+    - Legacy notes (user_id = NULL) now properly accessible to all authenticated users
+    - Backward compatibility maintained for pre-multi-user installations
   - ⏳ **Remaining Tasks**
     - Comprehensive multi-user testing (permissions, sessions, admin features)
     - Optional: Invitation system for when registration is disabled
