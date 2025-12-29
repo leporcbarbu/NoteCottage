@@ -5,14 +5,17 @@ class FolderForm {
     constructor(initialData = {}) {
         this.data = {
             name: initialData.name || '',
-            icon: initialData.icon || '📁'
+            icon: initialData.icon || '📁',
+            is_public: initialData.is_public || false
         };
 
         this.formElement = null;
         this.emojiPicker = null;
         this.nameInput = null;
+        this.publicCheckbox = null;
         this.previewIcon = null;
         this.previewName = null;
+        this.previewBadge = null;
     }
 
     render() {
@@ -62,6 +65,41 @@ class FolderForm {
         iconGroup.appendChild(iconLabel);
         iconGroup.appendChild(emojiPickerElement);
 
+        // Privacy toggle group
+        const privacyGroup = document.createElement('div');
+        privacyGroup.className = 'form-group privacy-group';
+
+        const privacyLabel = document.createElement('label');
+        privacyLabel.style.display = 'flex';
+        privacyLabel.style.alignItems = 'center';
+        privacyLabel.style.cursor = 'pointer';
+
+        this.publicCheckbox = document.createElement('input');
+        this.publicCheckbox.type = 'checkbox';
+        this.publicCheckbox.id = 'folder-public-checkbox';
+        this.publicCheckbox.checked = this.data.is_public;
+        this.publicCheckbox.style.marginRight = '8px';
+
+        this.publicCheckbox.addEventListener('change', () => {
+            this.data.is_public = this.publicCheckbox.checked;
+            this.updatePreview();
+        });
+
+        const privacyText = document.createElement('span');
+        privacyText.innerHTML = '<strong>🌍 Shared Folder</strong> (visible to all users)';
+
+        privacyLabel.appendChild(this.publicCheckbox);
+        privacyLabel.appendChild(privacyText);
+
+        const privacyHint = document.createElement('div');
+        privacyHint.style.fontSize = '12px';
+        privacyHint.style.color = 'var(--text-secondary)';
+        privacyHint.style.marginTop = '4px';
+        privacyHint.textContent = 'Unchecked folders are private (only you can see them)';
+
+        privacyGroup.appendChild(privacyLabel);
+        privacyGroup.appendChild(privacyHint);
+
         // Preview section
         const previewGroup = document.createElement('div');
         previewGroup.className = 'form-group folder-preview-group';
@@ -80,8 +118,16 @@ class FolderForm {
         this.previewName.className = 'folder-name';
         this.previewName.textContent = this.data.name || 'Folder Name';
 
+        this.previewBadge = document.createElement('span');
+        this.previewBadge.className = 'privacy-badge';
+        this.previewBadge.style.marginLeft = '8px';
+        this.previewBadge.style.fontSize = '14px';
+        this.previewBadge.textContent = this.data.is_public ? '🌍' : '🔒';
+        this.previewBadge.title = this.data.is_public ? 'Shared folder' : 'Private folder';
+
         preview.appendChild(this.previewIcon);
         preview.appendChild(this.previewName);
+        preview.appendChild(this.previewBadge);
 
         previewGroup.appendChild(previewLabel);
         previewGroup.appendChild(preview);
@@ -89,6 +135,7 @@ class FolderForm {
         // Assemble form
         form.appendChild(nameGroup);
         form.appendChild(iconGroup);
+        form.appendChild(privacyGroup);
         form.appendChild(previewGroup);
 
         this.formElement = form;
@@ -102,12 +149,17 @@ class FolderForm {
         if (this.previewName) {
             this.previewName.textContent = this.data.name || 'Folder Name';
         }
+        if (this.previewBadge) {
+            this.previewBadge.textContent = this.data.is_public ? '🌍' : '🔒';
+            this.previewBadge.title = this.data.is_public ? 'Shared folder' : 'Private folder';
+        }
     }
 
     getData() {
         return {
             name: this.data.name,
-            icon: this.data.icon
+            icon: this.data.icon,
+            is_public: this.data.is_public
         };
     }
 

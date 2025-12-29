@@ -1273,6 +1273,19 @@ function createFolderElement(folder, depth) {
     folderName.textContent = folder.name;
     folderName.title = folder.name; // Tooltip for full name on hover
 
+    // Privacy badge
+    const privacyBadge = document.createElement('span');
+    privacyBadge.className = 'privacy-badge';
+    privacyBadge.style.marginLeft = '4px';
+    privacyBadge.style.fontSize = '12px';
+    if (folder.is_public === 1 || folder.is_public === true) {
+        privacyBadge.textContent = '🌍';
+        privacyBadge.title = 'Shared folder (visible to all users)';
+    } else {
+        privacyBadge.textContent = '🔒';
+        privacyBadge.title = 'Private folder (only you can see)';
+    }
+
     // Note count badge
     const noteCountBadge = document.createElement('span');
     noteCountBadge.className = 'folder-note-count';
@@ -1282,6 +1295,7 @@ function createFolderElement(folder, depth) {
     folderHeader.appendChild(expandIcon);
     folderHeader.appendChild(folderIcon);
     folderHeader.appendChild(folderName);
+    folderHeader.appendChild(privacyBadge);
     folderHeader.appendChild(noteCountBadge);
 
     // Click to select folder
@@ -1523,7 +1537,8 @@ async function createNewFolder(parentId = null) {
             const payload = {
                 name: data.name.trim(),
                 parent_id: parentId,
-                icon: data.icon
+                icon: data.icon,
+                is_public: data.is_public || false
             };
 
             const response = await fetch('/api/folders', {
