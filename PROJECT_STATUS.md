@@ -430,6 +430,8 @@ Persists across browser sessions.
 - Cottage themes provide warm, inviting aesthetics that match the app name
 - Theme system is extensible and easy to maintain with CSS custom properties
 - Compact theme picker saves header space while being easy to use
+- Custom favicon/branding creates a cohesive visual identity
+- The cottage-with-book design perfectly symbolizes the app's purpose
 
 ### Recent Updates (December 27, 2024)
 
@@ -582,6 +584,12 @@ Persists across browser sessions.
   - Fixed high-contrast menu colors for readability across all themes
   - Active theme indicator in menu
   - All themes use CSS custom properties for easy extension
+- ✅ **Favicon and Branding** - Custom visual identity for NoteCottage
+  - Created custom favicon featuring cozy cabin with open book
+  - Steam from chimney flowing into book symbolizes knowledge and ideas
+  - Color palette matches Cottage theme (warm browns, tans, terracotta)
+  - Added favicon link to HTML for browser tab display
+  - Original PNG artwork stored in public/images/
 
 ### Areas to Explore
 If continuing development, consider:
