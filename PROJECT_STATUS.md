@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
 **Last Updated:** December 28, 2025
-**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, and dark mode
+**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, and four distinct themes (Light, Dark, Cottage, Cottage Dark)
 
 ## Project Overview
 
@@ -121,7 +121,17 @@ NodeTest/
 ✅ **Wiki-Link Preservation** - Exported HTML/PDF includes rendered wiki-links
 
 ### UI/UX Features
-✅ **Dark Mode** - Toggle between light/dark themes
+✅ **Four Distinct Themes** - Comprehensive theme system with visual variety
+  - ☀️ **Light**: Clean, bright, professional (original)
+  - 🌙 **Dark**: Cool, modern dark mode (original)
+  - 🏡 **Cottage**: Warm, cozy light theme with earthy browns, cream, and honey gold
+  - 🏡🌙 **Cottage Dark**: Warm, cozy dark theme like a cabin at night
+  - Cottage themes feature subtle 6px rounded corners for extra coziness
+✅ **Compact Theme Picker** - Space-efficient "Theme" button with dropdown menu
+  - Floating menu with elevated shadow for visual depth
+  - Fixed high-contrast colors for consistent readability
+  - Active theme highlighted in menu
+  - Click outside to close
 ✅ **Theme Persistence** - Preference saved in localStorage
 ✅ **Smooth Transitions** - CSS transitions for theme changes
 ✅ **Responsive Design** - Split sidebar/editor layout
@@ -417,6 +427,9 @@ Persists across browser sessions.
 - Double-click folder expansion is intuitive and faster than clicking arrows
 - Folder highlighting behavior is clean and unambiguous
 - Drag-to-trash provides a natural, intuitive way to delete notes
+- Cottage themes provide warm, inviting aesthetics that match the app name
+- Theme system is extensible and easy to maintain with CSS custom properties
+- Compact theme picker saves header space while being easy to use
 
 ### Recent Updates (December 27, 2024)
 
@@ -560,11 +573,20 @@ Persists across browser sessions.
   - Visual drop indicator when hovering over Trash
   - Closes editor if viewing the deleted note
   - Trash only accepts notes (not folders)
+- ✅ **Comprehensive Theme System** - Four distinct themes with warm cottage aesthetics
+  - Added two new cottage themes alongside original light/dark
+  - Cottage: Warm browns, creams, honey gold accents with 6px rounded corners
+  - Cottage Dark: Cozy dark theme with warm tones (cabin at night feel)
+  - Replaced wide dropdown with compact "Theme" button
+  - Floating theme menu with elevated shadow (drops down with z-depth)
+  - Fixed high-contrast menu colors for readability across all themes
+  - Active theme indicator in menu
+  - All themes use CSS custom properties for easy extension
 
 ### Areas to Explore
 If continuing development, consider:
-1. **Cottage/Cozy Theming** - Warmer color palette, rounded corners, softer visual aesthetic
-2. **Graph View** - Visual network of linked notes (now possible with wiki-links)
+1. **Graph View** - Visual network of linked notes (now possible with wiki-links)
+2. **Additional Themes** - Easy to add more themes using CSS custom properties
 3. **Image Support** - Images within notes and possibly standalone image notes with tags (medium complexity, high value)
 4. **Security Hardening** - CSRF protection, rate limiting, input validation for production deployment
 5. **Multi-user Support** - Each user has their own note stash with authentication (high complexity, high value for sharing)
@@ -614,4 +636,4 @@ This project successfully demonstrated:
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, and dark mode. Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. All known bugs have been resolved.
+**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. All known bugs have been resolved.
