@@ -2,12 +2,18 @@
 const express = require('express');
 const path = require('path');
 const { marked } = require('marked');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 
 // Import our database module (like: from database import get_all_notes, etc.)
 const db = require('./database');
 
 // Import wiki-link extension for marked.js
 const wikiLinkExtension = require('./public/js/wikilink-extension');
+
+// Constants
+const SALT_ROUNDS = 12; // bcrypt cost factor
 
 // Create Express app (equivalent to Flask's app = Flask(__name__))
 const app = express();
@@ -17,6 +23,49 @@ const PORT = process.env.PORT || 3000;
 // Middleware - similar to Flask's before_request or app.config
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.static('public')); // Serve static files from 'public' directory
+
+// Session middleware for authentication
+app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.db',
+        dir: process.env.DATABASE_PATH ? path.dirname(process.env.DATABASE_PATH) : '.'
+    }),
+    secret: process.env.SESSION_SECRET || 'notecottage-dev-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
+}));
+
+// Authentication middleware
+function requireAuth(req, res, next) {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    next();
+}
+
+function requireAdmin(req, res, next) {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    const user = db.getUserById(req.session.userId);
+    if (!user || !user.is_admin) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    req.user = user;
+    next();
+}
+
+function attachUser(req, res, next) {
+    if (req.session.userId) {
+        req.user = db.getUserById(req.session.userId);
+    }
+    next();
+}
 
 // Helper function to render markdown with wiki-links
 function renderMarkdownWithWikiLinks(content, titleMap) {
@@ -48,6 +97,211 @@ function renderMarkdownWithWikiLinks(content, titleMap) {
 }
 
 // Routes (similar to Flask's @app.route decorators)
+
+// ============================================
+// Authentication Routes
+// ============================================
+
+// POST /api/auth/register - Create new user account
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, email, password, displayName } = req.body;
+
+        // Validation
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'Username, email, and password are required' });
+        }
+
+        // Check username format (3-20 chars, alphanumeric + underscore)
+        if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+            return res.status(400).json({ error: 'Username must be 3-20 characters (letters, numbers, underscore)' });
+        }
+
+        // Check email format
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        // Check password length
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        }
+
+        // Check registration enabled setting
+        const registrationEnabled = db.getSetting('registration_enabled');
+        const userCount = db.getUserCount();
+
+        if (userCount > 0 && registrationEnabled === 'false') {
+            return res.status(403).json({ error: 'Registration is currently disabled' });
+        }
+
+        // Check max users limit
+        const maxUsers = parseInt(db.getSetting('max_users'));
+        if (userCount >= maxUsers) {
+            return res.status(403).json({ error: 'Maximum user limit reached' });
+        }
+
+        // Check if username or email already exists
+        if (db.getUserByUsername(username)) {
+            return res.status(409).json({ error: 'Username already exists' });
+        }
+
+        if (db.getUserByEmail(email)) {
+            return res.status(409).json({ error: 'Email already exists' });
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+        // Create user (first user is admin)
+        const isFirstUser = userCount === 0;
+        const user = db.createUser(username, email, passwordHash, displayName || null, isFirstUser);
+
+        // If first user, create their personal "Uncategorized" folder
+        if (isFirstUser) {
+            db.createFolder('Uncategorized', null, null, '📂');
+            const folder = db.db.prepare('SELECT id FROM folders WHERE name = ? ORDER BY id DESC LIMIT 1').get('Uncategorized');
+            db.db.prepare('UPDATE folders SET user_id = ?, is_public = 0 WHERE id = ?').run(user.id, folder.id);
+        } else {
+            // Create per-user Uncategorized folder
+            const folder = db.createFolder(`${username}'s Notes`, null, null, '📂');
+            db.db.prepare('UPDATE folders SET user_id = ?, is_public = 0 WHERE id = ?').run(user.id, folder.id);
+        }
+
+        // Log them in
+        req.session.userId = user.id;
+
+        res.json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            display_name: user.display_name,
+            is_admin: user.is_admin
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /api/auth/login - Login with credentials
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
+        // Find user by username or email
+        let user = db.getUserByUsername(username);
+        if (!user) {
+            user = db.getUserByEmail(username); // Allow login with email too
+        }
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Verify password
+        const isValid = await bcrypt.compare(password, user.password_hash);
+        if (!isValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Create session
+        req.session.userId = user.id;
+
+        res.json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            display_name: user.display_name,
+            is_admin: user.is_admin
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /api/auth/logout - Destroy session
+app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to logout' });
+        }
+        res.json({ message: 'Logged out successfully' });
+    });
+});
+
+// GET /api/auth/me - Get current user info
+app.get('/api/auth/me', requireAuth, (req, res) => {
+    const user = db.getUserById(req.session.userId);
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        display_name: user.display_name,
+        is_admin: user.is_admin
+    });
+});
+
+// PUT /api/auth/profile - Update user profile
+app.put('/api/auth/profile', requireAuth, async (req, res) => {
+    try {
+        const { displayName, currentPassword, newPassword } = req.body;
+        const userId = req.session.userId;
+
+        // Update display name if provided
+        if (displayName !== undefined) {
+            db.updateUserProfile(userId, displayName || null);
+        }
+
+        // Update password if provided
+        if (newPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({ error: 'Current password is required to change password' });
+            }
+
+            // Verify current password
+            const user = db.getUserByUsername(db.getUserById(userId).username);
+            const isValid = await bcrypt.compare(currentPassword, user.password_hash);
+            if (!isValid) {
+                return res.status(401).json({ error: 'Current password is incorrect' });
+            }
+
+            // Validate new password
+            if (newPassword.length < 8) {
+                return res.status(400).json({ error: 'New password must be at least 8 characters' });
+            }
+
+            // Hash and update
+            const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+            db.updateUserPassword(userId, passwordHash);
+        }
+
+        const updatedUser = db.getUserById(userId);
+        res.json({
+            id: updatedUser.id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            display_name: updatedUser.display_name,
+            is_admin: updatedUser.is_admin
+        });
+    } catch (error) {
+        console.error('Profile update error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ============================================
+// Main Application Routes
+// ============================================
 
 // GET / - Serve the main page
 app.get('/', (req, res) => {

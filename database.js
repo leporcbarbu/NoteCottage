@@ -20,6 +20,29 @@ db.pragma('synchronous = NORMAL');
 
 // Initialize database schema
 function initializeDatabase() {
+    // Create users table for multi-user support
+    const createUsersTable = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            display_name TEXT,
+            is_admin BOOLEAN DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `;
+
+    // Create system settings table
+    const createSystemSettingsTable = `
+        CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `;
+
     // Create notes table
     const createNotesTable = `
         CREATE TABLE IF NOT EXISTS notes (
@@ -100,6 +123,8 @@ function initializeDatabase() {
     `;
 
     // Execute schema creation
+    db.exec(createUsersTable);
+    db.exec(createSystemSettingsTable);
     db.exec(createNotesTable);
     db.exec(createTagsTable);
     db.exec(createNoteTagsTable);
@@ -108,6 +133,22 @@ function initializeDatabase() {
     db.exec(createInsertTrigger);
     db.exec(createUpdateTrigger);
     db.exec(createDeleteTrigger);
+
+    // Initialize default system settings if not exists
+    const defaultSettings = [
+        { key: 'registration_enabled', value: 'true' },
+        { key: 'max_users', value: '5' },
+        { key: 'app_name', value: 'NoteCottage' }
+    ];
+
+    const insertSetting = db.prepare(`
+        INSERT OR IGNORE INTO system_settings (key, value)
+        VALUES (?, ?)
+    `);
+
+    defaultSettings.forEach(setting => {
+        insertSetting.run(setting.key, setting.value);
+    });
 
     // Add folder_id column to notes table if it doesn't exist
     try {
@@ -163,6 +204,36 @@ function initializeDatabase() {
         console.log('Added deleted_at column to notes table');
     } catch (error) {
         // Column already exists, ignore error
+        if (!error.message.includes('duplicate column name')) {
+            throw error;
+        }
+    }
+
+    // Add user_id column to notes table for multi-user support
+    try {
+        db.exec('ALTER TABLE notes ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE');
+        console.log('Added user_id column to notes table');
+    } catch (error) {
+        if (!error.message.includes('duplicate column name')) {
+            throw error;
+        }
+    }
+
+    // Add user_id column to folders table for multi-user support
+    try {
+        db.exec('ALTER TABLE folders ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE');
+        console.log('Added user_id column to folders table');
+    } catch (error) {
+        if (!error.message.includes('duplicate column name')) {
+            throw error;
+        }
+    }
+
+    // Add is_public column to folders table for privacy control
+    try {
+        db.exec('ALTER TABLE folders ADD COLUMN is_public BOOLEAN DEFAULT 0');
+        console.log('Added is_public column to folders table');
+    } catch (error) {
         if (!error.message.includes('duplicate column name')) {
             throw error;
         }
@@ -423,6 +494,81 @@ const statements = {
         UPDATE notes
         SET folder_id = ?, position = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
+    `),
+
+    // User management statements
+    createUser: db.prepare(`
+        INSERT INTO users (username, email, password_hash, display_name, is_admin)
+        VALUES (?, ?, ?, ?, ?)
+    `),
+
+    getUserById: db.prepare(`
+        SELECT id, username, email, display_name, is_admin, created_at, updated_at
+        FROM users
+        WHERE id = ?
+    `),
+
+    getUserByUsername: db.prepare(`
+        SELECT id, username, email, password_hash, display_name, is_admin, created_at, updated_at
+        FROM users
+        WHERE username = ?
+    `),
+
+    getUserByEmail: db.prepare(`
+        SELECT id, username, email, password_hash, display_name, is_admin, created_at, updated_at
+        FROM users
+        WHERE email = ?
+    `),
+
+    getAllUsers: db.prepare(`
+        SELECT id, username, email, display_name, is_admin, created_at, updated_at
+        FROM users
+        ORDER BY created_at ASC
+    `),
+
+    updateUserProfile: db.prepare(`
+        UPDATE users
+        SET display_name = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    `),
+
+    updateUserPassword: db.prepare(`
+        UPDATE users
+        SET password_hash = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    `),
+
+    updateUserAdmin: db.prepare(`
+        UPDATE users
+        SET is_admin = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    `),
+
+    deleteUser: db.prepare(`
+        DELETE FROM users WHERE id = ?
+    `),
+
+    getUserCount: db.prepare(`
+        SELECT COUNT(*) as count FROM users
+    `),
+
+    getAdminCount: db.prepare(`
+        SELECT COUNT(*) as count FROM users WHERE is_admin = 1
+    `),
+
+    // System settings statements
+    getSetting: db.prepare(`
+        SELECT value FROM system_settings WHERE key = ?
+    `),
+
+    updateSetting: db.prepare(`
+        UPDATE system_settings
+        SET value = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE key = ?
+    `),
+
+    getAllSettings: db.prepare(`
+        SELECT key, value, updated_at FROM system_settings
     `)
 };
 
@@ -760,6 +906,85 @@ function emptyTrash() {
     return result.changes;
 }
 
+// User management operations
+
+function createUser(username, email, passwordHash, displayName = null, isAdmin = false) {
+    const result = statements.createUser.run(username, email, passwordHash, displayName, isAdmin ? 1 : 0);
+    return {
+        id: result.lastInsertRowid,
+        username,
+        email,
+        display_name: displayName,
+        is_admin: isAdmin
+    };
+}
+
+function getUserById(id) {
+    return statements.getUserById.get(id);
+}
+
+function getUserByUsername(username) {
+    return statements.getUserByUsername.get(username);
+}
+
+function getUserByEmail(email) {
+    return statements.getUserByEmail.get(email);
+}
+
+function getAllUsers() {
+    return statements.getAllUsers.all();
+}
+
+function updateUserProfile(id, displayName) {
+    const result = statements.updateUserProfile.run(displayName, id);
+    return result.changes > 0;
+}
+
+function updateUserPassword(id, passwordHash) {
+    const result = statements.updateUserPassword.run(passwordHash, id);
+    return result.changes > 0;
+}
+
+function updateUserAdmin(id, isAdmin) {
+    const result = statements.updateUserAdmin.run(isAdmin ? 1 : 0, id);
+    return result.changes > 0;
+}
+
+function deleteUserFunc(id) {
+    const result = statements.deleteUser.run(id);
+    return result.changes > 0;
+}
+
+function getUserCount() {
+    return statements.getUserCount.get().count;
+}
+
+function getAdminCount() {
+    return statements.getAdminCount.get().count;
+}
+
+// System settings operations
+
+function getSetting(key) {
+    const result = statements.getSetting.get(key);
+    return result ? result.value : null;
+}
+
+function updateSetting(key, value) {
+    const result = statements.updateSetting.run(value, key);
+    return result.changes > 0;
+}
+
+function getAllSettings() {
+    const settings = statements.getAllSettings.all();
+    // Convert array to object for easier access
+    const settingsObj = {};
+    settings.forEach(setting => {
+        settingsObj[setting.key] = setting.value;
+    });
+    return settingsObj;
+}
+
 // Export database operations
 module.exports = {
     db,
@@ -796,7 +1021,23 @@ module.exports = {
     getDeletedNotes,
     restoreNote,
     permanentlyDeleteNote,
-    emptyTrash
+    emptyTrash,
+    // User management operations
+    createUser,
+    getUserById,
+    getUserByUsername,
+    getUserByEmail,
+    getAllUsers,
+    updateUserProfile,
+    updateUserPassword,
+    updateUserAdmin,
+    deleteUser: deleteUserFunc,
+    getUserCount,
+    getAdminCount,
+    // System settings operations
+    getSetting,
+    updateSetting,
+    getAllSettings
 };
 
 // Graceful shutdown handlers to prevent FTS corruption
