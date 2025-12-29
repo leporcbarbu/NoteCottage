@@ -5,7 +5,8 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 // Create/open database file
-const dbPath = path.join(__dirname, 'nodenotes.db');
+// Use DATABASE_PATH environment variable if set (for Docker), otherwise use local path
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'notecottage.db');
 const db = new Database(dbPath);
 
 // Enable foreign keys

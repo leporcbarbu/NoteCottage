@@ -1,0 +1,41 @@
+# Docker Compose file for NoteCottage
+# Run with: docker-compose up -d
+
+services:
+  # Define the NoteCottage application service
+  notecottage:
+    # Name of the container
+    container_name: notecottage
+
+    # Build from Dockerfile in current directory
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Port mapping: host:container
+    # Access app at http://localhost:3000
+    ports:
+      - "3000:3000"
+
+    # Environment variables (override Dockerfile defaults if needed)
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_PATH=/app/data/notecottage.db
+
+    # Volume mounts for persistent data
+    # Syntax: host_path:container_path
+    volumes:
+      # Persist database outside container so data survives restarts/rebuilds
+      - ./data:/app/data
+
+    # Restart policy: always restart unless explicitly stopped
+    restart: unless-stopped
+
+    # Health check to monitor if app is running
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

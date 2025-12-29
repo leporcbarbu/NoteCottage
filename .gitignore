@@ -29,3 +29,10 @@ desktop.ini
 # Logs
 *.log
 npm-debug.log*
+
+# Documentation files (optional - comment out if you want these in git)
+# AUTOSAVE_FEATURE.md
+# DATABASE_REPAIR_SUMMARY.md
+
+# Docker data directory (if using docker-compose volume mount)
+data/

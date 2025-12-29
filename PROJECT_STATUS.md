@@ -20,10 +20,10 @@ NoteCottage (formerly NodeNotes) is a web-based note-taking application built wi
 ## Project Structure
 
 ```
-NodeTest/
+NoteCottage/
 ├── server.js                    # Express server with all API routes
 ├── database.js                  # SQLite database module with folders and tags
-├── nodenotes.db                 # SQLite database file
+├── notecottage.db               # SQLite database file
 ├── package.json                 # Dependencies and scripts
 ├── test-sql-injection.js        # Security test suite
 ├── test-tags.js                 # Tag functionality tests
@@ -327,7 +327,146 @@ Tested with `test-sql-injection.js` - all tests pass.
 - **Collaborative Editing** - Multi-user support
 - **Mobile App** - React Native or PWA
 
+## Long-Term Goals / Roadmap
+
+**Vision:** NoteCottage as a self-hosted, small-scale collaborative tool (similar to Mealie) for 2-5 users, primarily accessed via LAN with optional remote access.
+
+### Deployment Model
+- **Primary:** Docker on home server, accessed via LAN
+- **Secondary:** Remote access via TailScale/VPN (secure, private)
+- **Tertiary:** Public-facing with nginx + SSL (for users without VPN)
+- **Distribution:** Open-source web app on GitHub/similar
+
+### Mobile Strategy
+- **Phase 1:** Progressive Web App (PWA)
+  - Mobile-responsive design (mostly complete)
+  - Service worker for offline capability
+  - "Add to Home Screen" functionality
+  - Free for all users
+- **Phase 2:** Native mobile app (iOS/Android)
+  - Enhanced UX with native features
+  - Potential paid app revenue model
+  - RESTful API already compatible
+
+### Implementation Roadmap
+
+#### 1. Dockerize Application ⭐ PRIORITY
+**Feasibility: ⭐⭐⭐⭐⭐ (Very Easy)**
+- Create Dockerfile with Node.js base image
+- Add .dockerignore for node_modules and database files
+- Docker Compose with environment variables
+- Volume mounts for persistent database storage
+- **Complexity:** Low - 1-2 hours
+- **Benefit:** Foundation for all deployment scenarios, users can `docker-compose up` and go
+
+#### 2. Production-Ready Infrastructure
+**Feasibility: ⭐⭐⭐⭐⭐ (Easy)**
+- Environment-based configuration (PORT, DATABASE_PATH, etc.)
+- nginx reverse-proxy example configurations
+- SSL/TLS setup documentation
+- Rate limiting and security headers
+- CORS configuration for remote access
+- **Complexity:** Low to Medium - 2-4 hours
+- **Benefit:** Secure remote access, SSL encryption, production deployment ready
+
+#### 3. Multi-User Support (Small Scale: 2-5 users)
+**Feasibility: ⭐⭐⭐ (Complex but doable)**
+
+**Chosen Model: Hybrid Shared/Private (Mealie-style)**
+- Shared public folders (collaborative knowledge base, team notes)
+- Private user folders (personal notes, drafts)
+- User can choose visibility when creating folders/notes
+
+**Implementation Requirements:**
+- **Database schema:**
+  - `users` table (id, username, password_hash, email, created_at)
+  - `user_id` foreign key on notes and folders
+  - `is_public` boolean on folders (public = shared, private = user-only)
+  - Notes inherit privacy from parent folder
+- **Authentication:**
+  - User registration and login
+  - Session management (express-session or JWT)
+  - Password hashing (bcrypt/argon2)
+- **API changes:**
+  - Authentication middleware on all routes
+  - Query filters: public content OR owned by current user
+  - Permission checks for edit/delete operations
+- **Frontend:**
+  - Login/registration UI
+  - Auth state management
+  - Visual indicators for public vs private folders
+  - User settings/profile page
+- **Complexity:** High - 3-5 days
+- **Benefit:** Enables family/team collaboration while preserving privacy
+
+#### 4. Progressive Web App (PWA)
+**Feasibility: ⭐⭐⭐⭐ (Moderately Easy)**
+- Service worker for offline support
+- Web app manifest for "Add to Home Screen"
+- Cache strategy for notes and assets
+- Mobile-optimized responsive design (minor tweaks needed)
+- Touch-friendly UI adjustments
+- **Complexity:** Medium - 1-2 days
+- **Benefit:** Free mobile experience, works offline, fast loading
+
+#### 5. Note Encryption (Optional - Lower Priority)
+**Feasibility: ⭐⭐⭐⭐ (Moderately Complex)**
+- **Use Case:** For highly sensitive notes only
+- **Recommended approach:** Per-note encryption toggle
+  - Optional encryption checkbox when creating/editing notes
+  - Client-side encryption for flagged notes
+  - Unencrypted notes maintain full-text search and wiki-links
+  - Encrypted notes stored as blobs, search disabled
+- **Alternative:** HTTPS + VPN may be sufficient for small team use
+- **Complexity:** Medium - 1-2 days
+- **Challenges:**
+  - Full-text search won't work on encrypted content
+  - Wiki-links won't resolve for encrypted notes
+  - Password management and key derivation
+- **Benefit:** Privacy for truly sensitive information
+
+### Recommended Implementation Order
+1. **Dockerize** ← START HERE - Foundation for deployment
+2. **Production-ready infrastructure** - Secure remote access
+3. **Multi-user (hybrid model)** - Core collaboration features
+4. **Progressive Web App** - Mobile accessibility
+5. **Encryption** - Optional security enhancement
+
+**Strategic Note:** With HTTPS (via nginx) and/or TailScale VPN, encryption becomes less critical for small team use. Focus on convenience and collaboration first.
+
 ## How to Run
+
+### Option 1: Docker (Recommended for Production)
+
+**Prerequisites:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+1. **Build and start the container:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Open browser:**
+   ```
+   http://localhost:3000
+   ```
+
+3. **View logs:**
+   ```bash
+   docker-compose logs -f
+   ```
+
+4. **Stop the container:**
+   ```bash
+   docker-compose down
+   ```
+
+**Notes:**
+- Database stored in `./data/` directory (persists across container restarts)
+- To rebuild after code changes: `docker-compose up -d --build`
+
+### Option 2: Local Development (Node.js)
+
+**Prerequisites:** Node.js 18+ installed
 
 1. **Install dependencies:**
    ```bash
@@ -353,10 +492,11 @@ Tested with `test-sql-injection.js` - all tests pass.
 Run test suites to verify functionality:
 
 ```bash
-node test-sql-injection.js     # SQL injection protection tests
 node test-tags.js              # Tag system functionality tests
 node test-tag-fixes.js         # Tag validation rules tests
 ```
+
+**Note:** SQL injection protection is verified through prepared statements throughout codebase (see database.js).
 
 All tests include automatic cleanup.
 
@@ -371,7 +511,7 @@ node fix-database.js           # Repair FTS5 table corruption
 ```
 
 This script will:
-- Create a backup of your database (`nodenotes.db.backup`)
+- Create a backup of your database (`notecottage.db.backup`)
 - Remove any corrupted database files
 - Rebuild the FTS5 (Full-Text Search) virtual table
 - Re-sync the FTS table with your notes
@@ -591,6 +731,48 @@ Persists across browser sessions.
   - Added favicon link to HTML for browser tab display
   - Original PNG artwork stored in public/images/
 
+**Session 9 (December 29, 2025):**
+- ✅ **Strategic Planning** - Defined long-term roadmap and deployment strategy
+  - Established vision as self-hosted, small-scale collaborative tool (Mealie-style)
+  - Decided on hybrid shared/private multi-user model (2-5 users)
+  - Prioritized Dockerization as foundation for all deployment scenarios
+  - Documented mobile strategy: PWA first, then optional native app
+  - Updated PROJECT_STATUS.md with comprehensive implementation roadmap
+- ✅ **Dockerization (COMPLETE)** - Container-based deployment foundation
+  - ✅ Created `.dockerignore` to exclude unnecessary files from image
+  - ✅ Created `Dockerfile` with Node.js 20 Alpine base image
+    - Multi-stage build pattern for optimal image size
+    - Non-root user for security (runs as `node` user)
+    - Creates `/app/data` directory for database persistence
+    - Exposes port 3000
+  - ✅ Created `docker-compose.yml` for easy deployment
+    - Volume mount for database persistence (`./data:/app/data`)
+    - Environment variable configuration (PORT, DATABASE_PATH)
+    - Auto-restart policy
+    - Health check for container monitoring
+    - Removed obsolete `version` field (Docker Compose v2 compatibility)
+  - ✅ Made application Docker-ready
+    - Updated `database.js:9` to use `DATABASE_PATH` environment variable
+    - Updated `server.js:15` to use `PORT` environment variable
+    - Both fallback to local defaults for non-Docker development
+  - ✅ **File Audit & Cleanup** - Optimized git and Docker distributions
+    - Audited all project files and categorized by purpose
+    - Updated `.gitignore` to exclude Docker data directory
+    - Refined `.dockerignore` to minimize image size:
+      - Excludes documentation (PROJECT_STATUS.md, etc.)
+      - Excludes test files (test-*.js, fix-database.js)
+      - Excludes IDE files (.claude/, .vscode/)
+      - Final image size: ~180MB (node:20-alpine base + 101 npm packages)
+  - ✅ **Docker Testing & Validation** - All tests passed successfully
+    - ✅ Built Docker image successfully (Docker v29.1.3, Compose v2.40.3)
+    - ✅ Container starts and runs with healthy status
+    - ✅ Application accessible at http://localhost:3000
+    - ✅ Database migrations run automatically on first start
+    - ✅ Database persistence verified across container restarts
+    - ✅ Volume mount working correctly (`./data/notecottage.db` on host)
+    - ✅ Health check passes (container reports healthy status)
+    - ✅ WAL mode database files persist correctly (db, db-shm, db-wal)
+
 ### Areas to Explore
 If continuing development, consider:
 1. **Graph View** - Visual network of linked notes (now possible with wiki-links)
@@ -639,9 +821,12 @@ This project successfully demonstrated:
 - **Print API integration** (window.print() for PDF generation)
 - **Soft delete pattern** (deleted_at timestamp for recycle bin functionality)
 - **Virtual folders** (UI-only folders like "All Notes" and "Trash" without database entries)
+- **Docker containerization** (Dockerfile, docker-compose, multi-stage builds, volume mounts)
+- **Container orchestration** (environment variables, health checks, restart policies)
+- **Database persistence in containers** (volume mounting for stateful applications)
 
 **Comparison to Flask:** Very similar patterns, but Node.js is async by default, uses CommonJS modules, and has different idioms for routing and middleware. SQLite operations in Node.js (better-sqlite3) are synchronous unlike typical async database libraries.
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. All known bugs have been resolved.
+**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application now fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Next steps in roadmap:** Production-ready infrastructure (nginx reverse proxy, SSL/TLS), multi-user support (hybrid shared/private model), PWA for mobile access.

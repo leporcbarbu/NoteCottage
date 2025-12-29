@@ -1,7 +1,7 @@
 {
-  "name": "nodetest",
+  "name": "notecottage",
   "version": "1.0.0",
-  "description": "",
+  "description": "A cozy web-based note-taking application with folders, tags, and wiki-links",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",

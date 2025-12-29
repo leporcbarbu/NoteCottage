@@ -1,0 +1,43 @@
+# Dependencies (will be installed fresh inside container)
+node_modules/
+npm-debug.log*
+
+# Database files (will be stored in Docker volume, not in image)
+*.db
+*.db-shm
+*.db-wal
+*.backup
+data/
+
+# Git files
+.git/
+.gitignore
+
+# Documentation (not needed at runtime)
+PROJECT_STATUS.md
+AUTOSAVE_FEATURE.md
+DATABASE_REPAIR_SUMMARY.md
+README.md
+
+# Test and utility files (not needed at runtime)
+test-*.js
+fix-database.js
+
+# IDE and system files
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker files themselves (don't copy into image)
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Logs
+*.log

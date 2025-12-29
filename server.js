@@ -11,7 +11,8 @@ const wikiLinkExtension = require('./public/js/wikilink-extension');
 
 // Create Express app (equivalent to Flask's app = Flask(__name__))
 const app = express();
-const PORT = 3000;
+// Use PORT environment variable if set (for Docker/production), otherwise default to 3000
+const PORT = process.env.PORT || 3000;
 
 // Middleware - similar to Flask's before_request or app.config
 app.use(express.json()); // Parse JSON request bodies
@@ -688,7 +689,7 @@ app.put('/api/notes/:id/reorder', (req, res) => {
 // Start server (like Flask's app.run())
 app.listen(PORT, () => {
     console.log(`NoteCottage server running on http://localhost:${PORT}`);
-    console.log(`Database: SQLite (notenotes.db)`);
+    console.log(`Database: SQLite (notecottage.db)`);
     console.log(`Using full-text search for better searching!`);
     console.log(`Tags support enabled!`);
 });
