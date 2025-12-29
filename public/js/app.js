@@ -172,6 +172,33 @@ function closeThemeMenu() {
     themeMenu.style.display = 'none';
 }
 
+// User menu functions
+function toggleUserMenu() {
+    const userMenu = document.getElementById('userMenu');
+    const isVisible = userMenu.style.display === 'block';
+    userMenu.style.display = isVisible ? 'none' : 'block';
+}
+
+function closeUserMenu() {
+    const userMenu = document.getElementById('userMenu');
+    userMenu.style.display = 'none';
+}
+
+// Update user info display
+function updateUserInfo() {
+    if (currentUser) {
+        const usernameDisplay = document.getElementById('currentUsername');
+        const adminPanelBtn = document.getElementById('adminPanelBtn');
+
+        usernameDisplay.textContent = currentUser.display_name || currentUser.username;
+
+        // Show admin panel button if user is admin
+        if (currentUser.is_admin) {
+            adminPanelBtn.style.display = 'block';
+        }
+    }
+}
+
 // Word count function
 function updateWordCount() {
     const text = noteContent.value.trim();
@@ -463,6 +490,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // Update user info display
+    updateUserInfo();
+
     // Apply saved theme and set active state
     setTheme(currentTheme);
     updateThemeMenuActiveState();
@@ -522,6 +552,46 @@ function setupEventListeners() {
     document.addEventListener('click', (e) => {
         if (!themeButton.contains(e.target) && !themeMenu.contains(e.target)) {
             closeThemeMenu();
+        }
+    });
+
+    // User menu
+    const userButton = document.getElementById('userButton');
+    const userMenu = document.getElementById('userMenu');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    const adminPanelBtn = document.getElementById('adminPanelBtn');
+
+    userButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleUserMenu();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        } catch (error) {
+            console.error('Logout failed:', error);
+            // Force redirect anyway
+            window.location.href = '/login.html';
+        }
+    });
+
+    userProfileBtn.addEventListener('click', () => {
+        alert('Profile settings coming soon!');
+        closeUserMenu();
+    });
+
+    adminPanelBtn.addEventListener('click', () => {
+        alert('Admin panel coming soon!');
+        closeUserMenu();
+    });
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (userButton && userMenu && !userButton.contains(e.target) && !userMenu.contains(e.target)) {
+            closeUserMenu();
         }
     });
 
@@ -1423,7 +1493,13 @@ function updateFolderLocation(folderId) {
 }
 
 function selectFolder(folderId) {
-    currentFolderId = folderId;
+    // Toggle selection - if clicking the same folder, deselect it (show all notes)
+    if (currentFolderId === folderId) {
+        currentFolderId = 'all-notes';  // Deselect by going to "All Notes" view
+    } else {
+        currentFolderId = folderId;
+    }
+
     currentTagFilter = null;  // Clear tag filter
     clearTagFilter.style.display = 'none';
     loadNotes();
