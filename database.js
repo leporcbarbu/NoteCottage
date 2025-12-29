@@ -971,13 +971,7 @@ function emptyTrash() {
 
 function createUser(username, email, passwordHash, displayName = null, isAdmin = false) {
     const result = statements.createUser.run(username, email, passwordHash, displayName, isAdmin ? 1 : 0);
-    return {
-        id: result.lastInsertRowid,
-        username,
-        email,
-        display_name: displayName,
-        is_admin: isAdmin
-    };
+    return result.lastInsertRowid;
 }
 
 function getUserById(id) {
@@ -1008,6 +1002,18 @@ function updateUserPassword(id, passwordHash) {
 
 function updateUserAdmin(id, isAdmin) {
     const result = statements.updateUserAdmin.run(isAdmin ? 1 : 0, id);
+    return result.changes > 0;
+}
+
+function updateUserField(id, field, value) {
+    // Whitelist of allowed fields to prevent SQL injection
+    const allowedFields = ['username', 'email', 'display_name', 'password_hash', 'is_admin'];
+    if (!allowedFields.includes(field)) {
+        throw new Error(`Invalid field: ${field}`);
+    }
+
+    const stmt = db.prepare(`UPDATE users SET ${field} = ? WHERE id = ?`);
+    const result = stmt.run(value, id);
     return result.changes > 0;
 }
 
@@ -1098,6 +1104,7 @@ module.exports = {
     updateUserProfile,
     updateUserPassword,
     updateUserAdmin,
+    updateUserField,
     deleteUser: deleteUserFunc,
     getUserCount,
     getAdminCount,

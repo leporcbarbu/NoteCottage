@@ -314,6 +314,114 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
     }
 });
 
+// POST /api/admin/users - Create new user
+app.post('/api/admin/users', requireAdmin, async (req, res) => {
+    try {
+        const { username, email, displayName, password, isAdmin } = req.body;
+
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'Username, email, and password are required' });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        }
+
+        // Check if username or email already exists
+        const existingUser = db.getUserByUsername(username);
+        if (existingUser) {
+            return res.status(400).json({ error: 'Username already exists' });
+        }
+
+        const existingEmail = db.getUserByEmail(email);
+        if (existingEmail) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        // Create user
+        const userId = db.createUser(username, email, hashedPassword, displayName, isAdmin ? 1 : 0);
+
+        // Create personal Uncategorized folder
+        db.createFolder('Uncategorized', null, userId, 0, '📝');
+
+        res.json({ id: userId, message: 'User created successfully' });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
+});
+
+// PUT /api/admin/users/:id - Update user
+app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { username, email, displayName, password, isAdmin } = req.body;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        const user = db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check if new username conflicts
+        if (username && username !== user.username) {
+            const existingUser = db.getUserByUsername(username);
+            if (existingUser) {
+                return res.status(400).json({ error: 'Username already exists' });
+            }
+        }
+
+        // Check if new email conflicts
+        if (email && email !== user.email) {
+            const existingEmail = db.getUserByEmail(email);
+            if (existingEmail) {
+                return res.status(400).json({ error: 'Email already exists' });
+            }
+        }
+
+        // Prevent removing last admin
+        if (isAdmin === false) {
+            const allUsers = db.getAllUsers();
+            const adminCount = allUsers.filter(u => u.is_admin === 1).length;
+            if (adminCount === 1 && user.is_admin === 1) {
+                return res.status(400).json({ error: 'Cannot remove admin privileges from the last admin' });
+            }
+        }
+
+        // Update fields
+        if (username) {
+            db.updateUserField(userId, 'username', username);
+        }
+        if (email) {
+            db.updateUserField(userId, 'email', email);
+        }
+        if (displayName !== undefined) {
+            db.updateUserField(userId, 'display_name', displayName);
+        }
+        if (isAdmin !== undefined) {
+            db.updateUserField(userId, 'is_admin', isAdmin ? 1 : 0);
+        }
+        if (password) {
+            if (password.length < 8) {
+                return res.status(400).json({ error: 'Password must be at least 8 characters' });
+            }
+            const hashedPassword = await bcrypt.hash(password, 12);
+            db.updateUserField(userId, 'password_hash', hashedPassword);
+        }
+
+        res.json({ message: 'User updated successfully' });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+});
+
 // DELETE /api/admin/users/:id - Delete user and their private content
 app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
     try {

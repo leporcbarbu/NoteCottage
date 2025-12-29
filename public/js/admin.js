@@ -92,9 +92,9 @@ async function loadStatistics() {
         const response = await fetch('/api/admin/stats');
         if (response.ok) {
             const stats = await response.json();
-            document.getElementById('stat-users').textContent = stats.users;
-            document.getElementById('stat-notes').textContent = stats.notes;
-            document.getElementById('stat-folders').textContent = stats.folders;
+            document.getElementById('stat-users').textContent = stats.user_count;
+            document.getElementById('stat-notes').textContent = stats.total_notes;
+            document.getElementById('stat-folders').textContent = stats.total_folders;
         } else {
             showAlert('Failed to load statistics', 'error');
         }
@@ -339,8 +339,8 @@ async function loadSettings() {
         const response = await fetch('/api/admin/settings');
         if (response.ok) {
             const settings = await response.json();
-            document.getElementById('registrationEnabled').checked = settings.registrationEnabled;
-            document.getElementById('maxUsers').value = settings.maxUsers;
+            document.getElementById('registrationEnabled').checked = settings.registration_enabled === 'true';
+            document.getElementById('maxUsers').value = settings.max_users || 0;
         } else {
             showAlert('Failed to load settings', 'error');
         }
@@ -358,7 +358,10 @@ async function saveSettings() {
         const response = await fetch('/api/admin/settings', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ registrationEnabled, maxUsers })
+            body: JSON.stringify({
+                registration_enabled: registrationEnabled,
+                max_users: maxUsers
+            })
         });
 
         const data = await response.json();
