@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - NoteCottage</title>
+    <link rel="icon" type="image/png" href="/images/notecottage-favicon.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components/modal.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f5f1e8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .admin-header {
+            background: #8b7355;
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-header h1 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+        }
+
+        .admin-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .admin-header .back-link {
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .admin-header .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #d4c5b0;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            color: #6b5647;
+            font-size: 15px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #4a3f2e;
+            background: rgba(200, 159, 93, 0.1);
+        }
+
+        .tab.active {
+            color: #c89f5d;
+            border-bottom-color: #c89f5d;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #d4c5b0;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(107, 86, 71, 0.08);
+        }
+
+        .card h2 {
+            margin: 0 0 20px 0;
+            color: #4a3f2e;
+            font-size: 18px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #d4c5b0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #c89f5d;
+            margin: 10px 0;
+        }
+
+        .stat-card .stat-label {
+            color: #6b5647;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #d4c5b0;
+        }
+
+        .users-table th {
+            background: #faf7f0;
+            color: #4a3f2e;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table td {
+            color: #4a3f2e;
+        }
+
+        .users-table tr:hover {
+            background: #faf7f0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-admin {
+            background: #c89f5d;
+            color: white;
+        }
+
+        .badge-user {
+            background: #d4c5b0;
+            color: #4a3f2e;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #c89f5d;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #b88f4d;
+        }
+
+        .btn-danger {
+            background: #c46d5e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b45d4e;
+        }
+
+        .btn-secondary {
+            background: #a67c52;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #966c42;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a3f2e;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d4c5b0;
+            border-radius: 6px;
+            background: white;
+            color: #4a3f2e;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #c89f5d;
+            box-shadow: 0 0 0 2px rgba(200, 159, 93, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            color: #6b5647;
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b5647;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #d4c5b0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info h3 {
+            margin: 0 0 4px 0;
+            color: #4a3f2e;
+            font-size: 16px;
+        }
+
+        .setting-info p {
+            margin: 0;
+            color: #6b5647;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1>Admin Panel</h1>
+        <p>Manage users, settings, and view statistics</p>
+        <a href="/" class="back-link">← Back to NoteCottage</a>
+    </div>
+
+    <div class="admin-container">
+        <div id="alert-container"></div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="statistics">Statistics</button>
+            <button class="tab" data-tab="users">User Management</button>
+            <button class="tab" data-tab="settings">System Settings</button>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="statistics-tab" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value" id="stat-users">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Notes</div>
+                    <div class="stat-value" id="stat-notes">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Folders</div>
+                    <div class="stat-value" id="stat-folders">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management Tab -->
+        <div id="users-tab" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Users</h2>
+                    <button class="btn btn-primary" id="createUserBtn">+ Create User</button>
+                </div>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Display Name</th>
+                            <th>Role</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- System Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="card">
+                <h2>System Settings</h2>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Registration</h3>
+                        <p>Allow new users to register accounts</p>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="registrationEnabled">
+                        <label for="registrationEnabled">Enabled</label>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Maximum Users</h3>
+                        <p>Limit the total number of user accounts (0 = unlimited)</p>
+                    </div>
+                    <input type="number" id="maxUsers" style="width: 100px;" min="0" value="0">
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/components/modal.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

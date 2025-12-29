@@ -585,8 +585,7 @@ function setupEventListeners() {
 
     if (adminPanelBtn) {
         adminPanelBtn.addEventListener('click', () => {
-            alert('Admin panel coming soon!');
-            closeUserMenu();
+            window.location.href = '/admin.html';
         });
     }
 
