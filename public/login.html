@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="/images/notecottage-favicon.png">
     <link rel="stylesheet" href="/css/style.css">
     <style>
+        /* Apply cottage theme to login page */
         body {
             margin: 0;
             padding: 0;
@@ -14,7 +15,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--background);
+            background: #f5f1e8;
         }
 
         .login-container {
@@ -24,11 +25,11 @@
         }
 
         .login-card {
-            background: var(--editor-bg);
-            border: 1px solid var(--border);
+            background: #faf7f0;
+            border: 1px solid #d4c5b0;
             border-radius: 8px;
             padding: 40px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 12px rgba(107, 86, 71, 0.15);
         }
 
         .login-header {
@@ -37,13 +38,13 @@
         }
 
         .login-header h1 {
-            color: var(--text);
+            color: #4a3f2e;
             margin: 0 0 10px 0;
             font-size: 28px;
         }
 
         .login-header p {
-            color: var(--text-secondary);
+            color: #6b5647;
             margin: 0;
             font-size: 14px;
         }
@@ -54,7 +55,7 @@
 
         .form-group label {
             display: block;
-            color: var(--text);
+            color: #4a3f2e;
             margin-bottom: 8px;
             font-weight: 500;
             font-size: 14px;
@@ -63,22 +64,23 @@
         .form-group input {
             width: 100%;
             padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            background: var(--background);
-            color: var(--text);
+            border: 1px solid #d4c5b0;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #4a3f2e;
             font-size: 14px;
             box-sizing: border-box;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: #c89f5d;
+            box-shadow: 0 0 0 2px rgba(200, 159, 93, 0.1);
         }
 
         .form-group small {
             display: block;
-            color: var(--text-secondary);
+            color: #6b5647;
             margin-top: 4px;
             font-size: 12px;
         }
@@ -86,40 +88,49 @@
         .btn-primary {
             width: 100%;
             padding: 12px;
-            background: var(--accent);
+            background: #c89f5d;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .btn-primary:hover {
-            background: var(--accent-hover);
+            background: #b88f4d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(200, 159, 93, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
         }
 
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
 
         .form-toggle {
             text-align: center;
             margin-top: 20px;
-            color: var(--text-secondary);
+            color: #6b5647;
             font-size: 14px;
         }
 
         .form-toggle a {
-            color: var(--accent);
+            color: #c89f5d;
             text-decoration: none;
             cursor: pointer;
+            font-weight: 500;
         }
 
         .form-toggle a:hover {
             text-decoration: underline;
+            color: #b88f4d;
         }
 
         .error-message {
@@ -149,7 +160,7 @@
         .password-strength {
             margin-top: 8px;
             height: 4px;
-            background: var(--border);
+            background: #d4c5b0;
             border-radius: 2px;
             overflow: hidden;
         }
@@ -165,13 +176,14 @@
         .password-strength-bar.strong { width: 100%; background: #4caf50; }
 
         .first-user-banner {
-            background: var(--accent);
+            background: #c89f5d;
             color: white;
             padding: 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-bottom: 20px;
             font-size: 14px;
             text-align: center;
+            font-weight: 500;
         }
     </style>
 </head>
