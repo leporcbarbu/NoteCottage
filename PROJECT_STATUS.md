@@ -451,6 +451,7 @@ CREATE TABLE users (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     display_name TEXT,
+    is_admin BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -461,6 +462,7 @@ CREATE TABLE users (
 - Email: For password recovery (future feature)
 - Password: Hashed with bcrypt (cost factor 12)
 - Display name: Optional friendly name for UI
+- is_admin: First user automatically set to 1 (admin), others default to 0
 
 #### Modified Table: `folders`
 **Add columns:**
@@ -498,6 +500,20 @@ ALTER TABLE notes ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASC
 - Tags like #javascript, #work, #ideas are naturally collaborative
 - Users can filter by tags regardless of note ownership
 - Simplifies tag autocomplete (show all tags)
+
+#### New Table: `system_settings`
+```sql
+CREATE TABLE system_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Initial settings:**
+- `registration_enabled`: "true" or "false" (admin can disable new registrations)
+- `max_users`: "5" (default max, admin can adjust)
+- `app_name`: "NoteCottage" (customizable instance name)
 
 ### Authentication System
 
@@ -551,6 +567,18 @@ function requireAuth(req, res, next) {
     next();
 }
 
+function requireAdmin(req, res, next) {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    const user = getUserById(req.session.userId);
+    if (!user || !user.is_admin) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    req.user = user;
+    next();
+}
+
 function attachUser(req, res, next) {
     if (req.session.userId) {
         req.user = getUserById(req.session.userId);
@@ -567,7 +595,18 @@ POST   /api/auth/register      - Create new user account
 POST   /api/auth/login         - Login (create session)
 POST   /api/auth/logout        - Logout (destroy session)
 GET    /api/auth/me            - Get current user info
-PUT    /api/auth/profile       - Update user profile
+PUT    /api/auth/profile       - Update user profile (display name, password)
+```
+
+#### New Endpoints: Admin Panel (Admin Only)
+```
+GET    /api/admin/users        - List all users
+DELETE /api/admin/users/:id    - Delete user (and all their private content)
+PUT    /api/admin/users/:id/password  - Reset user's password
+PUT    /api/admin/users/:id/admin     - Toggle admin status
+GET    /api/admin/settings     - Get system settings (registration enabled, max users)
+PUT    /api/admin/settings     - Update system settings
+GET    /api/admin/stats        - Get system statistics (user count, note count, etc.)
 ```
 
 #### Modified Endpoints: Permission Checks
@@ -627,7 +666,7 @@ AND (
 
 **2. User Indicator in Header**
 - Display current user's name/avatar
-- Dropdown menu: Profile, Settings, Logout
+- Dropdown menu: Profile, Settings, Admin Panel (if admin), Logout
 
 **3. Folder Privacy Toggle**
 - When creating/editing folders:
@@ -645,6 +684,24 @@ AND (
 - Change display name
 - Change password
 - Email preferences (future: notifications)
+
+**6. Admin Panel Page** (`/admin`) - Admin Only
+- **User Management Tab:**
+  - Table listing all users (username, email, display name, admin status, created date)
+  - Actions per user: Reset Password, Toggle Admin, Delete User
+  - Delete confirmation modal with warning about private content
+  - Cannot delete yourself or last admin
+- **System Settings Tab:**
+  - Toggle: "Allow new user registrations" (on/off switch)
+  - Number input: "Maximum users allowed" (1-20)
+  - Text input: "Instance name" (customize app name)
+  - Save button to update settings
+- **Statistics Tab:**
+  - Total users count
+  - Total notes count (public vs private breakdown)
+  - Total folders count
+  - Database size
+  - Uptime statistics
 
 #### Authentication Flow
 
@@ -719,74 +776,94 @@ UPDATE folders SET user_id = 1;
 UPDATE notes SET user_id = 1;
 ```
 
-### Open Questions / Design Decisions
+### Design Decisions (Finalized)
 
 **Q1: Should "Uncategorized" folder be per-user or shared?**
-- Option A: Per-user → Each user has "My Uncategorized" folder (cleaner)
-- Option B: Shared → One "Uncategorized" for quick public notes (simpler)
-- **Recommendation:** Option A (per-user) for better privacy defaults
+- ✅ **DECIDED:** Per-user - Each user has their own "Uncategorized" folder
+- Better privacy defaults, more intuitive ownership model
 
 **Q2: Should tags be private or global?**
-- ✅ **Decided:** Global (collaborative by nature)
+- ✅ **DECIDED:** Global (collaborative by nature)
 
 **Q3: Can users edit notes created by others in public folders?**
-- Option A: Full collaboration (any user can edit public notes)
-- Option B: Restricted (only owner can edit, but anyone can view)
-- **Recommendation:** Option A (full collaboration) - matches Mealie's model
+- ✅ **DECIDED:** Full collaboration - any user can edit notes in shared folders
+- True wiki-style collaboration, matches Mealie's model
 
 **Q4: Admin features needed?**
-- User management (view all users, delete users)
-- System settings (allow registration, max users)
-- Audit log (who edited what)
-- **Decision:** Not for MVP, add later if needed
+- ✅ **DECIDED:** Yes, include admin panel in MVP
+- Required features:
+  - User management (view all users, reset passwords, delete users)
+  - System settings (toggle registration on/off, set max users)
+  - Admin role flag in users table (`is_admin` boolean)
+  - Admin-only routes with middleware check
+  - Admin panel UI (accessible from user dropdown menu)
 
 **Q5: Password recovery?**
-- Email-based reset (requires email configuration)
-- Admin manual reset
-- Security questions
-- **Decision:** Defer to post-MVP (small team = manual admin reset)
+- **DECISION:** Defer to post-MVP
+- For small team (2-5 users), admin can manually reset passwords
+- Email-based recovery requires SMTP configuration (added complexity)
 
 ### Implementation Checklist (Not Started)
 
 - [ ] Database schema changes
-  - [ ] Create `users` table
+  - [ ] Create `users` table (with `is_admin` field)
+  - [ ] Create `system_settings` table
   - [ ] Add `user_id` to `folders` and `notes`
   - [ ] Add `is_public` to `folders`
   - [ ] Create migration script for existing data
+  - [ ] Set first user as admin automatically
 - [ ] Authentication backend
   - [ ] Install dependencies (express-session, bcrypt, connect-sqlite3)
-  - [ ] Create session store
-  - [ ] Create auth endpoints (register, login, logout)
-  - [ ] Create authentication middleware
-  - [ ] Hash passwords with bcrypt
+  - [ ] Create session store (separate sessions.db file)
+  - [ ] Create auth endpoints (register, login, logout, profile)
+  - [ ] Create authentication middleware (`requireAuth`, `requireAdmin`)
+  - [ ] Hash passwords with bcrypt (cost factor 12)
+  - [ ] Check registration_enabled setting during registration
+  - [ ] Check max_users limit during registration
 - [ ] API permission checks
   - [ ] Update all folder queries (filter by visibility)
   - [ ] Update all note queries (filter by visibility)
   - [ ] Add permission checks to PUT/DELETE endpoints
   - [ ] Update note/folder creation (set user_id)
+  - [ ] Create per-user "Uncategorized" folders on registration
+- [ ] Admin panel backend
+  - [ ] Create admin endpoints (users, settings, stats)
+  - [ ] Implement user management operations
+  - [ ] Implement system settings CRUD
+  - [ ] Add safeguards (can't delete self, can't delete last admin)
+  - [ ] Initialize default system settings
 - [ ] Frontend authentication
   - [ ] Create login/registration page
   - [ ] Add session check on app load
-  - [ ] Handle 401 responses (redirect to login)
+  - [ ] Handle 401/403 responses (redirect to login)
   - [ ] Add logout functionality
+  - [ ] Show registration disabled message if applicable
 - [ ] Frontend UI updates
-  - [ ] Add user indicator in header
+  - [ ] Add user indicator in header with dropdown
   - [ ] Add privacy toggle to folder form
   - [ ] Add visual indicators (🌍 public, 🔒 private)
   - [ ] Show note ownership in public folders
-  - [ ] Create user settings page
+  - [ ] Create user settings page (profile, password change)
+  - [ ] Create admin panel page (user mgmt, settings, stats)
+  - [ ] Add "Admin Panel" link to user dropdown (admin only)
 - [ ] Testing
   - [ ] Test multi-user scenarios
   - [ ] Test permission boundaries
   - [ ] Test session expiration
   - [ ] Test migration from single-user
+  - [ ] Test admin operations
+  - [ ] Test registration limits
 
-### Estimated Complexity: 3-5 days
+### Estimated Complexity: 4-6 days
 
 **Breakdown:**
-- Database & backend auth: 1 day
+- Database schema & migrations: 0.5 day
+- Backend authentication system: 1 day
 - API permission logic: 1 day
-- Frontend login/UI: 1-2 days
+- Admin panel backend: 0.5-1 day
+- Frontend login/auth UI: 1 day
+- Frontend privacy indicators: 0.5 day
+- Admin panel UI: 1 day
 - Testing & refinement: 0.5-1 day
 
 ---
