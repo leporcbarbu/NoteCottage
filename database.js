@@ -290,7 +290,7 @@ const statements = {
 
     // Get a single note by ID (including deleted for restore purposes)
     getNoteById: db.prepare(`
-        SELECT id, title, content, folder_id, created_at, updated_at, deleted_at
+        SELECT id, title, content, folder_id, user_id, created_at, updated_at, deleted_at
         FROM notes
         WHERE id = ?
     `),
@@ -624,6 +624,11 @@ function canUserAccessNote(noteId, userId) {
     const note = getNoteById(noteId);
     if (!note) return false;
 
+    // Legacy notes (no folder or no user_id) are accessible to all users
+    if (!note.folder_id) {
+        return true; // Notes without folders are accessible (legacy or uncategorized)
+    }
+
     // Note is accessible if its parent folder is accessible
     return canUserAccessFolder(note.folder_id, userId);
 }
@@ -632,12 +637,20 @@ function canUserModifyNote(noteId, userId) {
     const note = getNoteById(noteId);
     if (!note) return false;
 
+    // If note has no folder (or folder doesn't exist), check note ownership
+    if (!note.folder_id) {
+        return note.user_id === userId || note.user_id === null; // Allow if user owns it or it's legacy (no owner)
+    }
+
     const folder = getFolderById(note.folder_id);
-    if (!folder) return false;
+    if (!folder) {
+        // Folder doesn't exist - allow if user owns the note or it's legacy
+        return note.user_id === userId || note.user_id === null;
+    }
 
     // Can modify if: note is in public folder OR user owns the note
     if (folder.is_public === 1) return true;
-    return note.user_id === userId;
+    return note.user_id === userId || note.user_id === null; // Allow legacy notes (created before multi-user)
 }
 
 function updateNote(id, content) {
