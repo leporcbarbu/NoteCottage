@@ -19,7 +19,15 @@
             <div class="sidebar-header">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 15px;">
                     <h1 style="margin-bottom: 0;">NoteCottage</h1>
-                    <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+                    <div class="theme-picker">
+                        <button id="themeButton" class="theme-button" title="Change theme">Theme</button>
+                        <div id="themeMenu" class="theme-menu" style="display: none;">
+                            <button class="theme-option" data-theme="light">☀️ Light</button>
+                            <button class="theme-option" data-theme="dark">🌙 Dark</button>
+                            <button class="theme-option" data-theme="cottage">🏡 Cottage</button>
+                            <button class="theme-option" data-theme="cottage-dark">🏡🌙 Cottage Dark</button>
+                        </div>
+                    </div>
                 </div>
                 <button id="newNoteBtn" class="btn btn-primary">+ New Note</button>
             </div>

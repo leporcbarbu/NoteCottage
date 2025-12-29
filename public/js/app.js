@@ -91,7 +91,8 @@ const wordCount = document.getElementById('wordCount');
 const folderLocation = document.getElementById('folderLocation');
 const tagsList = document.getElementById('tagsList');
 const clearTagFilter = document.getElementById('clearTagFilter');
-const themeToggle = document.getElementById('themeToggle');
+const themeButton = document.getElementById('themeButton');
+const themeMenu = document.getElementById('themeMenu');
 
 // Tag state
 let allTags = [];
@@ -111,14 +112,27 @@ function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
 
-    // Update toggle button icon
-    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-    themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    // Update active state on theme options
+    updateThemeMenuActiveState();
 }
 
-function toggleTheme() {
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
+function updateThemeMenuActiveState() {
+    document.querySelectorAll('.theme-option').forEach(option => {
+        if (option.dataset.theme === currentTheme) {
+            option.classList.add('active');
+        } else {
+            option.classList.remove('active');
+        }
+    });
+}
+
+function toggleThemeMenu() {
+    const isVisible = themeMenu.style.display === 'block';
+    themeMenu.style.display = isVisible ? 'none' : 'block';
+}
+
+function closeThemeMenu() {
+    themeMenu.style.display = 'none';
 }
 
 // Word count function
@@ -405,8 +419,9 @@ function initializeSidebarResize() {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
-    // Apply saved theme
+    // Apply saved theme and set active state
     setTheme(currentTheme);
+    updateThemeMenuActiveState();
 
     // Load expanded folders from localStorage
     const saved = localStorage.getItem('expandedFolders');
@@ -444,7 +459,27 @@ function setupEventListeners() {
     viewToggle.addEventListener('click', toggleView);
     searchInput.addEventListener('input', filterNotes);
     clearTagFilter.addEventListener('click', clearFilter);
-    themeToggle.addEventListener('click', toggleTheme);
+
+    // Theme picker
+    themeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleThemeMenu();
+    });
+
+    // Theme options
+    document.querySelectorAll('.theme-option').forEach(option => {
+        option.addEventListener('click', () => {
+            setTheme(option.dataset.theme);
+            closeThemeMenu();
+        });
+    });
+
+    // Close theme menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!themeButton.contains(e.target) && !themeMenu.contains(e.target)) {
+            closeThemeMenu();
+        }
+    });
 
     // Word count update and autosave
     noteContent.addEventListener('input', () => {
