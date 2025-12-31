@@ -239,6 +239,40 @@ function initializeDatabase() {
         }
     }
 
+    // Create attachments table for image support
+    try {
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS attachments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                note_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                storage_type TEXT NOT NULL CHECK(storage_type IN ('upload', 'external')),
+                file_path TEXT NOT NULL,
+                original_filename TEXT,
+                mime_type TEXT,
+                file_size INTEGER,
+                width INTEGER,
+                height INTEGER,
+                alt_text TEXT,
+                position INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_attachments_note_id ON attachments(note_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_attachments_user_id ON attachments(user_id)`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_attachments_storage_type ON attachments(storage_type)`);
+
+        console.log('Attachments table created successfully');
+    } catch (error) {
+        if (!error.message.includes('already exists')) {
+            throw error;
+        }
+    }
+
     console.log('Database initialized successfully');
 }
 
@@ -577,6 +611,46 @@ const statements = {
 
     getAllSettings: db.prepare(`
         SELECT key, value, updated_at FROM system_settings
+    `),
+
+    // Attachment statements
+    createAttachment: db.prepare(`
+        INSERT INTO attachments (note_id, user_id, storage_type, file_path, original_filename, mime_type, file_size, width, height, alt_text, position)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `),
+
+    getAttachmentById: db.prepare(`
+        SELECT * FROM attachments WHERE id = ?
+    `),
+
+    getAttachmentsByNote: db.prepare(`
+        SELECT * FROM attachments
+        WHERE note_id = ?
+        ORDER BY position ASC, created_at ASC
+    `),
+
+    getAttachmentsByUser: db.prepare(`
+        SELECT * FROM attachments
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    `),
+
+    getUploadAttachmentsByNote: db.prepare(`
+        SELECT id, file_path FROM attachments
+        WHERE note_id = ? AND storage_type = 'upload'
+    `),
+
+    getUploadAttachmentsByUser: db.prepare(`
+        SELECT id, file_path FROM attachments
+        WHERE user_id = ? AND storage_type = 'upload'
+    `),
+
+    deleteAttachment: db.prepare(`
+        DELETE FROM attachments WHERE id = ?
+    `),
+
+    getAttachmentCount: db.prepare(`
+        SELECT COUNT(*) as count FROM attachments WHERE note_id = ?
     `)
 };
 
@@ -1025,11 +1099,15 @@ function restoreNote(id) {
 }
 
 function permanentlyDeleteNote(id) {
+    // Note: File deletion happens in server.js after this function returns
+    // CASCADE DELETE automatically removes attachments from database
     const result = statements.permanentlyDeleteNote.run(id);
     return result.changes > 0;
 }
 
 function emptyTrash() {
+    // Note: File deletion happens in server.js after this function returns
+    // CASCADE DELETE automatically removes attachments from database
     const result = statements.emptyTrash.run();
     return result.changes;
 }
@@ -1085,6 +1163,8 @@ function updateUserField(id, field, value) {
 }
 
 function deleteUserFunc(id) {
+    // Note: File deletion for user uploads happens in server.js after this function returns
+    // CASCADE DELETE automatically removes user's attachments from database
     const result = statements.deleteUser.run(id);
     return result.changes > 0;
 }
@@ -1134,6 +1214,66 @@ function getAllSettings() {
         settingsObj[setting.key] = setting.value;
     });
     return settingsObj;
+}
+
+// Attachment operations
+
+function createAttachmentFunc(noteId, userId, storageType, filePath, metadata = {}) {
+    const {
+        originalFilename = null,
+        mimeType = null,
+        fileSize = null,
+        width = null,
+        height = null,
+        altText = null,
+        position = 0
+    } = metadata;
+
+    const result = statements.createAttachment.run(
+        noteId,
+        userId,
+        storageType,
+        filePath,
+        originalFilename,
+        mimeType,
+        fileSize,
+        width,
+        height,
+        altText,
+        position
+    );
+
+    return result.lastInsertRowid;
+}
+
+function getAttachmentById(id) {
+    return statements.getAttachmentById.get(id);
+}
+
+function getAttachmentsByNote(noteId) {
+    return statements.getAttachmentsByNote.all(noteId);
+}
+
+function getAttachmentsByUser(userId) {
+    return statements.getAttachmentsByUser.all(userId);
+}
+
+function deleteAttachmentFunc(id) {
+    // Return the attachment info before deleting for file cleanup
+    const attachment = statements.getAttachmentById.get(id);
+    if (!attachment) {
+        return null;
+    }
+
+    const result = statements.deleteAttachment.run(id);
+    if (result.changes > 0) {
+        return attachment;
+    }
+    return null;
+}
+
+function getAttachmentCount(noteId) {
+    return statements.getAttachmentCount.get(noteId).count;
 }
 
 // Export database operations
@@ -1197,7 +1337,14 @@ module.exports = {
     // System settings operations
     getSetting,
     updateSetting,
-    getAllSettings
+    getAllSettings,
+    // Attachment operations
+    createAttachment: createAttachmentFunc,
+    getAttachmentById,
+    getAttachmentsByNote,
+    getAttachmentsByUser,
+    deleteAttachment: deleteAttachmentFunc,
+    getAttachmentCount
 };
 
 // Graceful shutdown handlers to prevent FTS corruption

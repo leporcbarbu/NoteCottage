@@ -31,6 +31,8 @@ services:
     volumes:
       # Persist database outside container so data survives restarts/rebuilds
       - ./data:/app/data
+      # Persist uploaded images outside container
+      - ./uploads:/app/uploads
 
     # Restart policy: always restart unless explicitly stopped
     restart: unless-stopped

@@ -7,6 +7,7 @@ const { marked } = require('marked');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
+const sizeOf = require('image-size');
 
 // Import our database module (like: from database import get_all_notes, etc.)
 const db = require('./database');
@@ -15,6 +16,20 @@ const db = require('./database');
 const upload = multer({
     dest: 'uploads/',
     limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
+});
+
+// Configure multer for image uploads
+const imageUpload = multer({
+    dest: 'uploads/temp/',
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for images
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Allowed: JPEG, PNG, GIF, WebP, SVG'));
+        }
+    }
 });
 
 // Import wiki-link extension for marked.js
@@ -27,6 +42,26 @@ const SALT_ROUNDS = 12; // bcrypt cost factor
 const app = express();
 // Use PORT environment variable if set (for Docker/production), otherwise default to 3000
 const PORT = process.env.PORT || 3000;
+
+// Helper functions for image handling
+function sanitizeFilename(filename) {
+    const ext = path.extname(filename).toLowerCase();
+    const basename = path.basename(filename, ext)
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_{2,}/g, '_')
+        .substring(0, 100);
+    return `${Date.now()}_${basename}${ext}`;
+}
+
+function ensureDirectoryExists(dirPath) {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+}
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+ensureDirectoryExists(uploadsDir);
 
 // Middleware - similar to Flask's before_request or app.config
 app.use(express.json()); // Parse JSON request bodies
@@ -1465,6 +1500,264 @@ app.put('/api/notes/:id/reorder', (req, res) => {
     } catch (error) {
         console.error('Error reordering note:', error);
         res.status(500).json({ error: 'Failed to reorder note' });
+    }
+});
+
+// ==================== ATTACHMENT ENDPOINTS ====================
+
+// POST /api/notes/:noteId/attachments/upload - Upload image to server
+app.post('/api/notes/:noteId/attachments/upload', requireAuth, imageUpload.single('image'), async (req, res) => {
+    try {
+        const noteId = parseInt(req.params.noteId);
+        const userId = req.session.userId;
+        const altText = req.body.alt_text || '';
+
+        // Verify note exists and user has permission
+        const note = db.getNoteById(noteId);
+        if (!note) {
+            if (req.file) fs.unlinkSync(req.file.path); // Cleanup temp file
+            return res.status(404).json({ error: 'Note not found' });
+        }
+
+        if (!db.canUserModifyNote(noteId, userId)) {
+            if (req.file) fs.unlinkSync(req.file.path); // Cleanup temp file
+            return res.status(403).json({ error: 'Permission denied' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file provided' });
+        }
+
+        // Create user/note directory structure
+        const userDir = path.join(uploadsDir, `user_${userId}`);
+        const noteDir = path.join(userDir, `note_${noteId}`);
+        ensureDirectoryExists(noteDir);
+
+        // Sanitize filename and move file
+        const sanitizedFilename = sanitizeFilename(req.file.originalname);
+        const relativePath = path.join(`user_${userId}`, `note_${noteId}`, sanitizedFilename);
+        const finalPath = path.join(uploadsDir, relativePath);
+
+        fs.renameSync(req.file.path, finalPath);
+
+        // Extract image dimensions
+        let width = null;
+        let height = null;
+        try {
+            const dimensions = sizeOf(finalPath);
+            width = dimensions.width;
+            height = dimensions.height;
+        } catch (error) {
+            console.warn('Could not extract image dimensions:', error.message);
+        }
+
+        // Save to database
+        const attachmentId = db.createAttachment(noteId, userId, 'upload', relativePath, {
+            originalFilename: req.file.originalname,
+            mimeType: req.file.mimetype,
+            fileSize: req.file.size,
+            width,
+            height,
+            altText
+        });
+
+        res.status(201).json({
+            id: attachmentId,
+            url: `/api/attachments/${attachmentId}`,
+            storage_type: 'upload',
+            original_filename: req.file.originalname,
+            mime_type: req.file.mimetype,
+            file_size: req.file.size,
+            width,
+            height,
+            markdown: `![${altText || req.file.originalname}](/api/attachments/${attachmentId})`
+        });
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path); // Cleanup temp file on error
+        }
+        res.status(500).json({ error: 'Failed to upload image' });
+    }
+});
+
+// POST /api/notes/:noteId/attachments/external - Link external image URL
+app.post('/api/notes/:noteId/attachments/external', requireAuth, async (req, res) => {
+    try {
+        const noteId = parseInt(req.params.noteId);
+        const userId = req.session.userId;
+        const { url, alt_text = '' } = req.body;
+
+        // Verify note exists and user has permission
+        const note = db.getNoteById(noteId);
+        if (!note) {
+            return res.status(404).json({ error: 'Note not found' });
+        }
+
+        if (!db.canUserModifyNote(noteId, userId)) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
+
+        // Validate URL
+        if (!url || typeof url !== 'string') {
+            return res.status(400).json({ error: 'URL is required' });
+        }
+
+        if (url.length > 2048) {
+            return res.status(400).json({ error: 'URL too long (max 2048 characters)' });
+        }
+
+        // Basic URL format check
+        try {
+            new URL(url);
+        } catch (error) {
+            return res.status(400).json({ error: 'Invalid URL format' });
+        }
+
+        // Save to database
+        const attachmentId = db.createAttachment(noteId, userId, 'external', url, {
+            altText: alt_text
+        });
+
+        res.status(201).json({
+            id: attachmentId,
+            url,
+            storage_type: 'external',
+            markdown: `![${alt_text || 'image'}](${url})`
+        });
+    } catch (error) {
+        console.error('Error linking external image:', error);
+        res.status(500).json({ error: 'Failed to link external image' });
+    }
+});
+
+// GET /api/attachments/:id - Serve image with authentication
+app.get('/api/attachments/:id', requireAuth, (req, res) => {
+    try {
+        const attachmentId = parseInt(req.params.id);
+        const userId = req.session.userId;
+
+        const attachment = db.getAttachmentById(attachmentId);
+        if (!attachment) {
+            return res.status(404).json({ error: 'Attachment not found' });
+        }
+
+        // Check if user can access the note
+        if (!db.canUserAccessNote(attachment.note_id, userId)) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
+
+        if (attachment.storage_type === 'external') {
+            // Redirect to external URL
+            return res.redirect(302, attachment.file_path);
+        }
+
+        // Serve uploaded file
+        const filePath = path.join(uploadsDir, attachment.file_path);
+
+        // Prevent path traversal
+        const normalizedPath = path.normalize(filePath);
+        if (!normalizedPath.startsWith(uploadsDir)) {
+            return res.status(403).json({ error: 'Invalid file path' });
+        }
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+
+        // Set proper headers
+        res.setHeader('Content-Type', attachment.mime_type || 'application/octet-stream');
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+
+        // Stream file
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+    } catch (error) {
+        console.error('Error serving attachment:', error);
+        res.status(500).json({ error: 'Failed to serve attachment' });
+    }
+});
+
+// GET /api/notes/:noteId/attachments - List all attachments for note
+app.get('/api/notes/:noteId/attachments', requireAuth, (req, res) => {
+    try {
+        const noteId = parseInt(req.params.noteId);
+        const userId = req.session.userId;
+
+        // Verify note exists and user has permission
+        const note = db.getNoteById(noteId);
+        if (!note) {
+            return res.status(404).json({ error: 'Note not found' });
+        }
+
+        if (!db.canUserAccessNote(noteId, userId)) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
+
+        const attachments = db.getAttachmentsByNote(noteId);
+
+        // Add URL and markdown fields for each attachment
+        const enriched = attachments.map(att => ({
+            id: att.id,
+            note_id: att.note_id,
+            storage_type: att.storage_type,
+            url: att.storage_type === 'external' ? att.file_path : `/api/attachments/${att.id}`,
+            original_filename: att.original_filename,
+            mime_type: att.mime_type,
+            file_size: att.file_size,
+            width: att.width,
+            height: att.height,
+            alt_text: att.alt_text,
+            created_at: att.created_at,
+            markdown: `![${att.alt_text || att.original_filename || 'image'}](${att.storage_type === 'external' ? att.file_path : `/api/attachments/${att.id}`})`
+        }));
+
+        res.json(enriched);
+    } catch (error) {
+        console.error('Error fetching attachments:', error);
+        res.status(500).json({ error: 'Failed to fetch attachments' });
+    }
+});
+
+// DELETE /api/attachments/:id - Delete attachment
+app.delete('/api/attachments/:id', requireAuth, (req, res) => {
+    try {
+        const attachmentId = parseInt(req.params.id);
+        const userId = req.session.userId;
+
+        const attachment = db.getAttachmentById(attachmentId);
+        if (!attachment) {
+            return res.status(404).json({ error: 'Attachment not found' });
+        }
+
+        // Check if user can modify the note
+        if (!db.canUserModifyNote(attachment.note_id, userId)) {
+            return res.status(403).json({ error: 'Permission denied' });
+        }
+
+        // Delete from database (returns attachment info for cleanup)
+        const deleted = db.deleteAttachment(attachmentId);
+
+        if (!deleted) {
+            return res.status(404).json({ error: 'Attachment not found' });
+        }
+
+        // Delete file if it's an upload
+        if (deleted.storage_type === 'upload') {
+            const filePath = path.join(uploadsDir, deleted.file_path);
+            if (fs.existsSync(filePath)) {
+                try {
+                    fs.unlinkSync(filePath);
+                } catch (error) {
+                    console.warn('Failed to delete file:', error.message);
+                }
+            }
+        }
+
+        res.status(204).send();
+    } catch (error) {
+        console.error('Error deleting attachment:', error);
+        res.status(500).json({ error: 'Failed to delete attachment' });
     }
 });
 

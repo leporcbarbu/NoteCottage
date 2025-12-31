@@ -117,6 +117,7 @@ const newNoteBtn = document.getElementById('newNoteBtn');
 const saveBtn = document.getElementById('saveBtn');
 const deleteBtn = document.getElementById('deleteBtn');
 const viewToggle = document.getElementById('viewToggle');
+const insertImageBtn = document.getElementById('insertImageBtn');
 const exportBtn = document.getElementById('exportBtn');
 const exportMenu = document.getElementById('exportMenu');
 const editorView = document.getElementById('editorView');
@@ -528,14 +529,75 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
 });
 
+// Setup image drag-and-drop
+function setupImageDragDrop() {
+    noteContent.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        noteContent.classList.add('drag-over');
+    });
+
+    noteContent.addEventListener('dragleave', () => {
+        noteContent.classList.remove('drag-over');
+    });
+
+    noteContent.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        noteContent.classList.remove('drag-over');
+
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+
+        for (const file of files) {
+            try {
+                const attachment = await uploadImage(file);
+                insertMarkdownAtCursor(attachment.markdown);
+                await loadAttachments(currentNoteId);
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                alert('Failed to upload image: ' + error.message);
+            }
+        }
+    });
+}
+
+// Setup clipboard paste for images
+function setupImagePaste() {
+    noteContent.addEventListener('paste', async (e) => {
+        const items = Array.from(e.clipboardData.items);
+        const imageItem = items.find(item => item.type.startsWith('image/'));
+
+        if (imageItem) {
+            e.preventDefault();
+
+            try {
+                const blob = imageItem.getAsFile();
+                const file = new File([blob], `pasted_${Date.now()}.png`, { type: blob.type });
+
+                const attachment = await uploadImage(file, 'Pasted image');
+                insertMarkdownAtCursor(attachment.markdown);
+                await loadAttachments(currentNoteId);
+            } catch (error) {
+                console.error('Error uploading pasted image:', error);
+                alert('Failed to upload pasted image: ' + error.message);
+            }
+        }
+    });
+}
+
 // Setup event listeners
 function setupEventListeners() {
     newNoteBtn.addEventListener('click', createNewNote);
     saveBtn.addEventListener('click', saveCurrentNote);
     deleteBtn.addEventListener('click', deleteCurrentNote);
     viewToggle.addEventListener('click', toggleView);
+    insertImageBtn.addEventListener('click', showImageModal);
     searchInput.addEventListener('input', filterNotes);
     clearTagFilter.addEventListener('click', clearFilter);
+
+    // Image drag-and-drop handler
+    setupImageDragDrop();
+
+    // Image clipboard paste handler
+    setupImagePaste();
 
     // Theme options (now in user menu)
     document.querySelectorAll('.theme-option').forEach(option => {
@@ -1862,6 +1924,14 @@ function createNewNote() {
     // Update folder location for new note
     updateFolderLocation(currentFolderId);
 
+    // Switch to edit mode if currently in preview mode
+    if (!isEditMode) {
+        isEditMode = true;
+        viewToggle.textContent = 'Preview';
+        editorView.style.display = 'block';
+        previewView.style.display = 'none';
+    }
+
     showEditor();
     noteTitle.focus();
 
@@ -1930,6 +2000,9 @@ async function loadNote(noteId) {
 
         // Load backlinks for this note
         loadBacklinks(noteId);
+
+        // Load attachments/images for this note
+        loadAttachments(noteId);
 
         // Initialize tag autocomplete if not already done
         if (!tagAutocomplete) {

@@ -19,8 +19,8 @@ RUN npm install --production
 # .dockerignore determines what gets excluded
 COPY . .
 
-# Create directory for database with proper permissions
-RUN mkdir -p /app/data && chown -R node:node /app/data
+# Create directories for database and uploads with proper permissions
+RUN mkdir -p /app/data /app/uploads && chown -R node:node /app/data /app/uploads
 
 # Switch to non-root user for security
 # Running as root inside containers is a security risk
