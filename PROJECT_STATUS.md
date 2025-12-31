@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
-**Last Updated:** December 30, 2025
-**Status:** Production-ready multi-user note-taking application with comprehensive profile settings, database backup/restore, and full theme support across all pages (COMPLETE)
+**Last Updated:** December 31, 2025
+**Status:** Production-ready multi-user note-taking application with comprehensive profile settings, database backup/restore, full theme support, and image support (COMPLETE)
 
 ## Project Overview
 
@@ -120,6 +120,23 @@ NoteCottage/
 ✅ **Export Dropdown** - Clean dropdown menu in editor header
 ✅ **Wiki-Link Preservation** - Exported HTML/PDF includes rendered wiki-links
 
+### Image Support
+✅ **Dual Storage Options** - Support for both uploaded files and external image URLs
+✅ **Upload Button** - 📷 Image button in editor toolbar opens two-tab modal
+✅ **File Upload** - Upload JPEG, PNG, GIF, WebP, SVG (10MB limit per image)
+✅ **External URLs** - Link to any external image URL
+✅ **Drag-and-Drop** - Drop image files directly into editor to upload
+✅ **Clipboard Paste** - Ctrl+V to paste screenshots or copied images
+✅ **Image Gallery** - Sidebar panel showing all images attached to current note
+✅ **Click to Insert** - Click gallery thumbnails to insert markdown syntax
+✅ **Delete Images** - Hover over thumbnails and click × to remove
+✅ **Metadata Tracking** - Store file size, dimensions, MIME type, alt text
+✅ **Permission Inheritance** - Images inherit note/folder privacy settings
+✅ **Automatic Cleanup** - CASCADE DELETE removes images when notes/users deleted
+✅ **File Organization** - `/uploads/user_{id}/note_{id}/` directory structure
+✅ **Docker Persistence** - Volume mount ensures uploads survive container restarts
+✅ **Security** - MIME validation, size limits, path traversal prevention, authentication
+
 ### UI/UX Features
 ✅ **Four Distinct Themes** - Comprehensive theme system with visual variety
   - ☀️ **Light**: Clean, bright, professional (original)
@@ -196,6 +213,22 @@ NoteCottage/
 - Full-text search index for title and content
 - Automatically synced via triggers
 
+**attachments**
+- `id` INTEGER PRIMARY KEY AUTOINCREMENT
+- `note_id` INTEGER NOT NULL → FOREIGN KEY to notes(id) ON DELETE CASCADE
+- `user_id` INTEGER NOT NULL → FOREIGN KEY to users(id) ON DELETE CASCADE
+- `storage_type` TEXT NOT NULL ('upload' or 'external')
+- `file_path` TEXT NOT NULL (relative path for uploads, full URL for external)
+- `original_filename` TEXT (for uploads)
+- `mime_type` TEXT (e.g., image/jpeg, image/png)
+- `file_size` INTEGER (bytes, for uploads)
+- `width` INTEGER (image dimensions)
+- `height` INTEGER (image dimensions)
+- `alt_text` TEXT (accessibility description)
+- `position` INTEGER DEFAULT 0 (display order)
+- `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+- `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+
 ## API Endpoints
 
 ### Notes
@@ -230,6 +263,13 @@ NoteCottage/
 
 ### Search
 - `GET /api/search?q=query` - Full-text search across notes (title and content)
+
+### Attachments
+- `POST /api/notes/:noteId/attachments/upload` - Upload image file (requires auth, 10MB limit, JPEG/PNG/GIF/WebP/SVG)
+- `POST /api/notes/:noteId/attachments/external` - Link external image URL (requires auth)
+- `GET /api/attachments/:id` - Serve image with authentication (streams file or redirects to external URL)
+- `GET /api/notes/:noteId/attachments` - List all attachments for note (requires auth)
+- `DELETE /api/attachments/:id` - Delete attachment and file (requires auth)
 
 ## Key Technical Decisions
 
@@ -1371,7 +1411,62 @@ Persists across browser sessions.
   - File cleanup after backup restore operations
   - Proper error handling for all new endpoints
 
-### Next Session Plans (December 31, 2025)
+**Session 12 (December 31, 2025):**
+- ✅ **Image Support for Notes (COMPLETE)** - Dual storage for uploads and external URLs
+  - **Database schema:**
+    - Added attachments table with 15 columns tracking metadata
+    - Supports dual storage types: 'upload' (local files) and 'external' (URLs)
+    - Stores dimensions, MIME type, file size, alt text, position
+    - CASCADE DELETE on note_id and user_id for automatic cleanup
+  - **Backend API:**
+    - Installed image-size package (v2.0.2) for dimension extraction
+    - Configured multer for file uploads (10MB limit, MIME validation)
+    - Added helper functions: sanitizeFilename(), ensureDirectoryExists()
+    - Implemented 5 attachment endpoints:
+      - POST /api/notes/:noteId/attachments/upload - File upload with metadata
+      - POST /api/notes/:noteId/attachments/external - Link external URLs
+      - GET /api/attachments/:id - Serve images with auth (streams or redirects)
+      - GET /api/notes/:noteId/attachments - List note's attachments
+      - DELETE /api/attachments/:id - Delete attachment and file
+    - File organization: /uploads/user_{userId}/note_{noteId}/filename.ext
+    - Permission inheritance: images inherit note/folder privacy settings
+    - Security: MIME validation, size limits, path traversal prevention
+  - **Frontend UI:**
+    - Added 📷 Image button to editor toolbar (line 130)
+    - Created image-gallery.css for thumbnail grid styling
+    - Created image-modal.js - Two-tab modal (Upload File | Link URL)
+      - Drag-drop zone with visual feedback
+      - File preview before upload
+      - Alt text input fields
+      - Progress and status indicators
+    - Created image-upload.js - Upload/gallery logic
+      - uploadImage() - Handles FormData file upload
+      - linkExternalImage() - Handles URL linking
+      - loadAttachments() - Fetches note's images
+      - renderAttachmentsGallery() - Displays thumbnail grid in sidebar
+      - deleteAttachment() - Remove image with confirmation
+      - insertMarkdownAtCursor() - Insert ![](url) syntax at cursor
+    - Added drag-drop support (drop images into editor to upload)
+    - Added clipboard paste support (Ctrl+V to paste screenshots)
+    - Image gallery in sidebar with click-to-insert functionality
+    - Delete button (×) on hover over thumbnails
+    - Gallery shows attachment count badge
+  - **Docker integration:**
+    - Added /app/uploads volume mount to docker-compose.yml
+    - Created uploads directory with proper permissions in Dockerfile
+    - Volume persistence ensures images survive container restarts
+  - **UX improvements:**
+    - Fixed new note creation to automatically switch to edit mode if in preview mode
+    - Confirmed intentional design: new notes don't autosave until first manual save (need title first)
+  - **Documentation:**
+    - Updated PROJECT_STATUS.md with Image Support features section
+    - Added attachments table to Database Schema section
+    - Added attachment endpoints to API Endpoints section
+  - **Git commit:**
+    - Committed all image support changes (commit 926371d)
+    - Updated Docker image with `docker-compose build --no-cache`
+
+### Next Session Plans
 
 **Priority Topics:**
 1. **Docker Image Deployment** - Explore deployment strategies and production options
@@ -1379,12 +1474,11 @@ Persists across browser sessions.
    - Container registry options
    - Production deployment documentation
    - Migration guides for moving between servers
-2. **Image Support in Notes** - Enable embedding images in notes
-   - Design storage strategy (base64 vs file uploads vs external links)
-   - UI for inserting/uploading images
-   - Markdown image syntax support
-   - Gallery view for image notes
-   - Integration with existing note system
+2. **Production-Ready Infrastructure** - Secure remote access and deployment
+   - nginx reverse-proxy configuration
+   - SSL/TLS setup
+   - Rate limiting and security headers
+   - CORS configuration for remote access
 
 ### Areas to Explore
 If continuing development, consider:
@@ -1436,9 +1530,15 @@ This project successfully demonstrated:
 - **Docker containerization** (Dockerfile, docker-compose, multi-stage builds, volume mounts)
 - **Container orchestration** (environment variables, health checks, restart policies)
 - **Database persistence in containers** (volume mounting for stateful applications)
+- **File upload handling** (multer middleware, FormData API, multipart/form-data processing)
+- **Image metadata extraction** (image-size package for dimension detection)
+- **File system operations** (directory creation, file streaming, path sanitization)
+- **Dual storage patterns** (local file uploads vs external URL references)
+- **Drag-and-drop file handling** (DataTransfer API, file filtering, multiple file support)
+- **Clipboard API** (paste event handling, image blob extraction)
 
 **Comparison to Flask:** Very similar patterns, but Node.js is async by default, uses CommonJS modules, and has different idioms for routing and middleware. SQLite operations in Node.js (better-sqlite3) are synchronous unlike typical async database libraries.
 
 ---
 
-**Status:** NoteCottage is production-ready for multi-user collaborative use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark - with Cottage as default). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support COMPLETE:** Session-based authentication with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, folder organization, profile settings, and database backup/restore all implemented and functional. Private/Shared virtual root folders provide clear visual separation. **Profile settings page** provides complete user account management with display name, password changes, theme preferences, statistics, and account deletion. **Database backup/restore system** enables disaster recovery with admin-only access, safety backups, and validation. **Theme system enhancements** ensure consistent Cottage theme across all pages with full CSS variable support. **Next steps in roadmap:** Comprehensive multi-user testing, production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
+**Status:** NoteCottage is production-ready for multi-user collaborative use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark - with Cottage as default). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support COMPLETE:** Session-based authentication with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, folder organization, profile settings, and database backup/restore all implemented and functional. Private/Shared virtual root folders provide clear visual separation. **Profile settings page** provides complete user account management with display name, password changes, theme preferences, statistics, and account deletion. **Database backup/restore system** enables disaster recovery with admin-only access, safety backups, and validation. **Theme system enhancements** ensure consistent Cottage theme across all pages with full CSS variable support. **Image support COMPLETE:** Dual storage system (file uploads + external URLs) with drag-drop, clipboard paste, image gallery, and full metadata tracking - images inherit note/folder privacy settings and persist across Docker restarts. **Next steps in roadmap:** Production-ready infrastructure (nginx reverse proxy, SSL/TLS), comprehensive multi-user testing, PWA for mobile access.
