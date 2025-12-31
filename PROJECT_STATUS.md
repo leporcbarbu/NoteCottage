@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
-**Last Updated:** December 29, 2025
-**Status:** Fully functional note-taking application with inline folder/note browsing, wiki-links, tags, backlinks, recycle bin, resizable sidebar, four distinct themes (Light, Dark, Cottage, Cottage Dark), and multi-user authentication with Private/Shared folder organization (NEARLY COMPLETE)
+**Last Updated:** December 30, 2025
+**Status:** Production-ready multi-user note-taking application with comprehensive profile settings, database backup/restore, and full theme support across all pages (COMPLETE)
 
 ## Project Overview
 
@@ -1305,6 +1305,72 @@ Persists across browser sessions.
     - Comprehensive multi-user testing (permissions, sessions, admin features)
     - Optional: Invitation system for when registration is disabled
 
+**Session 11 (December 30, 2025):**
+- ✅ **Profile Settings Page (COMPLETE)** - Comprehensive user profile management
+  - Created profile.html with six main sections
+  - Account information display (username, email, account creation date)
+  - Profile settings (editable display name)
+  - Security section (password change with current password verification)
+  - Preferences section (theme selector with live preview)
+  - Statistics section (notes created, folders created)
+  - Danger zone (account deletion with double confirmation)
+  - Beautiful card-based layout matching admin panel styling
+  - All backend endpoints functional (/api/auth/stats, /api/auth/account)
+  - Profile button in user menu now navigates to /profile.html
+- ✅ **Theme System Enhancements (COMPLETE)** - Cottage theme default, full theme support
+  - **Cottage theme now default** across entire application
+    - Changed all 8 instances from 'light' to 'cottage' default
+    - Login/registration pages display in Cottage theme
+    - New users start with Cottage theme automatically
+    - All pages default to Cottage if no preference saved
+  - **Full theme support for all pages**
+    - Replaced hardcoded colors with CSS variables in admin.html
+    - Replaced hardcoded colors with CSS variables in profile.html
+    - Theme applies immediately on page load (inline script in <head>)
+    - Consistent theming across login, notes, profile, admin pages
+  - **Improved theme selector UI**
+    - Hidden radio buttons with card-based selection
+    - Entire theme card is clickable
+    - Checkmark indicator on active theme (✓ badge in corner)
+    - Hover effects with slight elevation
+    - Theme changes apply instantly (no save button needed)
+    - Centered text with emoji indicators
+- ✅ **Database Backup & Restore System (COMPLETE)** - Admin-only disaster recovery
+  - **Backend implementation:**
+    - GET /api/admin/backup - Download complete database file
+    - POST /api/admin/restore - Upload and restore from backup
+    - Installed multer for file upload handling
+    - Validates SQLite database format before restore
+    - Creates safety backup before restore (timestamped)
+    - Server auto-restart after restore for clean reconnection
+  - **Frontend implementation:**
+    - New "Backup & Restore" tab in admin panel
+    - Download backup button with progress feedback
+    - File upload with .db validation
+    - Warning banner about data replacement
+    - Double confirmation dialog before restore
+    - Status messages throughout process
+    - Automatic redirect to login after restore
+  - **Safety features:**
+    - Admin-only access (requireAdmin middleware)
+    - File format validation (SQLite header check)
+    - Safety backup created automatically
+    - Cannot restore invalid files
+    - Clear warnings about data loss
+- ✅ **UI/UX Improvements**
+  - Modern toggle switch for admin settings (replaced checkbox)
+  - Styled number input matching theme (for max users setting)
+  - Fixed authentication flash on index page (hidden until auth confirmed)
+  - Fixed scrolling issues on profile page
+  - Removed double horizontal rule in admin settings
+  - Smooth fade-in transition for authenticated users
+- ✅ **Backend Enhancements**
+  - Added getUserStatistics() function to database.js
+  - Created uploads/ directory for temporary file storage
+  - Added created_at field to user profile endpoint
+  - File cleanup after backup restore operations
+  - Proper error handling for all new endpoints
+
 ### Areas to Explore
 If continuing development, consider:
 1. **Graph View** - Visual network of linked notes (now possible with wiki-links)
@@ -1360,4 +1426,4 @@ This project successfully demonstrated:
 
 ---
 
-**Status:** NoteCottage is feature-rich and production-ready for single-user personal use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application now fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support NEARLY COMPLETE:** Session-based authentication implemented with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, and folder organization all complete. Private/Shared virtual root folders provide clear visual separation of collaborative vs personal content. Enhanced folder creation dialog with tree view selector. Admin panel fully functional with user management, system settings, and statistics. Remaining: comprehensive multi-user testing and optional invitation system. **Next steps in roadmap:** Multi-user testing and refinement, production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
+**Status:** NoteCottage is production-ready for multi-user collaborative use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark - with Cottage as default). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support COMPLETE:** Session-based authentication with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, folder organization, profile settings, and database backup/restore all implemented and functional. Private/Shared virtual root folders provide clear visual separation. **Profile settings page** provides complete user account management with display name, password changes, theme preferences, statistics, and account deletion. **Database backup/restore system** enables disaster recovery with admin-only access, safety backups, and validation. **Theme system enhancements** ensure consistent Cottage theme across all pages with full CSS variable support. **Next steps in roadmap:** Comprehensive multi-user testing, production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
