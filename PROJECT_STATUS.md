@@ -1371,14 +1371,29 @@ Persists across browser sessions.
   - File cleanup after backup restore operations
   - Proper error handling for all new endpoints
 
+### Next Session Plans (December 31, 2025)
+
+**Priority Topics:**
+1. **Docker Image Deployment** - Explore deployment strategies and production options
+   - Docker Hub publishing
+   - Container registry options
+   - Production deployment documentation
+   - Migration guides for moving between servers
+2. **Image Support in Notes** - Enable embedding images in notes
+   - Design storage strategy (base64 vs file uploads vs external links)
+   - UI for inserting/uploading images
+   - Markdown image syntax support
+   - Gallery view for image notes
+   - Integration with existing note system
+
 ### Areas to Explore
 If continuing development, consider:
 1. **Graph View** - Visual network of linked notes (now possible with wiki-links)
 2. **Additional Themes** - Easy to add more themes using CSS custom properties
-3. **Image Support** - Images within notes and possibly standalone image notes with tags (medium complexity, high value)
-4. **Security Hardening** - CSRF protection, rate limiting, input validation for production deployment
-5. **Keyboard Shortcuts for Folders** - Arrow keys to navigate tree, Enter to open
-6. **Create from Broken Link** - Click broken wiki-link to create that note
+3. **Security Hardening** - CSRF protection, rate limiting, input validation for production deployment
+4. **Keyboard Shortcuts for Folders** - Arrow keys to navigate tree, Enter to open
+5. **Create from Broken Link** - Click broken wiki-link to create that note
+6. **PWA (Progressive Web App)** - Mobile-friendly offline support
 
 ### Technical Debt
 - Code is clean and well-structured with reusable components
