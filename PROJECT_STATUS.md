@@ -9,6 +9,10 @@ NoteCottage (formerly NodeNotes) is a web-based note-taking application built wi
 
 **Built as a learning project** for understanding Node.js fundamentals, coming from a Python/Flask background.
 
+**Maintainer:** leporcbarbu
+**GitHub:** https://github.com/leporcbarbu
+**Docker Hub:** https://hub.docker.com/u/leporcbarbu
+
 ## Technology Stack
 
 - **Backend:** Node.js, Express.js
@@ -1469,12 +1473,19 @@ Persists across browser sessions.
 ### Next Session Plans
 
 **Priority Topics:**
-1. **Docker Image Deployment** - Explore deployment strategies and production options
-   - Docker Hub publishing
-   - Container registry options
-   - Production deployment documentation
-   - Migration guides for moving between servers
-2. **Production-Ready Infrastructure** - Secure remote access and deployment
+1. **GitHub Repository Setup** - Publish NoteCottage to GitHub
+   - Create public repository at github.com/leporcbarbu/NoteCottage
+   - Write comprehensive README.md with features and installation instructions
+   - Add LICENSE file (choose open-source license)
+   - Push all code to GitHub
+   - Set up repository description and topics
+   - Add contribution guidelines (optional)
+2. **Docker Hub Publishing** - Make installation easier for end users
+   - Publish image to leporcbarbu/notecottage
+   - Version tagging strategy (latest, 1.0, 1.0.0)
+   - Update Docker Hub README with quick start instructions
+   - Test pull and run from Docker Hub
+3. **Production-Ready Infrastructure** - Secure remote access and deployment
    - nginx reverse-proxy configuration
    - SSL/TLS setup
    - Rate limiting and security headers
