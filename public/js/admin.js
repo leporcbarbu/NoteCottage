@@ -393,8 +393,15 @@ function formatDate(dateString) {
     });
 }
 
+// Apply theme immediately (synchronously before DOMContentLoaded)
+const currentTheme = localStorage.getItem('theme') || 'cottage';
+document.documentElement.dataset.theme = currentTheme;
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Apply theme to body as well (in case it wasn't set on documentElement)
+    document.body.dataset.theme = currentTheme;
+
     const authenticated = await checkAuth();
     if (!authenticated) return;
 
@@ -404,4 +411,133 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Event listeners
     document.getElementById('createUserBtn').addEventListener('click', createUser);
     document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+
+    // Backup & Restore event listeners
+    document.getElementById('downloadBackupBtn').addEventListener('click', downloadBackup);
+    document.getElementById('restoreFile').addEventListener('change', handleRestoreFileSelect);
+    document.getElementById('restoreBackupBtn').addEventListener('click', restoreBackup);
 });
+
+// Backup & Restore Functions
+
+async function downloadBackup() {
+    const statusDiv = document.getElementById('backupStatus');
+    const btn = document.getElementById('downloadBackupBtn');
+
+    try {
+        btn.disabled = true;
+        statusDiv.innerHTML = '<span style="color: var(--primary-color);">Preparing backup...</span>';
+
+        const response = await fetch('/api/admin/backup');
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to download backup');
+        }
+
+        // Get the filename from the Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
+        const filename = filenameMatch ? filenameMatch[1] : 'notecottage-backup.db';
+
+        // Download the file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        statusDiv.innerHTML = '<span style="color: var(--success-color);">✓ Backup downloaded successfully!</span>';
+
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    } catch (error) {
+        console.error('Error downloading backup:', error);
+        statusDiv.innerHTML = `<span style="color: var(--danger-color);">✗ Error: ${error.message}</span>`;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function handleRestoreFileSelect(event) {
+    const file = event.target.files[0];
+    const btn = document.getElementById('restoreBackupBtn');
+
+    if (file) {
+        // Check file extension
+        if (!file.name.endsWith('.db')) {
+            alert('Please select a valid .db file');
+            event.target.value = '';
+            btn.disabled = true;
+            return;
+        }
+        btn.disabled = false;
+    } else {
+        btn.disabled = true;
+    }
+}
+
+async function restoreBackup() {
+    const fileInput = document.getElementById('restoreFile');
+    const statusDiv = document.getElementById('restoreStatus');
+    const btn = document.getElementById('restoreBackupBtn');
+
+    if (!fileInput.files || !fileInput.files[0]) {
+        alert('Please select a backup file first');
+        return;
+    }
+
+    // Show confirmation dialog
+    const confirmed = await Modal.confirm(
+        'Restore Database',
+        'Are you absolutely sure you want to restore from this backup? This will replace ALL current data including all users, notes, and settings. A safety backup of the current database will be created first.',
+        'Yes, Restore Database',
+        'Cancel'
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        statusDiv.innerHTML = '<span style="color: var(--primary-color);">Uploading and restoring backup...</span>';
+
+        const formData = new FormData();
+        formData.append('database', fileInput.files[0]);
+
+        const response = await fetch('/api/admin/restore', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to restore backup');
+        }
+
+        statusDiv.innerHTML = '<span style="color: var(--success-color);">✓ Database restored! Server is restarting...</span>';
+
+        // Show success message and redirect
+        await Modal.alert(
+            'Restore Successful',
+            'Database has been restored successfully. The server is restarting. You will be redirected to the login page.'
+        );
+
+        // Redirect to login after server restart
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error restoring backup:', error);
+        statusDiv.innerHTML = `<span style="color: var(--danger-color);">✗ Error: ${error.message}</span>`;
+        btn.disabled = false;
+    }
+}

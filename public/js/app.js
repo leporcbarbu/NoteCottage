@@ -50,7 +50,7 @@ let trashExpanded = false; // Virtual "Trash" folder state
 let deletedNotes = []; // Deleted notes in trash
 
 // Theme management
-let currentTheme = localStorage.getItem('theme') || 'light';
+let currentTheme = localStorage.getItem('theme') || 'cottage';
 
 // Date formatting utilities with timezone localization
 
@@ -582,8 +582,7 @@ function setupEventListeners() {
 
     if (userProfileBtn) {
         userProfileBtn.addEventListener('click', () => {
-            alert('Profile settings coming soon!');
-            closeUserMenu();
+            window.location.href = '/profile.html';
         });
     }
 

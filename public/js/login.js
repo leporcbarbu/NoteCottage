@@ -239,5 +239,12 @@ function clearMessages() {
     document.getElementById('success-message').classList.add('hidden');
 }
 
+// Apply theme immediately (before any async operations)
+const currentTheme = localStorage.getItem('theme') || 'cottage';
+document.documentElement.dataset.theme = currentTheme;
+if (document.body) {
+    document.body.dataset.theme = currentTheme;
+}
+
 // Initialize on page load
 checkAuthStatus();

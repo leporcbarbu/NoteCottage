@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings - NoteCottage</title>
+    <link rel="icon" type="image/png" href="/images/notecottage-favicon.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components/modal.css">
+    <script>
+        // Apply theme immediately to prevent flash of unstyled content
+        (function() {
+            const theme = localStorage.getItem('theme') || 'cottage';
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        .profile-header {
+            background: var(--bg-sidebar);
+            color: var(--text-on-primary);
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header h1 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+        }
+
+        .profile-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .profile-header .back-link {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .profile-header .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px 60px 20px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin: 0 0 20px 0;
+            color: var(--text-heading);
+            font-size: 18px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--bg-badge);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--bg-button-primary);
+            color: var(--text-on-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--bg-sidebar-header);
+        }
+
+        .btn-danger {
+            background: var(--bg-button-danger);
+            color: var(--text-on-primary);
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .theme-option {
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-secondary);
+            position: relative;
+            text-align: center;
+        }
+
+        .theme-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-option.active {
+            border-color: var(--primary-color);
+            background: var(--bg-badge);
+            box-shadow: 0 0 0 3px var(--bg-badge);
+        }
+
+        .theme-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .theme-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .theme-option label {
+            cursor: pointer;
+            display: block;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: var(--bg-badge);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: var(--success-color);
+            color: var(--text-on-primary);
+            border: 1px solid var(--success-color);
+            opacity: 0.9;
+        }
+
+        .alert-error {
+            background: var(--danger-color);
+            color: var(--text-on-primary);
+            border: 1px solid var(--danger-color);
+            opacity: 0.9;
+        }
+
+        .danger-zone {
+            border: 2px solid var(--danger-color);
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .danger-zone h3 {
+            margin: 0 0 10px 0;
+            color: var(--danger-color);
+            font-size: 16px;
+        }
+
+        .danger-zone p {
+            margin: 0 0 15px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-header">
+        <h1>Profile Settings</h1>
+        <p>Manage your account settings and preferences</p>
+        <a href="/" class="back-link">← Back to Notes</a>
+    </div>
+
+    <div class="profile-container">
+        <div id="alertContainer"></div>
+
+        <!-- Account Information -->
+        <div class="card">
+            <h2>Account Information</h2>
+            <div class="info-grid">
+                <div class="info-label">Username:</div>
+                <div class="info-value" id="username">-</div>
+
+                <div class="info-label">Email:</div>
+                <div class="info-value" id="email">-</div>
+
+                <div class="info-label">Account Created:</div>
+                <div class="info-value" id="createdAt">-</div>
+            </div>
+        </div>
+
+        <!-- Profile Settings -->
+        <div class="card">
+            <h2>Profile Settings</h2>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="displayName">Display Name</label>
+                    <input type="text" id="displayName" placeholder="Enter your display name (optional)">
+                    <small>This name will be shown to other users instead of your username</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Profile</button>
+            </form>
+        </div>
+
+        <!-- Security -->
+        <div class="card">
+            <h2>Security</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" placeholder="Enter current password" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password (min 8 characters)" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+        </div>
+
+        <!-- Preferences -->
+        <div class="card">
+            <h2>Preferences</h2>
+            <form id="preferencesForm">
+                <div class="form-group">
+                    <label>Theme</label>
+                    <div class="theme-options">
+                        <div class="theme-option" data-theme="light">
+                            <label>
+                                <input type="radio" name="theme" value="light">
+                                ☀️ Light
+                            </label>
+                        </div>
+                        <div class="theme-option" data-theme="dark">
+                            <label>
+                                <input type="radio" name="theme" value="dark">
+                                🌙 Dark
+                            </label>
+                        </div>
+                        <div class="theme-option" data-theme="cottage">
+                            <label>
+                                <input type="radio" name="theme" value="cottage">
+                                🏡 Cottage
+                            </label>
+                        </div>
+                        <div class="theme-option" data-theme="cottage-dark">
+                            <label>
+                                <input type="radio" name="theme" value="cottage-dark">
+                                🏡🌙 Cottage Dark
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Preferences</button>
+            </form>
+        </div>
+
+        <!-- Statistics -->
+        <div class="card">
+            <h2>Your Statistics</h2>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="notesCreated">0</div>
+                    <div class="stat-label">Notes Created</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="foldersCreated">0</div>
+                    <div class="stat-label">Folders Created</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card">
+            <h2>Danger Zone</h2>
+            <div class="danger-zone">
+                <h3>Delete Account</h3>
+                <p>Once you delete your account, there is no going back. This will permanently delete all your private folders and notes.</p>
+                <button id="deleteAccountBtn" class="btn btn-danger">Delete My Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/components/modal.js"></script>
+    <script>
+        let currentUser = null;
+
+        // Initialize page
+        async function init() {
+            try {
+                // Get current user
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                currentUser = await response.json();
+                loadUserData();
+                loadStatistics();
+                updateThemeUI();
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showAlert('Failed to load profile data', 'error');
+            }
+        }
+
+        // Load user data
+        function loadUserData() {
+            document.getElementById('username').textContent = currentUser.username;
+            document.getElementById('email').textContent = currentUser.email;
+            document.getElementById('displayName').value = currentUser.display_name || '';
+
+            const createdDate = new Date(currentUser.created_at);
+            document.getElementById('createdAt').textContent = createdDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/auth/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('notesCreated').textContent = stats.notesCreated;
+                    document.getElementById('foldersCreated').textContent = stats.foldersCreated;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Update theme UI elements to match current theme
+        function updateThemeUI() {
+            const currentTheme = localStorage.getItem('theme') || 'cottage';
+
+            // Update radio buttons and active state
+            const radio = document.querySelector(`input[name="theme"][value="${currentTheme}"]`);
+            if (radio) {
+                radio.checked = true;
+                radio.closest('.theme-option').classList.add('active');
+            }
+        }
+
+        // Profile form submission
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const displayName = document.getElementById('displayName').value.trim();
+
+            try {
+                const response = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: displayName || null })
+                });
+
+                if (response.ok) {
+                    showAlert('Profile updated successfully', 'success');
+                    currentUser.display_name = displayName || null;
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showAlert('Failed to update profile', 'error');
+            }
+        });
+
+        // Password form submission
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                showAlert('New passwords do not match', 'error');
+                return;
+            }
+
+            // Validate password length
+            if (newPassword.length < 8) {
+                showAlert('Password must be at least 8 characters', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                if (response.ok) {
+                    showAlert('Password changed successfully', 'success');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Failed to change password', 'error');
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                showAlert('Failed to change password', 'error');
+            }
+        });
+
+        // Preferences form submission
+        document.getElementById('preferencesForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const selectedTheme = document.querySelector('input[name="theme"]:checked').value;
+            localStorage.setItem('theme', selectedTheme);
+
+            showAlert('Preferences saved successfully', 'success');
+        });
+
+        // Theme option selection
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                const radio = option.querySelector('input[type="radio"]');
+                radio.checked = true;
+
+                // Apply theme immediately
+                const selectedTheme = radio.value;
+                document.body.dataset.theme = selectedTheme;
+                localStorage.setItem('theme', selectedTheme);
+            });
+        });
+
+        // Delete account
+        document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+            const confirmed = await Modal.confirm(
+                'Delete Account',
+                'Are you absolutely sure you want to delete your account? This action cannot be undone and will permanently delete all your private folders and notes.',
+                'Delete Account',
+                'Cancel'
+            );
+
+            if (!confirmed) return;
+
+            // Second confirmation with password
+            const password = await Modal.prompt(
+                'Confirm Deletion',
+                'Please enter your password to confirm account deletion:',
+                'password'
+            );
+
+            if (!password) return;
+
+            try {
+                const response = await fetch('/api/auth/account', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    showAlert('Account deleted successfully. Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Failed to delete account', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                showAlert('Failed to delete account', 'error');
+            }
+        });
+
+        // Show alert message
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Apply theme immediately on page load (before async operations)
+        const savedTheme = localStorage.getItem('theme') || 'cottage';
+        document.body.dataset.theme = savedTheme;
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

@@ -1097,6 +1097,23 @@ function getAdminCount() {
     return statements.getAdminCount.get().count;
 }
 
+function getUserStatistics(userId) {
+    const notesCreated = db.prepare(`
+        SELECT COUNT(*) as count FROM notes
+        WHERE user_id = ? AND deleted_at IS NULL
+    `).get(userId).count;
+
+    const foldersCreated = db.prepare(`
+        SELECT COUNT(*) as count FROM folders
+        WHERE user_id = ?
+    `).get(userId).count;
+
+    return {
+        notesCreated,
+        foldersCreated
+    };
+}
+
 // System settings operations
 
 function getSetting(key) {
@@ -1176,6 +1193,7 @@ module.exports = {
     deleteUser: deleteUserFunc,
     getUserCount,
     getAdminCount,
+    getUserStatistics,
     // System settings operations
     getSetting,
     updateSetting,

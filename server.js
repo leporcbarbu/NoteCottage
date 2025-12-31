@@ -1,6 +1,8 @@
 // Import required modules (like Python's import statements)
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const { marked } = require('marked');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
@@ -8,6 +10,12 @@ const SQLiteStore = require('connect-sqlite3')(session);
 
 // Import our database module (like: from database import get_all_notes, etc.)
 const db = require('./database');
+
+// Configure multer for file uploads (for database restore)
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
+});
 
 // Import wiki-link extension for marked.js
 const wikiLinkExtension = require('./public/js/wikilink-extension');
@@ -259,7 +267,8 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
         username: user.username,
         email: user.email,
         display_name: user.display_name,
-        is_admin: user.is_admin
+        is_admin: user.is_admin,
+        created_at: user.created_at
     });
 });
 
@@ -308,6 +317,56 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Profile update error:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// GET /api/auth/stats - Get current user's statistics
+app.get('/api/auth/stats', requireAuth, (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const stats = db.getUserStatistics(userId);
+        res.json(stats);
+    } catch (error) {
+        console.error('Error getting user statistics:', error);
+        res.status(500).json({ error: 'Failed to get statistics' });
+    }
+});
+
+// DELETE /api/auth/account - Delete own account
+app.delete('/api/auth/account', requireAuth, async (req, res) => {
+    try {
+        const { password } = req.body;
+        const userId = req.session.userId;
+
+        // Verify password
+        const user = db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const isValid = await bcrypt.compare(password, user.password_hash);
+        if (!isValid) {
+            return res.status(401).json({ error: 'Incorrect password' });
+        }
+
+        // Cannot delete if you're the last admin
+        if (user.is_admin) {
+            const adminCount = db.getAdminCount();
+            if (adminCount <= 1) {
+                return res.status(400).json({ error: 'Cannot delete the last admin account' });
+            }
+        }
+
+        // Delete user (cascades to notes and folders)
+        db.deleteUser(userId);
+
+        // Destroy session
+        req.session.destroy();
+
+        res.json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        res.status(500).json({ error: 'Failed to delete account' });
     }
 });
 
@@ -628,6 +687,100 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
     } catch (error) {
         console.error('Error getting stats:', error);
         res.status(500).json({ error: 'Failed to get statistics' });
+    }
+});
+
+// GET /api/admin/backup - Download database backup
+app.get('/api/admin/backup', requireAdmin, (req, res) => {
+    try {
+        const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'notecottage.db');
+
+        // Check if database file exists
+        if (!fs.existsSync(dbPath)) {
+            return res.status(404).json({ error: 'Database file not found' });
+        }
+
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+        const filename = `notecottage-backup-${timestamp}.db`;
+
+        // Set headers for file download
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Stream the database file
+        const fileStream = fs.createReadStream(dbPath);
+        fileStream.pipe(res);
+
+        fileStream.on('error', (error) => {
+            console.error('Error streaming database backup:', error);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Failed to download backup' });
+            }
+        });
+    } catch (error) {
+        console.error('Error creating backup:', error);
+        res.status(500).json({ error: 'Failed to create backup' });
+    }
+});
+
+// POST /api/admin/restore - Restore database from backup
+app.post('/api/admin/restore', requireAdmin, upload.single('database'), async (req, res) => {
+    let uploadedFilePath = null;
+
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        uploadedFilePath = req.file.path;
+        const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'notecottage.db');
+
+        // Validate it's a SQLite database
+        const fileBuffer = fs.readFileSync(uploadedFilePath);
+        const header = fileBuffer.toString('utf8', 0, 15);
+        if (!header.startsWith('SQLite format 3')) {
+            fs.unlinkSync(uploadedFilePath); // Clean up invalid file
+            return res.status(400).json({ error: 'Invalid database file. Must be a SQLite database.' });
+        }
+
+        // Create a backup of current database before restoring
+        const backupPath = `${dbPath}.pre-restore-${Date.now()}.backup`;
+        fs.copyFileSync(dbPath, backupPath);
+        console.log(`Created safety backup at: ${backupPath}`);
+
+        // Close database connection
+        db.db.close();
+
+        // Replace database file
+        fs.copyFileSync(uploadedFilePath, dbPath);
+
+        // Clean up uploaded file
+        fs.unlinkSync(uploadedFilePath);
+
+        console.log('Database restored successfully. Server will restart...');
+
+        // Send response before exiting
+        res.json({
+            message: 'Database restored successfully. Server is restarting...',
+            backupPath: backupPath
+        });
+
+        // Exit process to trigger restart (if using process manager like PM2 or Docker)
+        // This allows the database connection to reinitialize properly
+        setTimeout(() => {
+            process.exit(0);
+        }, 500);
+
+    } catch (error) {
+        console.error('Error restoring database:', error);
+
+        // Clean up uploaded file on error
+        if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+            fs.unlinkSync(uploadedFilePath);
+        }
+
+        res.status(500).json({ error: 'Failed to restore database: ' + error.message });
     }
 });
 

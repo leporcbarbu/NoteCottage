@@ -12,6 +12,36 @@
     <link rel="stylesheet" href="/css/components/context-menu.css">
     <link rel="stylesheet" href="/css/components/tag-autocomplete.css">
     <link rel="stylesheet" href="/css/components/wikilink-autocomplete.css">
+    <style>
+        /* Hide content until authentication is verified */
+        body {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        body.authenticated {
+            opacity: 1;
+        }
+    </style>
+    <script>
+        // Check authentication immediately before page renders
+        (async function() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (response.ok) {
+                    // User is authenticated, show the page
+                    document.addEventListener('DOMContentLoaded', () => {
+                        document.body.classList.add('authenticated');
+                    });
+                } else {
+                    // Not authenticated, redirect to login
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                // Error checking auth, redirect to login
+                window.location.href = '/login.html';
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="container">

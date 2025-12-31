@@ -36,3 +36,4 @@ npm-debug.log*
 
 # Docker data directory (if using docker-compose volume mount)
 data/
+uploads/

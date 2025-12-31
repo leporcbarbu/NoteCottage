@@ -7,17 +7,26 @@
     <link rel="icon" type="image/png" href="/images/notecottage-favicon.png">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components/modal.css">
+    <script>
+        // Apply theme immediately to prevent flash of unstyled content
+        (function() {
+            const theme = localStorage.getItem('theme') || 'cottage';
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: #f5f1e8;
+            background: var(--bg-primary);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow-y: auto;
+            min-height: 100vh;
         }
 
         .admin-header {
-            background: #8b7355;
-            color: white;
+            background: var(--bg-sidebar);
+            color: var(--text-on-primary);
             padding: 20px 40px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
@@ -34,7 +43,7 @@
         }
 
         .admin-header .back-link {
-            color: white;
+            color: var(--text-on-primary);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -56,7 +65,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
-            border-bottom: 2px solid #d4c5b0;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .tab {
@@ -64,7 +73,7 @@
             border: none;
             padding: 12px 24px;
             cursor: pointer;
-            color: #6b5647;
+            color: var(--text-secondary);
             font-size: 15px;
             font-weight: 500;
             border-bottom: 3px solid transparent;
@@ -72,13 +81,13 @@
         }
 
         .tab:hover {
-            color: #4a3f2e;
-            background: rgba(200, 159, 93, 0.1);
+            color: var(--text-primary);
+            background: var(--bg-badge);
         }
 
         .tab.active {
-            color: #c89f5d;
-            border-bottom-color: #c89f5d;
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
         }
 
         .tab-content {
@@ -96,17 +105,17 @@
         }
 
         .card {
-            background: white;
-            border: 1px solid #d4c5b0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(107, 86, 71, 0.08);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .card h2 {
             margin: 0 0 16px 0;
-            color: #4a3f2e;
+            color: var(--text-heading);
             font-size: 18px;
             font-weight: 600;
         }
@@ -118,8 +127,8 @@
         }
 
         .stat-card {
-            background: white;
-            border: 1px solid #d4c5b0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 24px 20px;
             text-align: center;
@@ -128,18 +137,18 @@
 
         .stat-card:hover {
             box-shadow: 0 2px 8px rgba(107, 86, 71, 0.12);
-            border-color: #c89f5d;
+            border-color: var(--primary-color);
         }
 
         .stat-card .stat-value {
             font-size: 32px;
             font-weight: 700;
-            color: #c89f5d;
+            color: var(--primary-color);
             margin: 8px 0 4px 0;
         }
 
         .stat-card .stat-label {
-            color: #6b5647;
+            color: var(--text-secondary);
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -155,12 +164,12 @@
         .users-table td {
             padding: 10px 12px;
             text-align: left;
-            border-bottom: 1px solid #d4c5b0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .users-table th {
-            background: #faf7f0;
-            color: #4a3f2e;
+            background: var(--bg-badge);
+            color: var(--text-primary);
             font-weight: 600;
             font-size: 13px;
             text-transform: uppercase;
@@ -168,11 +177,11 @@
         }
 
         .users-table td {
-            color: #4a3f2e;
+            color: var(--text-primary);
         }
 
         .users-table tr:hover {
-            background: #faf7f0;
+            background: var(--bg-badge);
         }
 
         .badge {
@@ -184,13 +193,13 @@
         }
 
         .badge-admin {
-            background: #c89f5d;
+            background: var(--bg-button-primary);
             color: white;
         }
 
         .badge-user {
-            background: #d4c5b0;
-            color: #4a3f2e;
+            background: var(--border-color);
+            color: var(--text-primary);
         }
 
         .btn {
@@ -206,7 +215,7 @@
         }
 
         .btn-primary {
-            background: #c89f5d;
+            background: var(--bg-button-primary);
             color: white;
         }
 
@@ -243,7 +252,7 @@
 
         .form-group label {
             display: block;
-            color: #4a3f2e;
+            color: var(--text-primary);
             margin-bottom: 8px;
             font-weight: 500;
             font-size: 14px;
@@ -253,10 +262,10 @@
         .form-group select {
             width: 100%;
             padding: 10px;
-            border: 1px solid #d4c5b0;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            background: white;
-            color: #4a3f2e;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             font-size: 14px;
             box-sizing: border-box;
         }
@@ -264,13 +273,13 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #c89f5d;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(200, 159, 93, 0.1);
         }
 
         .form-group small {
             display: block;
-            color: #6b5647;
+            color: var(--text-secondary);
             margin-top: 4px;
             font-size: 12px;
         }
@@ -278,11 +287,81 @@
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input[type="checkbox"]:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input[type="checkbox"]:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-slider:hover {
+            opacity: 0.9;
+        }
+
+        /* Styled number input */
+        .styled-number-input {
+            width: 120px;
+            padding: 10px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .styled-number-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--bg-badge);
+        }
+
+        .styled-number-input:hover {
+            border-color: var(--primary-color);
         }
 
         .alert {
@@ -313,7 +392,7 @@
         .empty-state {
             text-align: center;
             padding: 40px;
-            color: #6b5647;
+            color: var(--text-secondary);
         }
 
         .actions {
@@ -327,7 +406,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 14px 0;
-            border-bottom: 1px solid #e8e0d0;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .setting-item:last-child {
@@ -336,14 +415,14 @@
 
         .setting-info h3 {
             margin: 0 0 4px 0;
-            color: #4a3f2e;
+            color: var(--text-primary);
             font-size: 15px;
             font-weight: 600;
         }
 
         .setting-info p {
             margin: 0;
-            color: #6b5647;
+            color: var(--text-secondary);
             font-size: 13px;
         }
     </style>
@@ -362,6 +441,7 @@
             <button class="tab active" data-tab="statistics">Statistics</button>
             <button class="tab" data-tab="users">User Management</button>
             <button class="tab" data-tab="settings">System Settings</button>
+            <button class="tab" data-tab="backup">Backup & Restore</button>
         </div>
 
         <!-- Statistics Tab -->
@@ -418,21 +498,54 @@
                         <h3>Registration</h3>
                         <p>Allow new users to register accounts</p>
                     </div>
-                    <div class="checkbox-group">
+                    <label class="toggle-switch">
                         <input type="checkbox" id="registrationEnabled">
-                        <label for="registrationEnabled">Enabled</label>
-                    </div>
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
                 <div class="setting-item">
                     <div class="setting-info">
                         <h3>Maximum Users</h3>
                         <p>Limit the total number of user accounts (0 = unlimited)</p>
                     </div>
-                    <input type="number" id="maxUsers" style="width: 100px;" min="0" value="0">
+                    <input type="number" id="maxUsers" class="styled-number-input" min="0" value="0">
                 </div>
-                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e8e0d0;">
+                <div style="margin-top: 24px;">
                     <button class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Backup & Restore Tab -->
+        <div id="backup-tab" class="tab-content">
+            <div class="card">
+                <h2>Database Backup</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Download a complete backup of your NoteCottage database. This includes all users, notes, folders, and settings.
+                </p>
+                <button class="btn btn-primary" id="downloadBackupBtn">
+                    Download Backup
+                </button>
+                <div id="backupStatus" style="margin-top: 15px; font-size: 14px;"></div>
+            </div>
+
+            <div class="card">
+                <h2>Database Restore</h2>
+                <div style="background: var(--bg-badge); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: var(--text-primary); font-size: 14px;">
+                        ⚠️ <strong>Warning:</strong> Restoring a backup will replace your entire database.
+                        All current data will be overwritten. A safety backup will be created before restore.
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label for="restoreFile">Select Backup File</label>
+                    <input type="file" id="restoreFile" accept=".db" style="display: block; padding: 10px 0;">
+                    <small>Only .db files from NoteCottage backups are accepted</small>
+                </div>
+                <button class="btn btn-danger" id="restoreBackupBtn" disabled>
+                    Restore Database
+                </button>
+                <div id="restoreStatus" style="margin-top: 15px; font-size: 14px;"></div>
             </div>
         </div>
     </div>

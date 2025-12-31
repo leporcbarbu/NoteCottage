@@ -6,6 +6,13 @@
     <title>Login - NoteCottage</title>
     <link rel="icon" type="image/png" href="/images/notecottage-favicon.png">
     <link rel="stylesheet" href="/css/style.css">
+    <script>
+        // Apply theme immediately to prevent flash of unstyled content
+        (function() {
+            const theme = localStorage.getItem('theme') || 'cottage';
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
     <style>
         /* Apply cottage theme to login page */
         body {
@@ -16,6 +23,7 @@
             align-items: center;
             justify-content: center;
             background: #f5f1e8;
+            overflow-y: auto;
         }
 
         .login-container {
