@@ -101,6 +101,15 @@ app.use(session({
     }
 }));
 
+// Prevent caching of all API responses
+// This prevents browsers from caching authentication state and other dynamic data
+app.use('/api', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
+
 // Authentication middleware
 function requireAuth(req, res, next) {
     if (!req.session.userId) {

@@ -1,6 +1,6 @@
 # NoteCottage - Project Status
 
-**Last Updated:** December 31, 2025
+**Last Updated:** January 1, 2026
 **Status:** Production-ready multi-user note-taking application with comprehensive profile settings, database backup/restore, full theme support, and image support (COMPLETE)
 
 ## Project Overview
@@ -1501,14 +1501,33 @@ Persists across browser sessions.
   - Browser caching issue: Blank page after login on first access (requires hard refresh)
   - Need to investigate better cache-busting strategies or versioned asset URLs
 
+**Session 14 (January 1, 2026):**
+- ✅ **Browser Caching Issue RESOLVED** - Fixed blank page after login problem
+  - **Root Cause Identified:** API endpoints lacked no-cache headers, causing browsers to cache authentication state
+  - **Backend Fix:**
+    - Added middleware to prevent caching of all `/api/*` endpoints (server.js:104-111)
+    - Middleware sets `Cache-Control: no-cache, no-store, must-revalidate` on all API responses
+    - Prevents stale authentication state from being cached by browsers
+  - **Frontend Enhancement:**
+    - Added cache-busting meta tags to all HTML files (index.html, login.html, admin.html, profile.html)
+    - Meta tags: `Cache-Control`, `Pragma`, `Expires` headers in `<head>` section
+    - Reinforces server-side cache headers at the browser level
+  - **Testing & Validation:**
+    - Verified cache headers locally using curl: API endpoints return proper no-cache headers ✓
+    - Verified HTML files return no-cache headers ✓
+    - Verified CSS/JS files return 1-hour cache headers (unchanged) ✓
+    - Tested in Docker container: All cache headers working correctly ✓
+  - **Docker Hub Deployment:**
+    - Rebuilt Docker image with all caching fixes (no-cache build)
+    - Tagged as version 1.0.1 (patch release for critical bug fix)
+    - Pushed both `leporcbarbu/notecottage:1.0.1` and `latest` to Docker Hub ✓
+    - Updated package.json version from 1.0.0 → 1.0.1
+  - **Result:** Login flow now works smoothly without blank pages or redirect loops
+
 ### Next Session Plans
 
 **Priority Topics:**
-1. **Resolve Browser Caching Issue** - Fix blank page after login
-   - Investigate why cache headers aren't fully working
-   - Consider versioned asset URLs (e.g., app.js?v=1.0.0)
-   - Consider service worker for better cache control
-   - Test different cache-busting strategies
+1. ~~**Resolve Browser Caching Issue**~~ - ✅ **COMPLETED** (Session 14)
 2. **GitHub Repository Setup** - Publish NoteCottage to GitHub
    - Create public repository at github.com/leporcbarbu/NoteCottage
    - Write comprehensive README.md with features and installation instructions
@@ -1517,12 +1536,12 @@ Persists across browser sessions.
    - Set up repository description and topics
    - Add .github/ISSUE_TEMPLATE (optional)
    - Add contributing guidelines (optional)
-3. **Finalize Docker Hub Publishing** - Complete the Docker Hub deployment
-   - Rebuild and push image with all fixes (permissions, sessions, cache)
-   - Implement version tagging strategy (latest, 1.0, 1.0.0)
-   - Update Docker Hub README with complete quick start instructions
-   - Test end-to-end pull and deployment on fresh system
-   - Update GitHub README with Docker Hub installation option
+3. **Finalize Docker Hub Publishing** - ⚠️ Mostly Complete (v1.0.1 published)
+   - ✅ Rebuilt and pushed image with all fixes (permissions, sessions, cache)
+   - ✅ Implemented version tagging (1.0.1 and latest tags)
+   - ⏳ Update Docker Hub README with complete quick start instructions
+   - ⏳ Test end-to-end pull and deployment on fresh system
+   - ⏳ Update GitHub README with Docker Hub installation option
 4. **Production-Ready Infrastructure** (Future consideration)
    - nginx reverse-proxy configuration
    - SSL/TLS setup
