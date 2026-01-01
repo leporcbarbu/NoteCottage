@@ -224,4 +224,28 @@ class Modal {
         this.onCloseCallback = callback;
         return this;
     }
+
+    // Static helper method for confirmation dialogs
+    static confirm(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+        return new Promise((resolve) => {
+            const modal = new Modal(title, message, [
+                {
+                    text: cancelText,
+                    className: 'btn btn-secondary',
+                    callback: () => {
+                        resolve(false);
+                        return true; // Close modal
+                    }
+                },
+                {
+                    text: confirmText,
+                    className: 'btn btn-primary',
+                    callback: () => {
+                        resolve(true);
+                        return true; // Close modal
+                    }
+                }
+            ]);
+        });
+    }
 }
