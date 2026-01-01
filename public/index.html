@@ -33,9 +33,15 @@
                 const response = await fetch('/api/auth/me');
                 if (response.ok) {
                     // User is authenticated, show the page
-                    document.addEventListener('DOMContentLoaded', () => {
+                    // Handle both cases: DOM loading and DOM already loaded
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => {
+                            document.body.classList.add('authenticated');
+                        });
+                    } else {
+                        // DOM already loaded (e.g., on normal refresh), add class immediately
                         document.body.classList.add('authenticated');
-                    });
+                    }
                 } else {
                     // Not authenticated, redirect to login
                     window.location.href = '/login.html';
