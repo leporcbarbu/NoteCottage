@@ -1565,6 +1565,35 @@ Persists across browser sessions.
     - Updated package.json version from 1.0.2 → 1.0.3
   - **Result:** Database restore and account deletion now work correctly
 
+- ✅ **Database Restore Complete Flow WORKING** - Fixed Modal.alert() and favicon (v1.0.4)
+  - **Issue Discovered:** Database restore still failing after Modal.confirm fix
+  - **Browser Console Errors:**
+    - `GET /images/notecottage-favicon.png 404 (Not Found)`
+    - `Modal.alert is not a function` (admin.js:528)
+  - **Root Causes:**
+    1. **Missing Favicon:** HTML files referenced `notecottage-favicon.png` but file was named `NoteCottage.png`
+    2. **Missing Modal.alert():** After successful restore, admin.js called `Modal.alert()` to show success message, but method didn't exist
+  - **Fixes Applied:**
+    - **Favicon Fix:** Copied NoteCottage.png → notecottage-favicon.png to match expected filename
+    - **Modal.alert() (public/js/components/modal.js:252-266):**
+      - Added static `alert(title, message, okText = 'OK')` method
+      - Returns Promise that resolves when user clicks OK
+      - Shows single-button information dialog
+      - Consistent with confirm() method implementation
+  - **Testing on http://allura:3002:**
+    - ✅ Favicon loads without 404 error
+    - ✅ Database restore confirmation modal appears
+    - ✅ Database restore completes successfully
+    - ✅ Success alert modal displays properly
+    - ✅ Redirects to login page after restore
+    - ✅ No console errors
+  - **Docker Hub Deployment:**
+    - Rebuilt Docker image with both fixes (no-cache build)
+    - Tagged as version 1.0.4 (fourth patch release)
+    - Pushed both `leporcbarbu/notecottage:1.0.4` and `latest` to Docker Hub ✓
+    - Updated package.json version from 1.0.3 → 1.0.4
+  - **Result:** Database restore now works end-to-end, including success notification
+
 ### Next Session Plans
 
 **Priority Topics:**
