@@ -1470,22 +1470,60 @@ Persists across browser sessions.
     - Committed all image support changes (commit 926371d)
     - Updated Docker image with `docker-compose build --no-cache`
 
+**Session 13 (December 31, 2025):**
+- ✅ **Docker Hub Publishing (IN PROGRESS)** - First deployment to Docker Hub for easy installation
+  - Published initial image to leporcbarbu/notecottage:latest
+  - Successfully tested pull and deployment on separate computer
+  - Identified and addressed deployment issues for production use
+- 🔧 **Docker Container Fixes** - Resolved critical deployment issues
+  - **Volume Permissions Fix:**
+    - Created docker-entrypoint.sh script with permission checking
+    - Script validates write access to /app/data before starting app
+    - Provides helpful error messages with fix instructions if permissions fail
+    - Updated Dockerfile to use entrypoint script
+    - Added documentation about chmod 777 requirement for data/uploads directories
+  - **Session Cookie Fix:**
+    - Changed secure cookie logic from NODE_ENV-based to explicit SECURE_COOKIES env var
+    - Allows HTTP access by default (required for http://localhost:3000)
+    - Users can set SECURE_COOKIES=true when behind HTTPS reverse proxy
+    - Fixed login redirect loop issue in production Docker containers
+  - **Cache Control Headers:**
+    - Added no-cache headers for HTML files to prevent stale content
+    - Set 1-hour cache for CSS/JS files (balance between freshness and performance)
+    - Prevents blank page issues after updates
+    - Note: Browser cache issue still partially unresolved (requires investigation)
+  - **Documentation Updates:**
+    - Created comprehensive DOCKER_HUB_GUIDE.md with publishing workflow
+    - Updated docker-compose.yml with helpful comments about permissions and env vars
+    - Added troubleshooting section for common Docker deployment issues
+    - Documented SECURE_COOKIES environment variable
+- ⏳ **Known Issues to Resolve:**
+  - Browser caching issue: Blank page after login on first access (requires hard refresh)
+  - Need to investigate better cache-busting strategies or versioned asset URLs
+
 ### Next Session Plans
 
 **Priority Topics:**
-1. **GitHub Repository Setup** - Publish NoteCottage to GitHub
+1. **Resolve Browser Caching Issue** - Fix blank page after login
+   - Investigate why cache headers aren't fully working
+   - Consider versioned asset URLs (e.g., app.js?v=1.0.0)
+   - Consider service worker for better cache control
+   - Test different cache-busting strategies
+2. **GitHub Repository Setup** - Publish NoteCottage to GitHub
    - Create public repository at github.com/leporcbarbu/NoteCottage
    - Write comprehensive README.md with features and installation instructions
-   - Add LICENSE file (choose open-source license)
+   - Add LICENSE file (choose open-source license - MIT recommended)
    - Push all code to GitHub
    - Set up repository description and topics
-   - Add contribution guidelines (optional)
-2. **Docker Hub Publishing** - Make installation easier for end users
-   - Publish image to leporcbarbu/notecottage
-   - Version tagging strategy (latest, 1.0, 1.0.0)
-   - Update Docker Hub README with quick start instructions
-   - Test pull and run from Docker Hub
-3. **Production-Ready Infrastructure** - Secure remote access and deployment
+   - Add .github/ISSUE_TEMPLATE (optional)
+   - Add contributing guidelines (optional)
+3. **Finalize Docker Hub Publishing** - Complete the Docker Hub deployment
+   - Rebuild and push image with all fixes (permissions, sessions, cache)
+   - Implement version tagging strategy (latest, 1.0, 1.0.0)
+   - Update Docker Hub README with complete quick start instructions
+   - Test end-to-end pull and deployment on fresh system
+   - Update GitHub README with Docker Hub installation option
+4. **Production-Ready Infrastructure** (Future consideration)
    - nginx reverse-proxy configuration
    - SSL/TLS setup
    - Rate limiting and security headers
@@ -1552,4 +1590,4 @@ This project successfully demonstrated:
 
 ---
 
-**Status:** NoteCottage is production-ready for multi-user collaborative use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark - with Cottage as default). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support COMPLETE:** Session-based authentication with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, folder organization, profile settings, and database backup/restore all implemented and functional. Private/Shared virtual root folders provide clear visual separation. **Profile settings page** provides complete user account management with display name, password changes, theme preferences, statistics, and account deletion. **Database backup/restore system** enables disaster recovery with admin-only access, safety backups, and validation. **Theme system enhancements** ensure consistent Cottage theme across all pages with full CSS variable support. **Image support COMPLETE:** Dual storage system (file uploads + external URLs) with drag-drop, clipboard paste, image gallery, and full metadata tracking - images inherit note/folder privacy settings and persist across Docker restarts. **Next steps in roadmap:** Production-ready infrastructure (nginx reverse proxy, SSL/TLS), comprehensive multi-user testing, PWA for mobile access.
+**Status:** NoteCottage is production-ready for multi-user collaborative use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark - with Cottage as default). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support COMPLETE:** Session-based authentication with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, folder organization, profile settings, and database backup/restore all implemented and functional. Private/Shared virtual root folders provide clear visual separation. **Profile settings page** provides complete user account management with display name, password changes, theme preferences, statistics, and account deletion. **Database backup/restore system** enables disaster recovery with admin-only access, safety backups, and validation. **Theme system enhancements** ensure consistent Cottage theme across all pages with full CSS variable support. **Image support COMPLETE:** Dual storage system (file uploads + external URLs) with drag-drop, clipboard paste, image gallery, and full metadata tracking - images inherit note/folder privacy settings and persist across Docker restarts. **Docker Hub publishing IN PROGRESS:** Image published to leporcbarbu/notecottage with critical deployment fixes (volume permissions, session cookies, cache headers). Minor browser caching issue remains to be resolved. **Next steps in roadmap:** Resolve caching issue, complete GitHub repository setup, finalize Docker Hub publishing with version tags, production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.

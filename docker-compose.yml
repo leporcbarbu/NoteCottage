@@ -25,9 +25,14 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DATABASE_PATH=/app/data/notecottage.db
+      # Set to 'true' only when using HTTPS (e.g., behind nginx with SSL)
+      # Leave commented out for HTTP access (default: false)
+      # - SECURE_COOKIES=true
 
     # Volume mounts for persistent data
     # Syntax: host_path:container_path
+    # NOTE: If you get permission errors, run on host:
+    #   mkdir -p ./data ./uploads && chmod 777 ./data ./uploads
     volumes:
       # Persist database outside container so data survives restarts/rebuilds
       - ./data:/app/data

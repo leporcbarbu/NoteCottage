@@ -19,6 +19,10 @@ RUN npm install --production
 # .dockerignore determines what gets excluded
 COPY . .
 
+# Copy and set permissions for entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Create directories for database and uploads with proper permissions
 RUN mkdir -p /app/data /app/uploads && chown -R node:node /app/data /app/uploads
 
@@ -36,6 +40,5 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV DATABASE_PATH=/app/data/notecottage.db
 
-# Command to run when container starts
-# Uses JSON array syntax (preferred over string)
-CMD ["node", "server.js"]
+# Entrypoint script that checks permissions before starting
+ENTRYPOINT ["docker-entrypoint.sh"]

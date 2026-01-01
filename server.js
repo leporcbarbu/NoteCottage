@@ -65,7 +65,23 @@ ensureDirectoryExists(uploadsDir);
 
 // Middleware - similar to Flask's before_request or app.config
 app.use(express.json()); // Parse JSON request bodies
-app.use(express.static('public')); // Serve static files from 'public' directory
+
+// Serve static files with cache control headers
+// HTML files: no-cache (always check for updates)
+// CSS/JS files: short cache time (1 hour)
+app.use(express.static('public', {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+            // HTML files should always be revalidated
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        } else if (path.endsWith('.js') || path.endsWith('.css')) {
+            // CSS/JS can be cached briefly (1 hour)
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+    }
+}));
 
 // Session middleware for authentication
 app.use(session({
@@ -77,7 +93,9 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+        // Only use secure cookies if explicitly enabled (when behind HTTPS proxy)
+        // Default to false to allow HTTP access (e.g., http://localhost:3000)
+        secure: process.env.SECURE_COOKIES === 'true',
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     }
@@ -825,6 +843,10 @@ app.post('/api/admin/restore', requireAdmin, upload.single('database'), async (r
 
 // GET / - Serve the main page
 app.get('/', (req, res) => {
+    // Prevent caching of index.html to avoid stale content issues
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
