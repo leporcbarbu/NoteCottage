@@ -1524,6 +1524,27 @@ Persists across browser sessions.
     - Updated package.json version from 1.0.0 → 1.0.1
   - **Result:** Login flow now works smoothly without blank pages or redirect loops
 
+- ✅ **Normal Refresh Bug RESOLVED** - Fixed blank page on F5 refresh (v1.0.2)
+  - **Issue Discovered:** Testing on deployed instance revealed normal refresh (F5) still showed blank pages
+  - **Root Cause:** DOMContentLoaded race condition in index.html inline authentication script
+    - On normal refresh, DOM loads faster than hard refresh (uses cached resources)
+    - Async auth check completes after DOMContentLoaded event has already fired
+    - Event listener never executes, `authenticated` class never added, page stays at opacity: 0
+  - **Fix Applied (public/index.html:37-44):**
+    - Added `document.readyState === 'loading'` check before adding event listener
+    - If DOM already loaded: Add `authenticated` class immediately
+    - If DOM still loading: Add event listener as before (original behavior)
+  - **Testing on http://allura:3002:**
+    - ✅ Normal refresh (F5) now works correctly
+    - ✅ Hard refresh (Ctrl+F5) still works
+    - ✅ Initial login works smoothly
+  - **Docker Hub Deployment:**
+    - Rebuilt Docker image with refresh fix (no-cache build)
+    - Tagged as version 1.0.2 (second patch release)
+    - Pushed both `leporcbarbu/notecottage:1.0.2` and `latest` to Docker Hub ✓
+    - Updated package.json version from 1.0.1 → 1.0.2
+  - **Result:** All refresh scenarios now work perfectly - login experience is smooth and reliable
+
 ### Next Session Plans
 
 **Priority Topics:**
