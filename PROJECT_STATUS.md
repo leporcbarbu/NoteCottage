@@ -1545,6 +1545,26 @@ Persists across browser sessions.
     - Updated package.json version from 1.0.1 → 1.0.2
   - **Result:** All refresh scenarios now work perfectly - login experience is smooth and reliable
 
+- ✅ **Database Restore Bug RESOLVED** - Fixed Modal.confirm() missing method (v1.0.3)
+  - **Issue Discovered:** Database restore button in admin panel not working
+  - **Browser Console Error:** `Modal.confirm is not a function`
+  - **Root Cause:** Modal component was missing static `confirm()` helper method
+    - admin.js (line 496) and profile.html both called `Modal.confirm()`
+    - This method didn't exist, causing all confirmation dialogs to fail
+    - Affected features: Database restore, account deletion
+  - **Fix Applied (public/js/components/modal.js:228-250):**
+    - Added static `Modal.confirm(title, message, confirmText, cancelText)` method
+    - Returns a Promise that resolves to true (confirmed) or false (cancelled)
+    - Uses the existing button array API to create two-button modal
+    - Cancel button: resolves with false, closes modal
+    - Confirm button: resolves with true, closes modal
+  - **Docker Hub Deployment:**
+    - Rebuilt Docker image with Modal.confirm fix (no-cache build)
+    - Tagged as version 1.0.3 (third patch release)
+    - Pushed both `leporcbarbu/notecottage:1.0.3` and `latest` to Docker Hub ✓
+    - Updated package.json version from 1.0.2 → 1.0.3
+  - **Result:** Database restore and account deletion now work correctly
+
 ### Next Session Plans
 
 **Priority Topics:**
