@@ -248,4 +248,20 @@ class Modal {
             ]);
         });
     }
+
+    // Static helper method for alert dialogs (single OK button)
+    static alert(title, message, okText = 'OK') {
+        return new Promise((resolve) => {
+            const modal = new Modal(title, message, [
+                {
+                    text: okText,
+                    className: 'btn btn-primary',
+                    callback: () => {
+                        resolve(true);
+                        return true; // Close modal
+                    }
+                }
+            ]);
+        });
+    }
 }
