@@ -979,11 +979,11 @@ app.post('/api/notes', requireAuth, (req, res) => {
             return res.status(400).json({ error: 'Title and content are required' });
         }
 
-        // Parse folder_id if provided, otherwise use user's default folder
-        const folderId = folder_id ? parseInt(folder_id) : 1;
+        // Parse folder_id if provided, otherwise null (uncategorized note)
+        const folderId = folder_id ? parseInt(folder_id) : null;
 
-        // Check if user has access to the target folder
-        if (!db.canUserAccessFolder(folderId, userId)) {
+        // Check if user has access to the target folder (skip check for uncategorized notes)
+        if (folderId !== null && !db.canUserAccessFolder(folderId, userId)) {
             return res.status(403).json({ error: 'You do not have access to this folder' });
         }
 
@@ -1395,11 +1395,6 @@ app.put('/api/folders/:id/reorder', (req, res) => {
 
         if (typeof new_position !== 'number' || new_position < 0) {
             return res.status(400).json({ error: 'Invalid position' });
-        }
-
-        // Prevent reordering Uncategorized folder
-        if (folderId === 1) {
-            return res.status(400).json({ error: 'Cannot reorder Uncategorized folder' });
         }
 
         // Validate folder exists
