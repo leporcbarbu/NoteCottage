@@ -1708,6 +1708,32 @@ Persists across browser sessions.
     - Linked to GitHub repository for full documentation
   - **Result:** NoteCottage is now a fully open-source project with professional documentation
 
+- ✅ **CRITICAL BUG FIX (v1.0.7)** - Resolved 403 Forbidden error when saving notes
+  - **Issue Discovered:** Users could not save notes, receiving "Failed to save note" error
+  - **Browser Console Error:** `POST /api/notes 403 (Forbidden)`
+  - **Root Cause Analysis:**
+    - v1.0.6 removed "Uncategorized" folder (folder ID 1)
+    - server.js POST /api/notes endpoint still defaulted to `folder_id = 1` for new notes
+    - Permission check failed because folder ID 1 no longer exists
+    - Result: All note creation attempts returned 403 Forbidden
+  - **Fixes Applied (server.js):**
+    - Line 983: Changed default from `folderId = 1` to `folderId = null`
+    - Line 986: Skip permission check for uncategorized notes (folder_id = null)
+    - Line 1401: Removed obsolete folder ID 1 reorder check
+  - **Testing:**
+    - ✅ Notes can now be created without folders (uncategorized)
+    - ✅ Notes can be created in Private folders
+    - ✅ Notes can be created in Shared folders
+    - ✅ Permission checks work correctly for folder-based notes
+  - **Deployment:**
+    - Git commit: a9b9eec
+    - Version bumped: 1.0.6 → 1.0.7
+    - Created release tag v1.0.7
+    - Pushed to GitHub
+    - Built Docker image with --no-cache
+    - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.7 and :latest
+  - **Result:** Critical production blocker resolved - note creation now works correctly
+
 ### Planned Improvements (Next Session)
 
 **Deployment Documentation:**
