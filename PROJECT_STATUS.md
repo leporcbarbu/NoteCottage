@@ -1798,6 +1798,14 @@ Persists across browser sessions.
     - Familiar pattern from Obsidian/Roam Research
     - Encourages organic knowledge graph building
   - **Result:** Wiki-link workflow now complete - matches Obsidian UX pattern
+  - **Deployment:**
+    - Git commit: e2c2840
+    - Version bumped: 1.0.7 → 1.0.8
+    - Created release tag v1.0.8
+    - Pushed to GitHub
+    - Built Docker image with --no-cache
+    - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.8 and :latest
+  - **Testing:** Verified working on localhost - smooth UX, instant note creation
 
 ### Planned Improvements (Next Session)
 
