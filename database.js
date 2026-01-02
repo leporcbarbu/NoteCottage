@@ -161,18 +161,27 @@ function initializeDatabase() {
         }
     }
 
-    // Create default 'Uncategorized' folder if not exists
-    const ensureUncategorizedFolder = db.prepare(`
-        INSERT OR IGNORE INTO folders (id, name, parent_id, color, icon, position)
-        VALUES (1, 'Uncategorized', NULL, '#95a5a6', '📂', 0)
-    `);
-    ensureUncategorizedFolder.run();
+    // Note: Uncategorized folder removed in v1.0.6
+    // Notes with folder_id = NULL are displayed at root level
 
-    // Migrate existing notes without folder_id to Uncategorized
-    const migrateNotes = db.prepare(`
-        UPDATE notes SET folder_id = 1 WHERE folder_id IS NULL
-    `);
-    migrateNotes.run();
+    // Migration: Move notes from old Uncategorized folder (ID 1) to root level
+    try {
+        const moveNotesStmt = db.prepare('UPDATE notes SET folder_id = NULL WHERE folder_id = 1');
+        const result = moveNotesStmt.run();
+        if (result.changes > 0) {
+            console.log(`Migrated ${result.changes} note(s) from Uncategorized folder to root level`);
+        }
+
+        // Delete the old Uncategorized folder
+        const deleteFolderStmt = db.prepare('DELETE FROM folders WHERE id = 1');
+        const deleteResult = deleteFolderStmt.run();
+        if (deleteResult.changes > 0) {
+            console.log('Removed old Uncategorized folder');
+        }
+    } catch (error) {
+        // Migration may fail if folder doesn't exist, which is fine
+        console.log('Uncategorized folder migration skipped (already migrated or not present)');
+    }
 
     // Add position column to notes table if it doesn't exist
     try {
@@ -450,7 +459,7 @@ const statements = {
     getAllFolders: db.prepare(`
         SELECT id, name, parent_id, color, icon, position, user_id, is_public, created_at, updated_at
         FROM folders
-        ORDER BY parent_id ASC, position ASC, name ASC
+        ORDER BY parent_id ASC, LOWER(name) ASC
     `),
 
     // Get folders visible to a specific user (public folders + user's private folders)
@@ -458,7 +467,7 @@ const statements = {
         SELECT id, name, parent_id, color, icon, position, user_id, is_public, created_at, updated_at
         FROM folders
         WHERE is_public = 1 OR user_id = ?
-        ORDER BY parent_id ASC, position ASC, name ASC
+        ORDER BY parent_id ASC, LOWER(name) ASC
     `),
 
     getFolderById: db.prepare(`
@@ -681,7 +690,7 @@ function getNoteById(id) {
     return statements.getNoteById.get(id);
 }
 
-function createNote(title, content, folderId = 1, userId = null) {
+function createNote(title, content, folderId = null, userId = null) {
     try {
         const insertNoteWithFolder = db.prepare(`
             INSERT INTO notes (title, content, folder_id, user_id)

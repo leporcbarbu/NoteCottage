@@ -702,8 +702,8 @@ function setupEventListeners() {
     if (newFolderBtn) {
         newFolderBtn.addEventListener('click', () => {
             // If "All Notes" is selected, create root-level folder (no parent)
-            // Also treat "Uncategorized" (folder ID '1') as root-level
-            const parentId = (currentFolderId === 'all-notes' || currentFolderId === '1') ? null : currentFolderId;
+            // Also handle virtual folders (private, shared) - create at root level
+            const parentId = (currentFolderId === 'all-notes' || currentFolderId === 'private' || currentFolderId === 'shared') ? null : currentFolderId;
             createNewFolder(parentId);
         });
     }
@@ -1316,7 +1316,31 @@ function createFolderElement(folder, depth) {
         note.folder_id && String(note.folder_id) === String(folder.id)
     );
     const hasNotes = folderNotes.length > 0;
-    const hasChildrenOrNotes = hasChildren || hasNotes;
+
+    // For virtual folders (Private/Shared), calculate uncategorized notes
+    let uncategorizedNotes = [];
+    if (folder.isVirtual && (folder.id === 'private' || folder.id === 'shared')) {
+        if (folder.id === 'private') {
+            // Private: show uncategorized notes owned by current user OR with no user_id (legacy notes)
+            uncategorizedNotes = notes.filter(note => {
+                if (!note.folder_id && currentUser) {
+                    // Show if note belongs to current user OR has no user_id assigned
+                    return !note.user_id || note.user_id === currentUser.id;
+                }
+                return false;
+            });
+        }
+        // Shared: uncategorized notes can't be shared (no folder means private to owner)
+        // So we don't add any uncategorized notes for the Shared section
+
+        // Sort uncategorized notes alphabetically by title
+        uncategorizedNotes.sort((a, b) =>
+            a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+        );
+    }
+    const hasUncategorizedNotes = uncategorizedNotes.length > 0;
+
+    const hasChildrenOrNotes = hasChildren || hasNotes || hasUncategorizedNotes;
 
     // Expand/collapse icon
     const expandIcon = document.createElement('span');
@@ -1448,13 +1472,21 @@ function createFolderElement(folder, depth) {
 
     folderItem.appendChild(folderHeader);
 
-    // Children container (includes both child folders and notes)
+    // Children container (includes uncategorized notes, notes in folders, and child folders)
     if (hasChildrenOrNotes) {
         const childrenContainer = document.createElement('div');
         childrenContainer.className = 'folder-children';
         childrenContainer.style.display = isExpanded ? 'block' : 'none';
 
-        // Add notes first
+        // Add uncategorized notes first (for virtual folders only)
+        if (hasUncategorizedNotes) {
+            uncategorizedNotes.forEach(note => {
+                const noteElement = createNoteElement(note, depth + 1);
+                childrenContainer.appendChild(noteElement);
+            });
+        }
+
+        // Then add notes in this folder
         if (hasNotes) {
             folderNotes.forEach(note => {
                 const noteElement = createNoteElement(note, depth + 1);
@@ -1462,7 +1494,7 @@ function createFolderElement(folder, depth) {
             });
         }
 
-        // Then add child folders
+        // Then add child folders (already sorted alphabetically from backend)
         if (hasChildren) {
             folder.children.forEach(child => {
                 const childElement = createFolderElement(child, depth + 1);
@@ -2068,7 +2100,8 @@ async function saveCurrentNote() {
             const noteData = { title, content };
 
             // If a folder is selected, create the note in that folder
-            if (currentFolderId) {
+            // Handle virtual folders (all-notes, private, shared, trash) - they should create notes without a folder
+            if (currentFolderId && currentFolderId !== 'all-notes' && currentFolderId !== 'private' && currentFolderId !== 'shared' && currentFolderId !== 'trash') {
                 noteData.folder_id = currentFolderId;
             }
 
