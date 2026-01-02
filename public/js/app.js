@@ -697,6 +697,28 @@ function setupEventListeners() {
         }
     });
 
+    // Broken wiki-link click handler - create note from broken link
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('wiki-link-broken')) {
+            e.preventDefault();
+            const noteTitle = e.target.textContent.trim();
+
+            if (!noteTitle) return;
+
+            // Create new note with pre-filled title
+            createNewNote();
+
+            // Pre-fill the title field
+            document.getElementById('noteTitle').value = noteTitle;
+
+            // Focus on content instead of title (title is already filled)
+            document.getElementById('noteContent').focus();
+
+            // Show a subtle confirmation
+            console.log(`Creating note from broken link: "${noteTitle}"`);
+        }
+    });
+
     // Folder event listeners
     const newFolderBtn = document.getElementById('newFolderBtn');
     if (newFolderBtn) {

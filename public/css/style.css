@@ -1026,7 +1026,13 @@ body {
     text-decoration: none;
     border-bottom: 1px dashed #ccc;
     padding-bottom: 1px;
-    cursor: not-allowed;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.wiki-link-broken:hover {
+    color: #666;
+    border-bottom-color: #999;
 }
 
 /* Dark theme wiki-link support */
@@ -1043,6 +1049,11 @@ body {
 [data-theme="dark"] .wiki-link-broken {
     color: #666;
     border-bottom-color: #444;
+}
+
+[data-theme="dark"] .wiki-link-broken:hover {
+    color: #888;
+    border-bottom-color: #666;
 }
 
 /* Buttons */
