@@ -1594,6 +1594,56 @@ Persists across browser sessions.
     - Updated package.json version from 1.0.3 → 1.0.4
   - **Result:** Database restore now works end-to-end, including success notification
 
+- ⚠️ **CRITICAL SECURITY FIX** - User Privacy Breach Resolved (v1.0.5)
+  - **Issue Discovered:** Users could see ALL notes from ALL users (CRITICAL vulnerability)
+  - **Discovery:** User's wife logged in and could see all his private notes in "All Notes" view
+  - **Root Cause:** `/api/notes` endpoint called `db.getAllNotes()` without any user filtering
+    - Permission system (`canUserAccessNote`, `canUserAccessFolder`) existed but wasn't being used
+    - Endpoint was missing `requireAuth` middleware
+  - **Fixes Applied:**
+    - **database.js: Added `getNotesForUser(userId)` (lines 663-678)**
+      - Filters notes based on folder permissions
+      - Returns only notes user owns OR notes in public folders
+      - Uses existing `canUserAccessNote()` permission checks
+    - **server.js: Fixed `/api/notes` endpoint (line 863)**
+      - Added `requireAuth` middleware (was missing!)
+      - Changed from `db.getAllNotes()` to `db.getNotesForUser(req.session.userId)`
+    - **database.js: Exported new function in module.exports**
+  - **Additional Fixes:**
+    - **Uncategorized Folder Creation Bug (app.js:706):**
+      - Prevented subfolder creation under "Uncategorized" label
+      - Treats folder ID '1' same as virtual folders
+    - **Hide Uncategorized from Parent Selector (folder-form.js:115):**
+      - Removed "Uncategorized" from parent folder dropdown
+      - Doesn't make sense to select Uncategorized as parent
+    - **Prevent Drag-Drop to Uncategorized (app.js:1400):**
+      - Wrapped drag-drop listeners to exclude folder ID '1'
+      - Can't drag folders into Uncategorized anymore
+  - **Testing on http://allura:3002:**
+    - ✅ Users only see their own private notes
+    - ✅ Users can see shared (public) notes
+    - ✅ Uncategorized folder restrictions work correctly
+    - ✅ No subfolder creation under Uncategorized
+    - ✅ Can't drag folders to Uncategorized
+  - **Docker Hub Deployment:**
+    - Rebuilt Docker image with security fixes (no-cache build)
+    - Tagged as version 1.0.5 (critical security patch)
+    - Pushed `leporcbarbu/notecottage:1.0.5` and `latest` to Docker Hub ✓
+    - Updated package.json version from 1.0.4 → 1.0.5
+  - **Result:** CRITICAL privacy vulnerability fixed - multi-user isolation now works correctly
+
+### Planned Improvements (Next Session)
+
+**Folder System Enhancements:**
+1. **Remove "Uncategorized" Folder Concept**
+   - Display uncategorized notes at root level (no special folder)
+   - Cleaner, more intuitive interface
+
+2. **Alphabetical Folder Sorting**
+   - Sort folders alphabetically under their parent
+   - Current: Manual position-based ordering
+   - Goal: Automatic alphabetical ordering for better navigation
+
 ### Next Session Plans
 
 **Priority Topics:**
