@@ -337,4 +337,4 @@ See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed development history and 
 
 ---
 
-**Made with ☕ and ❤️ by leporcbarbu**
+**Made with ☕ and ❤️ by Joshua C. Diller**
