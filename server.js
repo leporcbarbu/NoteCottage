@@ -859,10 +859,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// GET /api/notes - List all notes
-app.get('/api/notes', (req, res) => {
+// GET /api/notes - List notes accessible to the current user
+app.get('/api/notes', requireAuth, (req, res) => {
     try {
-        const notes = db.getAllNotes();
+        // Get notes filtered by user permissions
+        const notes = db.getNotesForUser(req.session.userId);
 
         // Format notes for the frontend
         const formattedNotes = notes.map(note => ({

@@ -660,6 +660,23 @@ function getAllNotes() {
     return statements.getAllNotes.all();
 }
 
+// Get notes that a specific user has permission to access
+function getNotesForUser(userId) {
+    if (!userId) {
+        // No user logged in - return only notes in public folders or no folder
+        const allNotes = statements.getAllNotes.all();
+        return allNotes.filter(note => {
+            if (!note.folder_id) return true; // Notes without folders are accessible
+            const folder = getFolderById(note.folder_id);
+            return folder && folder.is_public === 1;
+        });
+    }
+
+    // Return notes the user can access (based on folder permissions)
+    const allNotes = statements.getAllNotes.all();
+    return allNotes.filter(note => canUserAccessNote(note.id, userId));
+}
+
 function getNoteById(id) {
     return statements.getNoteById.get(id);
 }
@@ -1280,6 +1297,7 @@ function getAttachmentCount(noteId) {
 module.exports = {
     db,
     getAllNotes,
+    getNotesForUser,
     getNoteById,
     createNote,
     updateNote,

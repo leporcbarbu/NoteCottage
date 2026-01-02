@@ -111,8 +111,8 @@ class FolderForm {
             // Recursively render folder tree
             const renderFolderTree = (folderList, container, depth = 0) => {
                 folderList.forEach(folder => {
-                    // Skip virtual folders
-                    if (folder.isVirtual) {
+                    // Skip virtual folders and Uncategorized (folder ID 1)
+                    if (folder.isVirtual || folder.id === '1' || folder.id === 1) {
                         if (folder.children && folder.children.length > 0) {
                             renderFolderTree(folder.children, container, depth);
                         }

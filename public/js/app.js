@@ -702,7 +702,8 @@ function setupEventListeners() {
     if (newFolderBtn) {
         newFolderBtn.addEventListener('click', () => {
             // If "All Notes" is selected, create root-level folder (no parent)
-            const parentId = (currentFolderId === 'all-notes') ? null : currentFolderId;
+            // Also treat "Uncategorized" (folder ID '1') as root-level
+            const parentId = (currentFolderId === 'all-notes' || currentFolderId === '1') ? null : currentFolderId;
             createNewFolder(parentId);
         });
     }
@@ -1395,53 +1396,55 @@ function createFolderElement(folder, depth) {
         });
     }
 
-    // Make folder a drop target (all folders can receive drops)
-    folderHeader.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
+    // Make folder a drop target (except for Uncategorized folder)
+    if (folder.id !== '1' && folder.id !== 1) {
+        folderHeader.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
 
-        try {
-            const dragDataStr = e.dataTransfer.getData('application/json');
-            if (!dragDataStr) return; // getData doesn't work in dragover in some browsers
+            try {
+                const dragDataStr = e.dataTransfer.getData('application/json');
+                if (!dragDataStr) return; // getData doesn't work in dragover in some browsers
 
-            const dragData = JSON.parse(dragDataStr);
-            const position = dragManager.calculateDropPosition(e, folderHeader);
+                const dragData = JSON.parse(dragDataStr);
+                const position = dragManager.calculateDropPosition(e, folderHeader);
 
-            if (dragManager.validateDrop(dragData, folder, position, folders)) {
-                dragManager.showDropIndicator(folderHeader, position);
-            } else {
-                dragManager.showDropIndicator(folderHeader, 'invalid');
+                if (dragManager.validateDrop(dragData, folder, position, folders)) {
+                    dragManager.showDropIndicator(folderHeader, position);
+                } else {
+                    dragManager.showDropIndicator(folderHeader, 'invalid');
+                }
+            } catch (err) {
+                // Ignore errors from getData in dragover
             }
-        } catch (err) {
-            // Ignore errors from getData in dragover
-        }
-    });
+        });
 
-    folderHeader.addEventListener('dragleave', (e) => {
-        // Only clear if leaving to non-child element
-        if (!folderHeader.contains(e.relatedTarget)) {
+        folderHeader.addEventListener('dragleave', (e) => {
+            // Only clear if leaving to non-child element
+            if (!folderHeader.contains(e.relatedTarget)) {
+                dragManager.clearDropIndicators();
+            }
+        });
+
+        folderHeader.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             dragManager.clearDropIndicators();
-        }
-    });
 
-    folderHeader.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dragManager.clearDropIndicators();
+            try {
+                const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
+                const position = dragManager.calculateDropPosition(e, folderHeader);
 
-        try {
-            const dragData = JSON.parse(e.dataTransfer.getData('application/json'));
-            const position = dragManager.calculateDropPosition(e, folderHeader);
-
-            if (dragData.type === 'folder') {
-                await handleFolderDrop(dragData, folder, position);
-            } else if (dragData.type === 'note') {
-                await handleNoteDrop(dragData, folder);
+                if (dragData.type === 'folder') {
+                    await handleFolderDrop(dragData, folder, position);
+                } else if (dragData.type === 'note') {
+                    await handleNoteDrop(dragData, folder);
+                }
+            } catch (error) {
+                console.error('Drop error:', error);
             }
-        } catch (error) {
-            console.error('Drop error:', error);
-        }
-    });
+        });
+    }
 
     folderItem.appendChild(folderHeader);
 
