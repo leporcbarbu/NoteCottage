@@ -1632,16 +1632,58 @@ Persists across browser sessions.
     - Updated package.json version from 1.0.4 → 1.0.5
   - **Result:** CRITICAL privacy vulnerability fixed - multi-user isolation now works correctly
 
+**Session 14 (January 1, 2026):**
+- ✅ **Folder System Improvements** - Uncategorized notes inline at root level (v1.0.6)
+  - **Removed "Uncategorized" Folder Concept:**
+    - Eliminated special folder ID 1 for uncategorized notes
+    - Notes with `folder_id = NULL` now displayed inline at root level
+    - Migration: Automatically moves notes from old Uncategorized folder to root
+    - Database migration removes old Uncategorized folder on startup
+  - **Uncategorized Notes Display:**
+    - Notes without folders appear under Private section (not in separate virtual folder)
+    - Displayed **first**, sorted alphabetically by title
+    - Only shown to owning user (or users with no user_id for legacy notes)
+    - Public notes without folders remain private to owner
+  - **Alphabetical Folder Sorting:**
+    - Implemented case-insensitive alphabetical sorting: `ORDER BY LOWER(name) ASC`
+    - Changed from position-based ordering to alphabetical
+    - Folders displayed **second** (after uncategorized notes), sorted alphabetically
+    - Updated both `getAllFolders` and `getFoldersForUser` queries
+  - **Database Changes (database.js):**
+    - Changed `createNote()` default from `folderId = 1` to `folderId = null` (line 674)
+    - Added migration to move notes from folder ID 1 to NULL (lines 167-184)
+    - Migration deletes old Uncategorized folder after moving notes
+    - Folder sorting queries updated to use `LOWER(name) ASC` (lines 440-451)
+  - **Frontend Changes (public/js/app.js):**
+    - Modified `createFolderElement()` to show uncategorized notes inline (lines 1320-1341)
+    - Filter shows notes owned by current user OR with no user_id (legacy support)
+    - Uncategorized notes sorted alphabetically, then folders alphabetically
+    - Updated new note/folder creation to handle Private/Shared virtual folders
+    - Fixed duplicate variable declaration bug that broke the app
+  - **Testing on http://localhost:3000:**
+    - ✅ Uncategorized notes appear under Private section
+    - ✅ Notes sorted alphabetically at top
+    - ✅ Folders sorted alphabetically below notes
+    - ✅ Migration works automatically on startup
+    - ✅ New notes in Private section created with folder_id = NULL
+  - **Docker Hub Deployment:**
+    - Version bumped from 1.0.5 → 1.0.6
+    - Ready for Docker build and deployment
+  - **Result:** Cleaner, more intuitive folder organization with alphabetical sorting
+
 ### Planned Improvements (Next Session)
 
-**Folder System Enhancements:**
-1. **Remove "Uncategorized" Folder Concept**
-   - Display uncategorized notes at root level (no special folder)
-   - Cleaner, more intuitive interface
+**Deployment Documentation:**
+1. **GitHub Repository Publication**
+   - Create public repository for NoteCottage
+   - Write comprehensive README.md with feature list
+   - Add LICENSE file (MIT recommended)
 
-2. **Alphabetical Folder Sorting**
-   - Sort folders alphabetically under their parent
-   - Current: Manual position-based ordering
+2. **Deployment Guides** (Partially Complete - WIP in docs/deployment/)
+   - basic.md - Simple LAN deployment with HTTP
+   - reverse-proxy.md - nginx + SSL setup
+   - tailscale.md - Secure remote access via Tailscale VPN
+   - production.md - Production deployment (not finished)
    - Goal: Automatic alphabetical ordering for better navigation
 
 ### Next Session Plans
