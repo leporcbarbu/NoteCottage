@@ -1668,8 +1668,17 @@ Persists across browser sessions.
     - ✅ New notes in Private section created with folder_id = NULL
   - **Docker Hub Deployment:**
     - Version bumped from 1.0.5 → 1.0.6
-    - Ready for Docker build and deployment
-  - **Result:** Cleaner, more intuitive folder organization with alphabetical sorting
+    - Built Docker image with `--no-cache` flag
+    - Tagged as `leporcbarbu/notecottage:1.0.6` and `latest`
+    - Pushed both tags to Docker Hub ✓
+    - Available: `docker pull leporcbarbu/notecottage:1.0.6`
+  - **Git Commits:**
+    - da257c9 - v1.0.6: Folder improvements - uncategorized notes at root level
+    - 2e62cc7 - Update PROJECT_STATUS.md for v1.0.6
+  - **Bug Fixes:**
+    - Fixed duplicate variable declaration (`hasUncategorizedNotes`) that broke app loading
+    - Fixed uncategorized notes filter to include legacy notes with no user_id
+  - **Result:** Cleaner, more intuitive folder organization with alphabetical sorting and proper uncategorized note display
 
 ### Planned Improvements (Next Session)
 
@@ -1689,26 +1698,30 @@ Persists across browser sessions.
 ### Next Session Plans
 
 **Priority Topics:**
-1. ~~**Resolve Browser Caching Issue**~~ - ✅ **COMPLETED** (Session 14)
-2. **GitHub Repository Setup** - Publish NoteCottage to GitHub
+1. **GitHub Repository Setup** - Publish NoteCottage to GitHub
    - Create public repository at github.com/leporcbarbu/NoteCottage
    - Write comprehensive README.md with features and installation instructions
    - Add LICENSE file (choose open-source license - MIT recommended)
    - Push all code to GitHub
    - Set up repository description and topics
-   - Add .github/ISSUE_TEMPLATE (optional)
-   - Add contributing guidelines (optional)
-3. **Finalize Docker Hub Publishing** - ⚠️ Mostly Complete (v1.0.1 published)
-   - ✅ Rebuilt and pushed image with all fixes (permissions, sessions, cache)
-   - ✅ Implemented version tagging (1.0.1 and latest tags)
-   - ⏳ Update Docker Hub README with complete quick start instructions
-   - ⏳ Test end-to-end pull and deployment on fresh system
-   - ⏳ Update GitHub README with Docker Hub installation option
-4. **Production-Ready Infrastructure** (Future consideration)
-   - nginx reverse-proxy configuration
-   - SSL/TLS setup
-   - Rate limiting and security headers
-   - CORS configuration for remote access
+   - Update Docker Hub README with link to GitHub repository
+2. **Complete Deployment Documentation** (Partially Started in docs/deployment/)
+   - Finish production.md deployment guide
+   - Test nginx reverse proxy configuration
+   - Verify all deployment guides with real installations
+3. **Docker Hub Documentation**
+   - Update Docker Hub README with complete installation instructions
+   - Add environment variables documentation
+   - Include upgrade instructions (v1.0.5 → v1.0.6 migration notes)
+4. **Testing and Quality Assurance**
+   - Test v1.0.6 on deployed instance (http://allura:3002)
+   - Verify migration works correctly from v1.0.5
+   - Test multi-user functionality with folder improvements
+5. **Future Enhancements** (Backlog)
+   - Production-Ready Infrastructure (nginx, SSL/TLS, rate limiting)
+   - Additional export formats (plain text, JSON)
+   - Keyboard shortcuts documentation
+   - Search improvements (filter by folder, date ranges)
 
 ### Areas to Explore
 If continuing development, consider:
