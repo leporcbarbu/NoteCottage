@@ -1773,6 +1773,32 @@ Persists across browser sessions.
   - **Total:** 1,845 lines of deployment documentation
   - **Result:** Users can now deploy NoteCottage in any scenario from home LAN to production cloud
 
+- ✅ **Create from Broken Link Feature (v1.0.8)** - Instant note creation from wiki-links
+  - **Implementation:**
+    - Added click handler for `.wiki-link-broken` elements (app.js lines 700-720)
+    - Pre-fills note title with broken link text
+    - Focuses on content field for immediate typing
+    - Console log confirmation for debugging
+  - **UI/UX Improvements:**
+    - Changed cursor from `not-allowed` to `pointer` (now clickable)
+    - Added hover effects with smooth transitions (0.2s)
+    - Light theme: broken links darken on hover (#999 → #666)
+    - Dark theme: broken links lighten on hover (#666 → #888)
+    - Dashed underline becomes more visible on hover
+  - **User Workflow:**
+    1. Write: "Check out my [[Project Ideas]] note"
+    2. Broken link appears grayed with dashed underline
+    3. Click the broken link
+    4. New note opens with title "Project Ideas" already filled
+    5. Cursor in content field, ready to type
+    6. Save to complete
+  - **Benefits:**
+    - Natural workflow: create connections first, add content later
+    - Faster than manual "New Note" → type title → start writing
+    - Familiar pattern from Obsidian/Roam Research
+    - Encourages organic knowledge graph building
+  - **Result:** Wiki-link workflow now complete - matches Obsidian UX pattern
+
 ### Planned Improvements (Next Session)
 
 **Priority Topics:**
@@ -1786,18 +1812,17 @@ Persists across browser sessions.
 
 **Future Feature Enhancements (Backlog):**
 1. **Progressive Web App (PWA)** - Mobile support with offline capability
-2. **Create Note from Broken Link** - Click `[[broken link]]` to create note
-3. **Graph View** - Visual network of wiki-link connections
-4. **Wiki-Link Enhancements** - Alias support `[[Note|Display]]`, heading links `[[Note#Section]]`
-5. **Search Improvements** - Filter by folder, date ranges
-6. **Keyboard Shortcuts** - Arrow keys for folder navigation, documented shortcuts
-7. **Additional Themes** - Forest, Ocean, Sunset color schemes
-8. **Note Templates** - Pre-defined structures (meeting notes, journal, project planning)
-9. **Note History/Versioning** - Track changes, restore old versions
-10. **Bulk Import** - Import existing Markdown files with folder structure
-11. **Additional Export Formats** - Plain text, JSON, DOCX
-12. **Note Encryption** - Optional per-note encryption for sensitive information
-13. **CSRF Protection** - Security hardening for production deployments
+2. **Graph View** - Visual network of wiki-link connections
+3. **Wiki-Link Enhancements** - Alias support `[[Note|Display]]`, heading links `[[Note#Section]]`
+4. **Search Improvements** - Filter by folder, date ranges
+5. **Keyboard Shortcuts** - Arrow keys for folder navigation, documented shortcuts
+6. **Additional Themes** - Forest, Ocean, Sunset color schemes
+7. **Note Templates** - Pre-defined structures (meeting notes, journal, project planning)
+8. **Note History/Versioning** - Track changes, restore old versions
+9. **Bulk Import** - Import existing Markdown files with folder structure
+10. **Additional Export Formats** - Plain text, JSON, DOCX
+11. **Note Encryption** - Optional per-note encryption for sensitive information
+12. **CSRF Protection** - Security hardening for production deployments
 
 ### Technical Debt
 - Code is clean and well-structured with reusable components
