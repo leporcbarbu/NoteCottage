@@ -1,19 +1,33 @@
 // NoteCottage Service Worker
-// Version: 1.0.9
+// Version: 1.0.9-fix1
 
-const CACHE_NAME = 'notecottage-v1.0.9';
-const STATIC_CACHE = 'notecottage-static-v1.0.9';
-const DYNAMIC_CACHE = 'notecottage-dynamic-v1.0.9';
+const CACHE_NAME = 'notecottage-v1.0.9-fix1';
+const STATIC_CACHE = 'notecottage-static-v1.0.9-fix1';
+const DYNAMIC_CACHE = 'notecottage-dynamic-v1.0.9-fix1';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
   '/',
   '/css/style.css',
+  '/css/components/modal.css',
+  '/css/components/emoji-picker.css',
+  '/css/components/drag.css',
+  '/css/components/context-menu.css',
+  '/css/components/tag-autocomplete.css',
+  '/css/components/wikilink-autocomplete.css',
+  '/css/components/image-gallery.css',
   '/js/app.js',
-  '/js/marked.min.js',
-  '/js/EmojiPicker.js',
-  '/js/WikiLinkAutocomplete.js',
-  '/js/TagAutocomplete.js'
+  '/js/wikilink-extension.js',
+  '/js/components/modal.js',
+  '/js/components/emoji-picker.js',
+  '/js/components/folder-form.js',
+  '/js/components/drag-manager.js',
+  '/js/components/context-menu.js',
+  '/js/components/tag-autocomplete.js',
+  '/js/components/wikilink-autocomplete.js',
+  '/js/components/image-modal.js',
+  '/js/components/image-upload.js'
+  // Note: marked.min.js is loaded from CDN, can't cache cross-origin without CORS
 ];
 
 // Install event - cache static assets
