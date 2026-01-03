@@ -1856,7 +1856,7 @@ Persists across browser sessions.
     - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.9 and :latest
   - **Result:** NoteCottage is now a fully functional Progressive Web App - can be installed on mobile devices!
 
-- ✅ **Mobile-Responsive UI - IN PROGRESS** - Enhanced mobile experience for PWA
+- 🚧 **Mobile-Responsive UI - IN PROGRESS** - Enhanced mobile experience for PWA
   - **Problem:** User tested v1.0.9 on Android device:
     1. UI too crowded with 2-column layout on mobile
     2. App opens in Chrome browser without splash screen/status bar
@@ -1889,27 +1889,31 @@ Persists across browser sessions.
     - `public/sw.js` - Updated service worker
       - Bumped cache version: v1.0.9-fix1 → v1.0.9-fix2
       - Added mobile.css to STATIC_ASSETS cache
-  - **Status:** Code complete, ready for testing on mobile device
+  - **Git Commit:** f54d77a (pushed to GitHub)
+  - **Status:** Code written but hamburger menu not responding to taps
+  - **Issue:** Hamburger menu button (☰) visible but doesn't toggle sidebar when tapped
   - **Next Steps:**
-    - Test on user's Android device
+    - Debug hamburger menu tap/click handler
+    - Test on mobile device after fix
     - Deploy to production to test PWA splash screen (requires HTTPS)
     - iOS testing when device available
 
 ### Planned Improvements (Next Session)
 
 **Priority Topics:**
-1. **Deploy PWA (v1.0.9)** - Build and push Docker image with PWA support
-   - Build Docker image
+1. **Fix Mobile UI (v1.0.9-fix3)** - Debug and complete mobile-responsive design
+   - Debug hamburger menu tap/click handler
+   - Verify menu toggle works on mobile device
+   - Test sidebar overlay behavior
+   - Address issue #2: PWA splash screen (may require HTTPS production deployment)
+2. **Deploy Fixed PWA** - Build and push updated Docker image
+   - Build Docker image v1.0.9-fix3 (or v1.0.10)
    - Push to Docker Hub
    - Update deployed instance
-   - Test PWA on mobile device
-2. **Update Docker Hub README**
+   - Full PWA testing on mobile device
+3. **Update Docker Hub README**
    - Copy DOCKER_HUB_README.md content to Docker Hub repository
    - Verify all links work correctly
-3. **Testing and Quality Assurance**
-   - Test v1.0.9 on deployed instance (http://allura:3002)
-   - Verify PWA works on mobile
-   - Test "Add to Home Screen" functionality
 
 **Future Feature Enhancements (Backlog):**
 1. **Graph View** - Visual network of wiki-link connections
