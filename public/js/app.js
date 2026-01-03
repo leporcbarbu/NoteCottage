@@ -493,6 +493,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Update user info display
     updateUserInfo();
 
+    // Register service worker for PWA support
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+    }
+
     // Apply saved theme and set active state
     setTheme(currentTheme);
     updateThemeMenuActiveState();
