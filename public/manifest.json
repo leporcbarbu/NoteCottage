@@ -1,24 +1,53 @@
 {
-  "name": "NoteCottage",
+  "name": "NoteCottage - Cozy Note Taking",
   "short_name": "NoteCottage",
   "description": "A cozy note-taking app with folders, tags, and wiki-links",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#f5f0e8",
   "theme_color": "#8B6F47",
-  "orientation": "any",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "/images/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/images/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Note",
+      "short_name": "New Note",
+      "description": "Create a new note",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/images/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

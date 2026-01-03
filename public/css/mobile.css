@@ -1,0 +1,299 @@
+/* Mobile Responsive Styles for NoteCottage */
+
+/* Mobile breakpoint */
+@media screen and (max-width: 768px) {
+
+    /* Container adjustments */
+    .container {
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* Mobile Header */
+    .header {
+        padding: 8px 12px;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 100;
+    }
+
+    /* Hamburger Menu Button */
+    #mobileMenuBtn {
+        display: block !important;
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 8px;
+        color: var(--text-primary);
+        z-index: 101;
+    }
+
+    #mobileMenuBtn:hover {
+        background: var(--hover-bg);
+        border-radius: 4px;
+    }
+
+    /* Header title - centered on mobile */
+    .header h1 {
+        font-size: 18px;
+        text-align: center;
+        margin: 0;
+    }
+
+    /* User info - smaller on mobile */
+    #userInfo {
+        font-size: 12px;
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* Sidebar - hidden by default, overlay when shown */
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        z-index: 200;
+        background: var(--sidebar-bg);
+        transition: left 0.3s ease;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        padding-top: 60px; /* Space for header */
+    }
+
+    .sidebar.mobile-open {
+        left: 0;
+    }
+
+    /* Sidebar overlay backdrop */
+    #mobileOverlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 199;
+    }
+
+    #mobileOverlay.active {
+        display: block;
+    }
+
+    /* Remove resize handle on mobile */
+    #resizeHandle {
+        display: none;
+    }
+
+    /* Main content - full width */
+    .main-content {
+        flex: 1;
+        width: 100%;
+        min-width: 0;
+        overflow-y: auto;
+    }
+
+    /* Editor adjustments */
+    .editor {
+        padding: 12px;
+    }
+
+    #noteTitle {
+        font-size: 20px;
+        padding: 10px;
+    }
+
+    #noteContent {
+        font-size: 16px;
+        line-height: 1.6;
+        padding: 10px;
+    }
+
+    /* Toolbar buttons - larger touch targets */
+    .toolbar-btn,
+    .export-btn {
+        padding: 10px 14px;
+        min-width: 44px;
+        min-height: 44px;
+        margin: 2px;
+    }
+
+    /* Status bar - smaller text */
+    .status-bar {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+
+    /* Folder tree adjustments */
+    .folder-item,
+    .note-item-inline {
+        padding: 10px 8px;
+        min-height: 44px;
+    }
+
+    /* Larger folder icons */
+    .folder-icon,
+    .note-icon {
+        font-size: 18px;
+        margin-right: 8px;
+    }
+
+    /* Search input - full width */
+    #searchInput {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 10px;
+    }
+
+    /* Buttons - larger for touch */
+    #newNoteBtn,
+    #newFolderBtn,
+    #saveBtn,
+    #deleteBtn {
+        padding: 10px 16px;
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    /* Modal adjustments */
+    .modal-content {
+        width: 90%;
+        max-width: 90%;
+        margin: 20px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Context menu - larger touch targets */
+    .context-menu-item {
+        padding: 12px 16px;
+        min-height: 44px;
+        font-size: 15px;
+    }
+
+    /* Theme menu adjustments */
+    #themeMenu {
+        right: 0;
+        left: auto;
+    }
+
+    .theme-option {
+        padding: 12px 16px;
+        min-height: 44px;
+    }
+
+    /* Export menu */
+    #exportMenu {
+        position: fixed;
+        right: 12px;
+    }
+
+    /* Welcome screen */
+    .welcome-container {
+        padding: 20px;
+    }
+
+    .welcome-container h2 {
+        font-size: 24px;
+    }
+
+    .welcome-container p {
+        font-size: 14px;
+    }
+
+    /* Image gallery - responsive grid */
+    .image-gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 8px;
+    }
+
+    /* Autocomplete - full width */
+    .autocomplete-dropdown {
+        max-height: 40vh;
+    }
+
+    /* Backlinks panel */
+    #backlinksPanel {
+        padding: 12px;
+    }
+
+    .backlink-item {
+        padding: 10px;
+        min-height: 44px;
+    }
+
+    /* Tags list */
+    .tag-item {
+        padding: 10px;
+        min-height: 44px;
+    }
+
+    /* Admin panel adjustments */
+    .admin-container {
+        padding: 12px;
+    }
+
+    .admin-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-tab {
+        padding: 10px 16px;
+        min-height: 44px;
+        white-space: nowrap;
+    }
+
+    /* Forms - larger inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    select,
+    textarea {
+        font-size: 16px; /* Prevents iOS zoom */
+        padding: 10px;
+    }
+
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Hide desktop-only elements */
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+/* Tablet breakpoint (768px - 1024px) */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .sidebar {
+        width: 280px;
+        min-width: 280px;
+    }
+
+    .main-content {
+        flex: 1;
+    }
+
+    /* Hide mobile menu button on tablet */
+    #mobileMenuBtn {
+        display: none !important;
+    }
+}
+
+/* Mobile menu button (hidden by default, shown on mobile) */
+#mobileMenuBtn {
+    display: none;
+}

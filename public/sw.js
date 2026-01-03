@@ -1,14 +1,15 @@
 // NoteCottage Service Worker
-// Version: 1.0.9-fix1
+// Version: 1.0.9-fix2
 
-const CACHE_NAME = 'notecottage-v1.0.9-fix1';
-const STATIC_CACHE = 'notecottage-static-v1.0.9-fix1';
-const DYNAMIC_CACHE = 'notecottage-dynamic-v1.0.9-fix1';
+const CACHE_NAME = 'notecottage-v1.0.9-fix2';
+const STATIC_CACHE = 'notecottage-static-v1.0.9-fix2';
+const DYNAMIC_CACHE = 'notecottage-dynamic-v1.0.9-fix2';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
   '/',
   '/css/style.css',
+  '/css/mobile.css',
   '/css/components/modal.css',
   '/css/components/emoji-picker.css',
   '/css/components/drag.css',

@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="/css/components/tag-autocomplete.css">
     <link rel="stylesheet" href="/css/components/wikilink-autocomplete.css">
     <link rel="stylesheet" href="/css/components/image-gallery.css">
+    <link rel="stylesheet" href="/css/mobile.css">
     <style>
         /* Hide content until authentication is verified */
         body {
@@ -65,7 +66,13 @@
     </script>
 </head>
 <body>
+    <!-- Mobile overlay backdrop -->
+    <div id="mobileOverlay"></div>
+
     <div class="container">
+        <!-- Mobile menu button -->
+        <button id="mobileMenuBtn" aria-label="Toggle menu">☰</button>
+
         <!-- Sidebar for notes list -->
         <aside class="sidebar">
             <div class="sidebar-header">

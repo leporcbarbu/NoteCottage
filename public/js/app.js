@@ -504,6 +504,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
     }
 
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    if (mobileMenuBtn && sidebar && mobileOverlay) {
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+            mobileOverlay.classList.toggle('active');
+        });
+
+        mobileOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            mobileOverlay.classList.remove('active');
+        });
+
+        // Close mobile menu when a note is selected
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.note-item-inline')) {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+            }
+        });
+    }
+
     // Apply saved theme and set active state
     setTheme(currentTheme);
     updateThemeMenuActiveState();
