@@ -1,9 +1,9 @@
 // NoteCottage Service Worker
-// Version: 1.0.9-fix2
+// Version: 1.0.10-mobile3
 
-const CACHE_NAME = 'notecottage-v1.0.9-fix2';
-const STATIC_CACHE = 'notecottage-static-v1.0.9-fix2';
-const DYNAMIC_CACHE = 'notecottage-dynamic-v1.0.9-fix2';
+const CACHE_NAME = 'notecottage-v1.0.10-mobile3';
+const STATIC_CACHE = 'notecottage-static-v1.0.10-mobile3';
+const DYNAMIC_CACHE = 'notecottage-dynamic-v1.0.10-mobile3';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -17,6 +17,7 @@ const STATIC_ASSETS = [
   '/css/components/tag-autocomplete.css',
   '/css/components/wikilink-autocomplete.css',
   '/css/components/image-gallery.css',
+  '/css/components/toast.css',
   '/js/app.js',
   '/js/wikilink-extension.js',
   '/js/components/modal.js',
@@ -27,7 +28,8 @@ const STATIC_ASSETS = [
   '/js/components/tag-autocomplete.js',
   '/js/components/wikilink-autocomplete.js',
   '/js/components/image-modal.js',
-  '/js/components/image-upload.js'
+  '/js/components/image-upload.js',
+  '/js/components/toast.js'
   // Note: marked.min.js is loaded from CDN, can't cache cross-origin without CORS
 ];
 

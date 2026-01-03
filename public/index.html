@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="/css/components/tag-autocomplete.css">
     <link rel="stylesheet" href="/css/components/wikilink-autocomplete.css">
     <link rel="stylesheet" href="/css/components/image-gallery.css">
+    <link rel="stylesheet" href="/css/components/toast.css">
     <link rel="stylesheet" href="/css/mobile.css">
     <style>
         /* Hide content until authentication is verified */
@@ -174,6 +175,21 @@
                             </div>
                         </div>
                         <button id="deleteBtn" class="btn btn-danger">Delete</button>
+
+                        <!-- Mobile overflow menu -->
+                        <div class="mobile-overflow-menu">
+                            <button id="mobileMenuToggle" class="btn btn-secondary mobile-menu-btn" aria-label="More actions">⋮</button>
+                            <div id="mobileActionsMenu" class="mobile-actions-menu" style="display: none;">
+                                <button id="mobileSaveBtn" class="mobile-menu-option">💾 Save</button>
+                                <button id="mobileExportBtn" class="mobile-menu-option">📤 Export ▾</button>
+                                <div id="mobileExportSubmenu" class="mobile-submenu" style="display: none;">
+                                    <button class="mobile-menu-option export-option" data-format="markdown">Markdown (.md)</button>
+                                    <button class="mobile-menu-option export-option" data-format="html">HTML (.html)</button>
+                                    <button class="mobile-menu-option export-option" data-format="pdf">PDF (.pdf)</button>
+                                </div>
+                                <button id="mobileDeleteBtn" class="mobile-menu-option danger">🗑️ Delete</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -231,6 +247,7 @@
     <script src="/js/components/wikilink-autocomplete.js"></script>
     <script src="/js/components/image-modal.js"></script>
     <script src="/js/components/image-upload.js"></script>
+    <script src="/js/components/toast.js"></script>
     <script src="/js/app.js"></script>
 </body>
 </html>

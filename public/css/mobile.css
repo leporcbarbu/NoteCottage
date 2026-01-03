@@ -21,22 +21,29 @@
     /* Hamburger Menu Button */
     #mobileMenuBtn {
         display: block !important;
-        position: absolute;
+        position: fixed;
         left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
+        top: 12px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
         font-size: 24px;
         cursor: pointer;
-        padding: 8px;
+        padding: 8px 12px;
         color: var(--text-primary);
-        z-index: 101;
+        z-index: 201;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        touch-action: manipulation;
     }
 
-    #mobileMenuBtn:hover {
+    #mobileMenuBtn:hover,
+    #mobileMenuBtn:active {
         background: var(--hover-bg);
-        border-radius: 4px;
+    }
+
+    #mobileMenuBtn:active {
+        transform: scale(0.95);
     }
 
     /* Header title - centered on mobile */
@@ -64,7 +71,7 @@
         max-width: 300px;
         height: 100vh;
         z-index: 200;
-        background: var(--sidebar-bg);
+        background: var(--bg-sidebar);
         transition: left 0.3s ease;
         overflow-y: auto;
         box-shadow: 2px 0 10px rgba(0,0,0,0.3);
@@ -73,6 +80,35 @@
 
     .sidebar.mobile-open {
         left: 0;
+    }
+
+    /* Ensure all sidebar child elements have solid backgrounds */
+    .sidebar-header {
+        background-color: var(--bg-sidebar-header);
+    }
+
+    .folders-section {
+        background-color: var(--bg-sidebar);
+    }
+
+    .notes-list {
+        background-color: var(--bg-sidebar);
+    }
+
+    .folder-item,
+    .note-item-inline {
+        background-color: var(--bg-sidebar);
+    }
+
+    /* Preserve hover states */
+    .folder-item:hover,
+    .note-item-inline:hover {
+        background-color: var(--bg-folder-hover);
+    }
+
+    /* Active/selected states */
+    .note-item-inline.active {
+        background-color: var(--bg-note-active);
     }
 
     /* Sidebar overlay backdrop */
@@ -239,19 +275,141 @@
     }
 
     /* Admin panel adjustments */
-    .admin-container {
-        padding: 12px;
+    .admin-header {
+        padding: 16px 20px;
     }
 
-    .admin-tabs {
+    .admin-header h1 {
+        font-size: 20px;
+    }
+
+    .admin-container {
+        padding: 16px 12px;
+    }
+
+    /* Responsive tabs - wrap on mobile instead of scrolling */
+    .tabs {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px !important;
+        border-bottom: none !important;
+        margin-bottom: 20px !important;
+    }
+
+    .tab {
+        padding: 12px 8px !important;
+        font-size: 13px !important;
+        text-align: center !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        min-height: 44px !important;
+    }
+
+    .tab.active {
+        background: var(--primary-color) !important;
+        color: #ffffff !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    /* User management header - stack on mobile */
+    #users-tab .card > div:first-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    #users-tab .card > div:first-child h2 {
+        margin-bottom: 0 !important;
+    }
+
+    #users-tab .card > div:first-child button {
+        width: 100% !important;
+    }
+
+    /* Stat cards - single column on mobile */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 20px 16px;
+    }
+
+    /* Users table - make responsive */
+    .card {
+        padding: 16px;
+        overflow-x: auto;
+    }
+
+    .users-table {
+        display: block;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
     }
 
-    .admin-tab {
-        padding: 10px 16px;
-        min-height: 44px;
-        white-space: nowrap;
+    .users-table thead,
+    .users-table tbody,
+    .users-table tr,
+    .users-table th,
+    .users-table td {
+        display: table-cell;
+    }
+
+    .users-table th,
+    .users-table td {
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+
+    /* Alternative: Card-based user list on very small screens */
+    @media screen and (max-width: 480px) {
+        .users-table {
+            display: block;
+            white-space: normal;
+        }
+
+        .users-table thead {
+            display: none;
+        }
+
+        .users-table tbody,
+        .users-table tr {
+            display: block;
+        }
+
+        .users-table tr {
+            margin-bottom: 16px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+        }
+
+        .users-table td {
+            display: block;
+            text-align: left;
+            padding: 8px 0;
+            border-bottom: none;
+        }
+
+        .users-table td:before {
+            content: attr(data-label);
+            font-weight: 600;
+            display: inline-block;
+            width: 100px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    }
+
+    /* Form buttons - full width on mobile */
+    .admin-container .btn {
+        width: 100%;
+        margin-bottom: 8px;
     }
 
     /* Forms - larger inputs */
@@ -274,7 +432,136 @@
     .desktop-only {
         display: none !important;
     }
+
+    /* Hide status bar on mobile */
+    .status-bar {
+        display: none;
+    }
+
+    /* Editor header - reorganize for mobile */
+    .editor-header {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+    }
+
+    .title-section {
+        width: 100%;
+        margin-bottom: 8px;
+        padding-left: 48px; /* Space for hamburger button */
+    }
+
+    #noteTitle {
+        padding-left: 12px;
+    }
+
+    .editor-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    /* Hide desktop action buttons on mobile */
+    #saveBtn,
+    #deleteBtn,
+    .export-dropdown {
+        display: none !important;
+    }
+
+    /* Show mobile overflow menu */
+    .mobile-overflow-menu {
+        display: block !important;
+        position: relative;
+        margin-left: auto; /* Push to right */
+    }
+
+    .mobile-menu-btn {
+        font-size: 20px;
+        padding: 8px 14px;
+        min-width: 44px;
+        min-height: 44px;
+        font-weight: bold;
+    }
+
+    /* Mobile actions menu dropdown */
+    .mobile-actions-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 4px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 300;
+        min-width: 180px;
+        overflow: hidden;
+    }
+
+    .mobile-menu-option {
+        display: block;
+        width: 100%;
+        padding: 14px 16px;
+        text-align: left;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        font-size: 15px;
+        min-height: 44px;
+        transition: background-color 0.2s;
+    }
+
+    .mobile-menu-option:last-child {
+        border-bottom: none;
+    }
+
+    .mobile-menu-option:hover,
+    .mobile-menu-option:active {
+        background: var(--hover-bg);
+    }
+
+    .mobile-menu-option.danger {
+        color: #e74c3c;
+    }
+
+    /* Mobile submenu (for export options) */
+    .mobile-submenu {
+        background: var(--bg-secondary);
+        padding-left: 12px;
+    }
+
+    .mobile-submenu .mobile-menu-option {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+
+    /* Make Preview and Image buttons more mobile-friendly */
+    #viewToggle,
+    #insertImageBtn {
+        padding: 8px 12px;
+        min-height: 44px;
+        font-size: 14px;
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+    }
+
+    /* Only show background on active press, not hover */
+    #viewToggle:active,
+    #insertImageBtn:active {
+        background: var(--hover-bg);
+        border-radius: 4px;
+    }
+
+    /* Adjust hamburger button to not overlap */
+    .editor-screen {
+        padding-top: 0;
+    }
 }
+
 
 /* Tablet breakpoint (768px - 1024px) */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
@@ -295,5 +582,10 @@
 
 /* Mobile menu button (hidden by default, shown on mobile) */
 #mobileMenuBtn {
+    display: none;
+}
+
+/* Mobile overflow menu (hidden by default, shown on mobile) */
+.mobile-overflow-menu {
     display: none;
 }

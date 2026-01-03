@@ -121,12 +121,12 @@ async function loadUsers() {
 
             tbody.innerHTML = users.map(user => `
                 <tr>
-                    <td>${escapeHtml(user.username)}</td>
-                    <td>${escapeHtml(user.email)}</td>
-                    <td>${user.display_name ? escapeHtml(user.display_name) : '-'}</td>
-                    <td><span class="badge ${user.is_admin ? 'badge-admin' : 'badge-user'}">${user.is_admin ? 'Admin' : 'User'}</span></td>
-                    <td>${formatDate(user.created_at)}</td>
-                    <td>
+                    <td data-label="Username">${escapeHtml(user.username)}</td>
+                    <td data-label="Email">${escapeHtml(user.email)}</td>
+                    <td data-label="Display Name">${user.display_name ? escapeHtml(user.display_name) : '-'}</td>
+                    <td data-label="Role"><span class="badge ${user.is_admin ? 'badge-admin' : 'badge-user'}">${user.is_admin ? 'Admin' : 'User'}</span></td>
+                    <td data-label="Created">${formatDate(user.created_at)}</td>
+                    <td data-label="Actions">
                         <div class="actions">
                             <button class="btn btn-secondary btn-small" onclick="editUser(${user.id})">Edit</button>
                             <button class="btn btn-danger btn-small" onclick="deleteUser(${user.id}, '${escapeHtml(user.username)}')">Delete</button>

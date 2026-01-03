@@ -143,6 +143,7 @@ let autosaveTimeout = null;
 let hasUnsavedChanges = false;
 let isAutoSaving = false;
 const AUTOSAVE_DELAY = 2000; // 2 seconds after user stops typing
+let savingToastId = null; // Track the current saving toast
 
 // Theme functions
 function setTheme(theme) {
@@ -219,28 +220,46 @@ function updateWordCount() {
 // Autosave functions
 function updateSaveStatus(status) {
     // Status can be: 'saved', 'saving', 'unsaved'
+    // Now using toast notifications instead of status bar
+
+    // Keep status bar updated for desktop users who still want to see it
     const saveIndicator = document.getElementById('saveStatus');
+    if (saveIndicator) {
+        switch (status) {
+            case 'saving':
+                saveIndicator.textContent = 'Saving...';
+                saveIndicator.className = 'save-status saving';
+                break;
+            case 'saved':
+                saveIndicator.textContent = 'All changes saved';
+                saveIndicator.className = 'save-status saved';
+                break;
+            case 'unsaved':
+                saveIndicator.textContent = 'Unsaved changes';
+                saveIndicator.className = 'save-status unsaved';
+                break;
+            default:
+                saveIndicator.textContent = '';
+                saveIndicator.className = 'save-status';
+        }
+    }
 
-    if (!saveIndicator) return;
-
-    switch (status) {
-        case 'saving':
-            saveIndicator.textContent = 'Saving...';
-            saveIndicator.className = 'save-status saving';
-            break;
-        case 'saved':
-            saveIndicator.textContent = 'All changes saved';
-            saveIndicator.className = 'save-status saved';
-            hasUnsavedChanges = false;
-            break;
-        case 'unsaved':
-            saveIndicator.textContent = 'Unsaved changes';
-            saveIndicator.className = 'save-status unsaved';
-            hasUnsavedChanges = true;
-            break;
-        default:
-            saveIndicator.textContent = '';
-            saveIndicator.className = 'save-status';
+    // Show toast notifications
+    if (window.toast) {
+        switch (status) {
+            case 'saving':
+                savingToastId = window.toast.saving();
+                break;
+            case 'saved':
+                window.toast.saved(savingToastId);
+                savingToastId = null;
+                hasUnsavedChanges = false;
+                break;
+            case 'unsaved':
+                // Don't show toast for unsaved - it's too noisy during typing
+                hasUnsavedChanges = true;
+                break;
+        }
     }
 }
 
@@ -510,14 +529,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mobileOverlay = document.getElementById('mobileOverlay');
 
     if (mobileMenuBtn && sidebar && mobileOverlay) {
-        mobileMenuBtn.addEventListener('click', () => {
+        // Toggle menu function
+        const toggleMenu = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             sidebar.classList.toggle('mobile-open');
             mobileOverlay.classList.toggle('active');
-        });
+            console.log('Mobile menu toggled:', sidebar.classList.contains('mobile-open'));
+        };
 
+        // Add both click and touchstart for better mobile support
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        mobileMenuBtn.addEventListener('touchstart', (e) => {
+            // Only handle touchstart, let it bubble to become click
+            e.stopPropagation();
+        }, { passive: true });
+
+        // Close menu when clicking overlay
         mobileOverlay.addEventListener('click', () => {
             sidebar.classList.remove('mobile-open');
             mobileOverlay.classList.remove('active');
+            console.log('Mobile menu closed via overlay');
         });
 
         // Close mobile menu when a note is selected
@@ -525,6 +559,65 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (e.target.closest('.note-item-inline')) {
                 sidebar.classList.remove('mobile-open');
                 mobileOverlay.classList.remove('active');
+                console.log('Mobile menu closed via note selection');
+            }
+        });
+    } else {
+        console.warn('Mobile menu elements not found:', {
+            button: !!mobileMenuBtn,
+            sidebar: !!sidebar,
+            overlay: !!mobileOverlay
+        });
+    }
+
+    // Mobile overflow menu for note actions
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileActionsMenu = document.getElementById('mobileActionsMenu');
+    const mobileExportBtn = document.getElementById('mobileExportBtn');
+    const mobileExportSubmenu = document.getElementById('mobileExportSubmenu');
+
+    if (mobileMenuToggle && mobileActionsMenu) {
+        // Toggle mobile actions menu
+        mobileMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = mobileActionsMenu.style.display === 'block';
+            mobileActionsMenu.style.display = isVisible ? 'none' : 'block';
+            // Close export submenu when closing main menu
+            if (isVisible && mobileExportSubmenu) {
+                mobileExportSubmenu.style.display = 'none';
+            }
+        });
+
+        // Toggle export submenu
+        if (mobileExportBtn && mobileExportSubmenu) {
+            mobileExportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = mobileExportSubmenu.style.display === 'block';
+                mobileExportSubmenu.style.display = isVisible ? 'none' : 'block';
+            });
+        }
+
+        // Wire up mobile menu actions to existing functions
+        document.getElementById('mobileSaveBtn')?.addEventListener('click', async () => {
+            mobileActionsMenu.style.display = 'none';
+            await saveNote(); // Call existing save function
+        });
+
+        document.getElementById('mobileDeleteBtn')?.addEventListener('click', async () => {
+            mobileActionsMenu.style.display = 'none';
+            await deleteNote(); // Call existing delete function
+        });
+
+        // Export options in mobile menu use same handlers as desktop
+        // (They already have the export-option class and data-format attribute)
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.mobile-overflow-menu')) {
+                mobileActionsMenu.style.display = 'none';
+                if (mobileExportSubmenu) {
+                    mobileExportSubmenu.style.display = 'none';
+                }
             }
         });
     }
