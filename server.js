@@ -870,6 +870,7 @@ app.get('/api/notes', requireAuth, (req, res) => {
             id: note.id.toString(), // Convert to string for consistency with old file-based IDs
             title: note.title,
             preview: note.preview,
+            type: note.type || 'markdown', // Include note type (default to markdown for backward compatibility)
             folder_id: note.folder_id ? note.folder_id.toString() : null,
             created_at: note.created_at,
             updated_at: note.updated_at,
@@ -908,6 +909,7 @@ app.get('/api/notes/:id', (req, res) => {
             id: note.id.toString(),
             title: note.title,
             content: note.content,
+            type: note.type || 'markdown', // Include note type (default to markdown for backward compatibility)
             folder_id: note.folder_id ? note.folder_id.toString() : null,
             html: renderMarkdownWithWikiLinks(note.content, titleMap), // Convert markdown to HTML with wiki-links
             created_at: note.created_at,
@@ -1169,6 +1171,7 @@ app.get('/api/search', (req, res) => {
             id: note.id.toString(),
             title: note.title,
             preview: note.preview,
+            type: note.type || 'markdown', // Include note type (default to markdown for backward compatibility)
             folder_id: note.folder_id ? note.folder_id.toString() : null,
             created_at: note.created_at,
             updated_at: note.updated_at,
@@ -1203,6 +1206,7 @@ app.get('/api/tags/:tagName/notes', (req, res) => {
             id: note.id.toString(),
             title: note.title,
             preview: note.preview,
+            type: note.type || 'markdown', // Include note type (default to markdown for backward compatibility)
             folder_id: note.folder_id ? note.folder_id.toString() : null,
             created_at: note.created_at,
             updated_at: note.updated_at,

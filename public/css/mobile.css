@@ -246,15 +246,34 @@
     }
 
     /* Welcome screen */
-    .welcome-container {
+    .welcome-screen {
         padding: 20px;
     }
 
-    .welcome-container h2 {
-        font-size: 24px;
+    .welcome-header h1 {
+        font-size: 28px;
     }
 
-    .welcome-container p {
+    .welcome-tagline {
+        font-size: 16px;
+    }
+
+    .welcome-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .welcome-section {
+        padding: 16px;
+    }
+
+    .welcome-section h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    .welcome-footer {
+        margin-top: 30px;
         font-size: 14px;
     }
 
@@ -473,18 +492,25 @@
         width: 100%;
     }
 
-    /* Hide desktop action buttons on mobile */
-    #saveBtn,
+    /* Hide some desktop action buttons on mobile */
+    /* Keep #saveBtn visible - it's crucial for new notes */
     #deleteBtn,
     .export-dropdown {
         display: none !important;
     }
 
-    /* Show mobile overflow menu */
+    /* Position save button on the right, just before overflow menu */
+    #saveBtn {
+        order: 99; /* Show near the end */
+        margin-left: auto; /* Push to the right */
+        flex-shrink: 0;
+    }
+
+    /* Show mobile overflow menu - positioned after save button */
     .mobile-overflow-menu {
         display: block !important;
         position: relative;
-        margin-left: auto; /* Push to right */
+        order: 100; /* Show after save button */
     }
 
     .mobile-menu-btn {

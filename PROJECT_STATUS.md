@@ -1,2082 +1,240 @@
 # NoteCottage - Project Status
 
 **Last Updated:** January 4, 2026
-**Status:** Production-ready multi-user note-taking application with PWA support, mobile-optimized UI, comprehensive profile settings, database backup/restore, full theme support, image support, and flexible note type system (COMPLETE)
+**Current Version:** v1.1.2
+**Status:** Production-ready multi-user note-taking application
 
 ## Project Overview
 
-NoteCottage (formerly NodeNotes) is a web-based note-taking application built with Node.js and Express, inspired by Obsidian and Trilium. It features Markdown support, SQLite database storage, traditional file-browser style interface with inline notes, wiki-style linking, backlinks panel, tagging system, and dark mode theming.
-
-**Built as a learning project** for understanding Node.js fundamentals, coming from a Python/Flask background.
+NoteCottage is a web-based note-taking application built with Node.js and Express, inspired by Obsidian and Trilium. Features Markdown support, SQLite database storage, traditional file-browser UI, wiki-style linking, backlinks, tagging, and comprehensive theming.
 
 **Maintainer:** leporcbarbu
-**GitHub:** https://github.com/leporcbarbu
-**Docker Hub:** https://hub.docker.com/u/leporcbarbu
+**GitHub:** https://github.com/leporcbarbu/NoteCottage
+**Docker Hub:** https://hub.docker.com/r/leporcbarbu/notecottage
 
 ## Technology Stack
 
 - **Backend:** Node.js, Express.js
 - **Database:** SQLite with better-sqlite3
 - **Frontend:** Vanilla JavaScript, HTML5, CSS3
-- **Markdown:** marked.js library
+- **Markdown:** marked.js
 - **Port:** 3000
+
+## Core Features
+
+### Notes & Organization
+- ✅ Flexible note types (📄 plain text or 📝 markdown)
+- ✅ CRUD operations with autosave
+- ✅ Full-text search (SQLite FTS5)
+- ✅ Nested folder hierarchy (unlimited depth)
+- ✅ Drag-and-drop folders and notes
+- ✅ Recycle bin with restore capability
+- ✅ Breadcrumb navigation
+
+### Content & Linking
+- ✅ Markdown rendering with live preview
+- ✅ Wiki-links `[[Note Title]]` with autocomplete
+- ✅ Backlinks panel
+- ✅ Hashtag tagging with autocomplete
+- ✅ Tag filtering and management
+- ✅ Broken link detection
+
+### Media & Export
+- ✅ Image support (upload or external URL)
+- ✅ Drag-drop and clipboard paste for images
+- ✅ Export as Markdown, HTML, or PDF
+- ✅ Image gallery per note
+
+### UI & Themes
+- ✅ Four themes (Light, Dark, Cottage, Cottage Dark)
+- ✅ Resizable sidebar with state persistence
+- ✅ Status bar (word count, breadcrumbs, timestamps)
+- ✅ Responsive mobile design with toast notifications
+- ✅ Keyboard shortcuts (Ctrl+S, Ctrl+N, Ctrl+P)
+- ✅ Progressive Web App (PWA) support
+
+### Multi-User & Security
+- ✅ Session-based authentication
+- ✅ Private/Shared folder model
+- ✅ User roles (user, admin)
+- ✅ Admin panel (user management, stats)
+- ✅ Profile settings (password, theme, display name)
+- ✅ Database backup/restore (admin only)
+- ✅ SQL injection protection
+
+### Infrastructure
+- ✅ Docker containerization
+- ✅ Volume persistence
+- ✅ Service worker for offline support
+- ✅ WAL mode for database stability
+
+## Database Schema
+
+**notes**: id, title, content, type, folder_id, position, created_at, updated_at, deleted_at
+**folders**: id, name, parent_id, icon, position, user_id, is_shared, created_at, updated_at
+**tags**: id, name
+**note_tags**: note_id, tag_id (many-to-many)
+**users**: id, username, email, password_hash, display_name, role, theme, created_at
+**sessions**: sid (primary key), sess (JSON), expire
+**attachments**: id, note_id, file_path, url, mime_type, size, width, height, alt_text, uploaded_at
+**notes_fts**: Virtual FTS5 table for full-text search
+
+## Version History (Summary)
+
+### v1.1.2 (Current) - UX Improvements & Fixes
+- Fixed service worker fetch error (proper Response objects)
+- Save button always visible on mobile (right side placement)
+- Redesigned welcome screen with shortcuts and tips
+- Empty trash confirmation with Modal dialog
+- Toast notifications for trash operations
+
+### v1.1.1 - Bug Fixes
+- Fixed text note icon display (added type field to API endpoints)
+- Fixed mobile sidebar auto-close on note creation
+
+### v1.1.0 - Plain Text Note Type
+- Added note type selection (text vs markdown)
+- Smart editor switching based on type
+- Type-specific icons (📄 vs 📝)
+- Export as .txt for text notes
+
+### v1.0.10 - Mobile UI Enhancements
+- Toast notification system
+- Fixed hamburger menu
+- Mobile overflow menu for actions
+- Responsive admin panel
+
+### v1.0.9 - Progressive Web App
+- PWA manifest and service worker
+- Offline support
+- "Add to Home Screen" capability
+- App icons and splash screen support
+
+### v1.0.8 - Broken Wiki-Link UX
+- Clickable broken wiki-links create new notes
+- Improved hover states and visual feedback
+
+### v1.0.7 - Wiki-Link Autocomplete
+- Dropdown suggestions when typing `[[`
+- Keyboard navigation (arrow keys, Enter)
+
+### v1.0.6 - Docker Hub Publication
+- Published to Docker Hub: leporcbarbu/notecottage
+- Volume permissions and session cookie fixes
+- Production-ready deployment
+
+### v1.0.5 - Database Backup/Restore
+- Admin-only backup/restore system
+- Safety backups before restore
+- Profile settings page
+
+### v1.0.0-v1.0.4 - Foundation
+- Multi-user authentication
+- Private/Shared folder model
+- Admin panel
+- Theme system (4 themes)
+- Image upload support
+- Folder hierarchy
+- Tag system
+- Wiki-links and backlinks
+
+## Recent Updates
+
+### v1.1.2 (Current) - UX Improvements & Fixes
+**Completed:**
+- ✅ **Service Worker Fix** - Fixed fetch error handler returning undefined instead of proper Response object
+- ✅ **Save Button Mobile Visibility** - Save button now always visible on mobile (positioned right side, before overflow menu)
+- ✅ **Improved Welcome Screen** - Complete redesign with keyboard shortcuts, tips, and helpful guide sections
+- ✅ **Empty Trash Confirmation** - Added Modal.confirm dialog with warning for permanent deletion
+- ✅ **Service Worker Cache** - Updated to v1.1.1, added manifest.json and favicon.ico to cache
+- ✅ **Toast Notifications** - Replaced alert() with toast.success/error for empty trash feedback
+
+### v1.1.1 - Bug Fixes
+**Completed:**
+- ✅ Text note icon display - Added `type` field to all note API endpoints
+- ✅ Mobile sidebar auto-close - Sidebar now closes when creating notes on mobile
+
+**Pending Tasks:**
+- Update Docker Hub README
+- Real-world mobile testing (Android/iOS devices)
+- PWA splash screen testing (requires HTTPS)
+
+## Future Enhancements (Backlog)
+
+1. Graph view of wiki-link connections
+2. Wiki-link aliases `[[Note|Display]]` and heading links `[[Note#Section]]`
+3. Search filters (by folder, date range)
+4. Keyboard shortcuts for folder navigation
+5. Additional themes (Forest, Ocean, Sunset)
+6. Note templates and interactive checklists
+7. Note history/versioning
+8. Bulk import of Markdown files
+9. Additional export formats (DOCX, JSON)
+10. Note encryption for sensitive content
+11. CSRF protection for production
 
 ## Project Structure
 
 ```
 NoteCottage/
-├── server.js                    # Express server with all API routes
-├── database.js                  # SQLite database module with folders and tags
-├── notecottage.db               # SQLite database file
-├── package.json                 # Dependencies and scripts
-├── test-sql-injection.js        # Security test suite
-├── test-tags.js                 # Tag functionality tests
-├── test-tag-fixes.js            # Tag validation tests
-├── fix-database.js              # Database repair script for FTS corruption
-├── PROJECT_STATUS.md            # This file
+├── server.js                    # Express server & API routes
+├── database.js                  # SQLite module
+├── package.json                 # Dependencies
+├── Dockerfile                   # Container config
+├── docker-compose.yml           # Orchestration
 └── public/
     ├── index.html               # Main UI
+    ├── admin.html               # Admin panel
+    ├── profile.html             # User settings
+    ├── manifest.json            # PWA manifest
+    ├── sw.js                    # Service worker
     ├── css/
-    │   ├── style.css            # Themed CSS with variables
-    │   └── components/          # Component stylesheets
-    │       ├── modal.css        # Modal dialog styles
-    │       ├── emoji-picker.css # Emoji picker styles
-    │       ├── context-menu.css # Context menu styles
-    │       ├── drag.css         # Drag-and-drop visual feedback
-    │       ├── tag-autocomplete.css # Tag autocomplete dropdown styles
-    │       └── wikilink-autocomplete.css # Wiki-link autocomplete dropdown styles
+    │   ├── style.css            # Main styles
+    │   ├── mobile.css           # Mobile responsive
+    │   └── components/          # Component styles
     └── js/
-        ├── app.js               # Main client-side logic
-        ├── wikilink-extension.js # marked.js extension for [[Note Title]] syntax
-        └── components/          # Reusable UI components
-            ├── modal.js         # Modal dialog component
-            ├── emoji-picker.js  # Emoji picker component
-            ├── folder-form.js   # Folder creation/editing form
-            ├── drag-manager.js  # Drag-and-drop state manager
-            ├── context-menu.js  # Visual context menu
-            ├── tag-autocomplete.js # Tag autocomplete dropdown
-            └── wikilink-autocomplete.js # Wiki-link autocomplete dropdown
+        ├── app.js               # Main client logic
+        ├── wikilink-extension.js # marked.js extension
+        └── components/          # UI components
 ```
 
-## Implemented Features
+## Key Learning Outcomes
 
-### Core Functionality
-✅ **CRUD Operations** - Create, Read, Update, Delete notes
-✅ **Flexible Note Types** - Choose between plain text (📄) or markdown (📝) for each note
-✅ **Markdown Support** - Write in Markdown, preview rendered HTML
-✅ **SQLite Database** - Persistent storage with proper schema
-✅ **Full-Text Search** - SQLite FTS5 for fast searching (searches both title and content)
-✅ **SQL Injection Protection** - Prepared statements throughout
-✅ **Recycle Bin** - Soft delete with restore capability, permanent delete, and empty trash
-
-### Folder Hierarchy System
-✅ **Nested Folders** - Unlimited depth folder structure (folders within folders)
-✅ **Traditional File Browser UI** - Notes displayed inline within folders like VS Code/Finder
-✅ **"All Notes" Virtual Folder** - Special folder at top showing all notes across folders
-✅ **Inline Note Display** - Notes appear directly under their parent folder when expanded
-✅ **Drag-and-Drop Folders** - Drag folders to reorder or nest within other folders
-✅ **Drag-and-Drop Notes** - Drag notes between folders to move them
-✅ **Folder Icons** - Visual emoji picker with 80+ curated emojis in 7 categories
-✅ **Individual Folder Expand/Collapse** - Arrow icon on each folder to show/hide contents
-✅ **Auto-Migration** - Existing notes automatically moved to "Uncategorized" folder
-✅ **Visual Context Menu** - Right-click folders for clickable button menu
-✅ **Cascade Delete** - Deleting folder deletes all subfolders and notes
-✅ **Circular Prevention** - Cannot move folder into itself or descendants (client & server validation)
-✅ **State Persistence** - Expanded/collapsed folders saved in localStorage
-✅ **Position Tracking** - Folders maintain custom ordering within parent
-✅ **Smart Note Creation** - New notes automatically created in currently selected folder (or as subfolder if folder selected)
-✅ **Folder Note Count Badges** - Each folder displays count of notes it contains (non-recursive)
-✅ **Auto-Expand to Note** - Opening a note automatically expands and highlights its parent folder
-✅ **Breadcrumb Navigation** - Status bar shows folder path of current note
-
-### Tagging System
-✅ **Hashtag Detection** - Auto-detect `#tags` in content
-✅ **Smart Validation** - Tags must start with letter (not `#1`, but `#v1` works)
-✅ **Many-to-Many Relationships** - Proper database design
-✅ **Tag Filtering** - Click tags to filter notes
-✅ **Tag Counts** - Shows usage count for each tag
-✅ **Case-Insensitive** - `#JavaScript` and `#javascript` are the same
-✅ **Auto-Hide** - Tags panel hidden when no tags exist
-✅ **Tag Autocomplete** - Dropdown suggestions while typing hashtags with arrow key navigation
-✅ **Tag Deletion** - Right-click unused tags (count = 0) to delete them
-
-### Timestamps & Localization
-✅ **Created/Updated Dates** - Automatic timestamp tracking
-✅ **Timezone Conversion** - UTC in database, local time in UI
-✅ **Relative Time** - "5 minutes ago" in sidebar
-✅ **Full Timestamps** - Detailed dates in editor header
-
-### Wiki-Links (Obsidian-Style)
-✅ **Internal Linking** - `[[Note Title]]` syntax for linking between notes
-✅ **Case-Insensitive Matching** - `[[my note]]` and `[[My Note]]` link to same note
-✅ **Clickable Links** - Click wiki-links in preview mode to navigate to target note
-✅ **Broken Link Detection** - Non-existent notes shown as grayed-out with dashed underline
-✅ **Duplicate Title Handling** - Links to most recently updated note when titles match
-✅ **Export Support** - Wiki-links work in HTML and PDF exports
-✅ **Alias Ready** - Regex supports future `[[Note|Display]]` syntax
-✅ **Dark Mode Support** - Wiki-link colors adapt to current theme
-✅ **Wiki-Link Autocomplete** - Type `[[` to see dropdown of note titles with keyboard navigation
-✅ **Backlinks Panel** - Shows all notes that link to the current note
-
-### Note Export
-✅ **Markdown Export** - Download notes as .md files with original content
-✅ **HTML Export** - Convert to styled standalone HTML with embedded CSS
-✅ **PDF Export** - Print-optimized HTML with browser Save as PDF dialog
-✅ **Export Dropdown** - Clean dropdown menu in editor header
-✅ **Wiki-Link Preservation** - Exported HTML/PDF includes rendered wiki-links
-
-### Image Support
-✅ **Dual Storage Options** - Support for both uploaded files and external image URLs
-✅ **Upload Button** - 📷 Image button in editor toolbar opens two-tab modal
-✅ **File Upload** - Upload JPEG, PNG, GIF, WebP, SVG (10MB limit per image)
-✅ **External URLs** - Link to any external image URL
-✅ **Drag-and-Drop** - Drop image files directly into editor to upload
-✅ **Clipboard Paste** - Ctrl+V to paste screenshots or copied images
-✅ **Image Gallery** - Sidebar panel showing all images attached to current note
-✅ **Click to Insert** - Click gallery thumbnails to insert markdown syntax
-✅ **Delete Images** - Hover over thumbnails and click × to remove
-✅ **Metadata Tracking** - Store file size, dimensions, MIME type, alt text
-✅ **Permission Inheritance** - Images inherit note/folder privacy settings
-✅ **Automatic Cleanup** - CASCADE DELETE removes images when notes/users deleted
-✅ **File Organization** - `/uploads/user_{id}/note_{id}/` directory structure
-✅ **Docker Persistence** - Volume mount ensures uploads survive container restarts
-✅ **Security** - MIME validation, size limits, path traversal prevention, authentication
-
-### UI/UX Features
-✅ **Four Distinct Themes** - Comprehensive theme system with visual variety
-  - ☀️ **Light**: Clean, bright, professional (original)
-  - 🌙 **Dark**: Cool, modern dark mode (original)
-  - 🏡 **Cottage**: Warm, cozy light theme with earthy browns, cream, and honey gold
-  - 🏡🌙 **Cottage Dark**: Warm, cozy dark theme like a cabin at night
-  - Cottage themes feature subtle 6px rounded corners for extra coziness
-✅ **Compact Theme Picker** - Space-efficient "Theme" button with dropdown menu
-  - Floating menu with elevated shadow for visual depth
-  - Fixed high-contrast colors for consistent readability
-  - Active theme highlighted in menu
-  - Click outside to close
-✅ **Theme Persistence** - Preference saved in localStorage
-✅ **Smooth Transitions** - CSS transitions for theme changes
-✅ **Responsive Design** - Split sidebar/editor layout
-✅ **Status Bar** - Bottom bar shows word count, folder breadcrumb, and timestamps
-✅ **Word Count** - Real-time word counter in status bar
-✅ **Folder Breadcrumb** - Status bar shows folder path of current note (e.g., "Work › Projects › Current")
-✅ **Clean Header** - Editor header decluttered by moving metadata to status bar
-✅ **Autosave** - Automatic saving 2 seconds after user stops typing
-  - Visual save status indicator ("Saving...", "All changes saved", "Unsaved changes")
-  - Only autosaves existing notes (new notes require manual save with title)
-  - Smart debouncing prevents excessive API calls
-  - Timestamp updates without full page reload
-✅ **Keyboard Shortcuts**:
-  - `Ctrl/Cmd + S` - Save note
-  - `Ctrl/Cmd + N` - New note
-  - `Ctrl/Cmd + P` - Toggle preview
-✅ **Resizable Sidebar** - Adjustable width divider between sidebar and editor
-  - Drag handle between sidebar and editor to resize
-  - Visual feedback with blue highlight on hover/drag
-  - Constrains width between 200px-600px
-  - Width preference saved to localStorage
-✅ **Tooltips** - Full names displayed on hover for truncated folder/note names
-  - Shows complete folder and note names when ellipsis truncates text
-  - Applied to all folders (regular and virtual) and note titles
-
-## Database Schema
-
-### Tables
-
-**notes**
-- `id` INTEGER PRIMARY KEY AUTOINCREMENT
-- `title` TEXT NOT NULL
-- `content` TEXT NOT NULL
-- `folder_id` INTEGER DEFAULT NULL (NULL defaults to "Uncategorized")
-- `position` INTEGER DEFAULT 0 (for custom ordering within folder)
-- `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-- `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-- `deleted_at` DATETIME DEFAULT NULL (NULL = active, timestamp = in trash)
-
-**folders**
-- `id` INTEGER PRIMARY KEY AUTOINCREMENT
-- `name` TEXT NOT NULL
-- `parent_id` INTEGER DEFAULT NULL (NULL = root level folder)
-- `icon` TEXT DEFAULT NULL (emoji or text icon)
-- `position` INTEGER DEFAULT 0 (for custom ordering via drag-and-drop)
-- `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-- `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-- FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE
-
-**tags**
-- `id` INTEGER PRIMARY KEY AUTOINCREMENT
-- `name` TEXT UNIQUE NOT NULL (lowercase)
-- `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-
-**note_tags** (junction table)
-- `note_id` INTEGER → FOREIGN KEY to notes(id) ON DELETE CASCADE
-- `tag_id` INTEGER → FOREIGN KEY to tags(id) ON DELETE CASCADE
-- `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-- PRIMARY KEY (note_id, tag_id)
-
-**notes_fts** (FTS5 virtual table)
-- Full-text search index for title and content
-- Automatically synced via triggers
-
-**attachments**
-- `id` INTEGER PRIMARY KEY AUTOINCREMENT
-- `note_id` INTEGER NOT NULL → FOREIGN KEY to notes(id) ON DELETE CASCADE
-- `user_id` INTEGER NOT NULL → FOREIGN KEY to users(id) ON DELETE CASCADE
-- `storage_type` TEXT NOT NULL ('upload' or 'external')
-- `file_path` TEXT NOT NULL (relative path for uploads, full URL for external)
-- `original_filename` TEXT (for uploads)
-- `mime_type` TEXT (e.g., image/jpeg, image/png)
-- `file_size` INTEGER (bytes, for uploads)
-- `width` INTEGER (image dimensions)
-- `height` INTEGER (image dimensions)
-- `alt_text` TEXT (accessibility description)
-- `position` INTEGER DEFAULT 0 (display order)
-- `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-- `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-
-## API Endpoints
-
-### Notes
-- `GET /` - Serve main HTML page
-- `GET /api/notes` - List all notes with tags and timestamps (excludes deleted)
-- `GET /api/notes/:id` - Get specific note with full details
-- `POST /api/notes` - Create new note (tags auto-extracted, accepts folder_id)
-- `PUT /api/notes/:id` - Update note (tags auto-updated)
-- `PUT /api/notes/:id/move` - Move note to different folder
-- `PUT /api/notes/:id/reorder` - Reorder note (change folder and position)
-- `DELETE /api/notes/:id` - Soft delete note (move to trash)
-
-### Trash/Recycle Bin
-- `GET /api/trash` - List all deleted notes
-- `PUT /api/trash/:id/restore` - Restore note from trash
-- `DELETE /api/trash/:id` - Permanently delete specific note
-- `DELETE /api/trash` - Empty trash (permanently delete all)
-
-### Folders
-- `GET /api/folders` - Get folder tree (hierarchical structure)
-- `GET /api/folders/:id` - Get single folder with note count
-- `POST /api/folders` - Create new folder
-- `PUT /api/folders/:id` - Update folder (name, parent_id, icon)
-- `PUT /api/folders/:id/reorder` - Reorder folder (change position and/or parent)
-- `DELETE /api/folders/:id` - Delete folder (cascades to subfolders and notes)
-- `GET /api/folders/:id/notes` - Get notes in specific folder
-
-### Tags
-- `GET /api/tags` - Get all tags with usage counts
-- `GET /api/tags/:tagName/notes` - Get notes filtered by tag
-- `DELETE /api/tags/:tagName` - Delete tag (only if count = 0)
-
-### Search
-- `GET /api/search?q=query` - Full-text search across notes (title and content)
-
-### Attachments
-- `POST /api/notes/:noteId/attachments/upload` - Upload image file (requires auth, 10MB limit, JPEG/PNG/GIF/WebP/SVG)
-- `POST /api/notes/:noteId/attachments/external` - Link external image URL (requires auth)
-- `GET /api/attachments/:id` - Serve image with authentication (streams file or redirects to external URL)
-- `GET /api/notes/:noteId/attachments` - List all attachments for note (requires auth)
-- `DELETE /api/attachments/:id` - Delete attachment and file (requires auth)
-
-## Key Technical Decisions
-
-### Folder Hierarchy Implementation
-- **Tree Structure**: Backend builds tree with `buildFolderTree()`, sends complete structure to frontend
-- **Nested Structure**: Uses `parent_id` self-referential foreign key with CASCADE DELETE
-- **Circular Prevention**: Recursive CTE query checks ancestors before allowing folder move (both client and server-side)
-- **Default Folder**: "Uncategorized" (id=1) is created on initialization, cannot be deleted or dragged
-- **State Persistence**: Expanded folder IDs stored in localStorage as JSON array
-- **Filter Priority**: Folder filter > tag filter > show all notes
-- **Position Field**: Enables custom ordering within same parent via drag-and-drop
-- **Drag-and-Drop**: HTML5 Drag API with visual indicators (above/inside/below drop zones)
-- **Component Architecture**: Reusable vanilla JS components (Modal, EmojiPicker, ContextMenu, DragManager)
-
-### Tag System Implementation
-- **Validation Rules**: Tags must start with a letter: `/#([a-zA-Z]\w*)/g`
-  - Prevents `#1` from being a tag
-  - Allows `#nodejs2`, `#python3`, `#web_dev`
-  - All tags stored as lowercase for case-insensitive matching
-- **Autocomplete**: Mirror div technique for cursor position detection
-  - Creates invisible div with same text/styling as textarea
-  - Measures span position to get accurate cursor coordinates
-  - Accounts for textarea scroll position
-  - Dropdown positioned relative to cursor, adjusted for viewport boundaries
-- **Protected Deletion**: Server validates tag count before allowing deletion
-
-### Timezone Handling
-- SQLite stores timestamps in UTC format: `"2025-12-26 01:08:13"`
-- JavaScript converts to ISO with UTC indicator: `"2025-12-26T01:08:13Z"`
-- Browser automatically converts to user's local timezone
-- Function: `parseUTCDate()` in app.js
-
-### Wiki-Link Implementation
-- **Extension Architecture**: Custom marked.js inline extension for `[[...]]` syntax
-- **Pattern Matching**: Regex `/^\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/` supports aliases
-- **Title Resolution**: Case-insensitive lookup using `getNotesTitleMap()` database function
-- **Duplicate Handling**: Most recently updated note wins (`ORDER BY updated_at DESC`)
-- **Server Rendering**: `renderMarkdownWithWikiLinks()` helper in server.js
-- **Client Rendering**: Configured on note load and before exports
-- **Link Types**:
-  - Valid: `<a class="wiki-link" data-note-id="123">Title</a>`
-  - Broken: `<span class="wiki-link-broken">Title</span>`
-- **Navigation**: Event delegation on document for all wiki-link clicks
-- **Universal Module**: Works in both Node.js (require) and browser (window global)
-
-### Theme Implementation
-- CSS custom properties (variables) for all colors
-- `[data-theme="dark"]` selector overrides variables
-- localStorage key: `'theme'` (values: `'light'` or `'dark'`)
-- Default: light mode
-
-## NPM Scripts
-
-```bash
-npm start          # Start server on port 3000
-npm install        # Install dependencies
-```
-
-## Dependencies
-
-```json
-{
-  "better-sqlite3": "^12.5.0",    // SQLite database
-  "express": "^5.2.1",            // Web framework
-  "marked": "^17.0.1"             // Markdown parser
-}
-```
-
-## Security Features
-
-✅ **SQL Injection Prevention** - All queries use prepared statements
-✅ **Input Validation** - Note IDs validated before database queries
-✅ **Foreign Key Constraints** - CASCADE DELETE for data integrity
-✅ **No Eval/Exec** - No dynamic code execution
-✅ **XSS Protection** - Markdown rendering to HTML (marked.js handles sanitization)
-
-Tested with `test-sql-injection.js` - all tests pass.
-
-## Known Limitations / Future Considerations
-
-### Current Limitations
-- No user authentication (single-user app)
-- No note attachments/images
-
-### Potential Next Features (Not Implemented)
-- **Create Note from Broken Link** - Click broken wiki-link to create that note
-- **Alias Support** - `[[Note Title|Display Text]]` for custom link text
-- **Heading Links** - `[[Note#Heading]]` to link to specific sections
-- **Note History** - Version control for notes
-- **Graph View** - Visual network of linked notes
-- **Templates** - Pre-defined note structures
-- **Attachments** - Upload images/files
-- **Import** - Bulk import from Markdown files
-- **Note Encryption** - Encrypted notes with password
-- **Collaborative Editing** - Multi-user support
-- **Mobile App** - React Native or PWA
-
-## Long-Term Goals / Roadmap
-
-**Vision:** NoteCottage as a self-hosted, small-scale collaborative tool (similar to Mealie) for 2-5 users, primarily accessed via LAN with optional remote access.
-
-### Deployment Model
-- **Primary:** Docker on home server, accessed via LAN
-- **Secondary:** Remote access via TailScale/VPN (secure, private)
-- **Tertiary:** Public-facing with nginx + SSL (for users without VPN)
-- **Distribution:** Open-source web app on GitHub/similar
-
-### Mobile Strategy
-- **Phase 1:** Progressive Web App (PWA)
-  - Mobile-responsive design (mostly complete)
-  - Service worker for offline capability
-  - "Add to Home Screen" functionality
-  - Free for all users
-- **Phase 2:** Native mobile app (iOS/Android)
-  - Enhanced UX with native features
-  - Potential paid app revenue model
-  - RESTful API already compatible
-
-### Implementation Roadmap
-
-#### 1. Dockerize Application ⭐ PRIORITY
-**Feasibility: ⭐⭐⭐⭐⭐ (Very Easy)**
-- Create Dockerfile with Node.js base image
-- Add .dockerignore for node_modules and database files
-- Docker Compose with environment variables
-- Volume mounts for persistent database storage
-- **Complexity:** Low - 1-2 hours
-- **Benefit:** Foundation for all deployment scenarios, users can `docker-compose up` and go
-
-#### 2. Production-Ready Infrastructure
-**Feasibility: ⭐⭐⭐⭐⭐ (Easy)**
-- Environment-based configuration (PORT, DATABASE_PATH, etc.)
-- nginx reverse-proxy example configurations
-- SSL/TLS setup documentation
-- Rate limiting and security headers
-- CORS configuration for remote access
-- **Complexity:** Low to Medium - 2-4 hours
-- **Benefit:** Secure remote access, SSL encryption, production deployment ready
-
-#### 3. Multi-User Support (Small Scale: 2-5 users)
-**Feasibility: ⭐⭐⭐ (Complex but doable)**
-
-**Chosen Model: Hybrid Shared/Private (Mealie-style)**
-- Shared public folders (collaborative knowledge base, team notes)
-- Private user folders (personal notes, drafts)
-- User can choose visibility when creating folders/notes
-
-**Implementation Requirements:**
-- **Database schema:**
-  - `users` table (id, username, password_hash, email, created_at)
-  - `user_id` foreign key on notes and folders
-  - `is_public` boolean on folders (public = shared, private = user-only)
-  - Notes inherit privacy from parent folder
-- **Authentication:**
-  - User registration and login
-  - Session management (express-session or JWT)
-  - Password hashing (bcrypt/argon2)
-- **API changes:**
-  - Authentication middleware on all routes
-  - Query filters: public content OR owned by current user
-  - Permission checks for edit/delete operations
-- **Frontend:**
-  - Login/registration UI
-  - Auth state management
-  - Visual indicators for public vs private folders
-  - User settings/profile page
-- **Complexity:** High - 3-5 days
-- **Benefit:** Enables family/team collaboration while preserving privacy
-
-#### 4. Progressive Web App (PWA)
-**Feasibility: ⭐⭐⭐⭐ (Moderately Easy)**
-- Service worker for offline support
-- Web app manifest for "Add to Home Screen"
-- Cache strategy for notes and assets
-- Mobile-optimized responsive design (minor tweaks needed)
-- Touch-friendly UI adjustments
-- **Complexity:** Medium - 1-2 days
-- **Benefit:** Free mobile experience, works offline, fast loading
-
-#### 5. Note Encryption (Optional - Lower Priority)
-**Feasibility: ⭐⭐⭐⭐ (Moderately Complex)**
-- **Use Case:** For highly sensitive notes only
-- **Recommended approach:** Per-note encryption toggle
-  - Optional encryption checkbox when creating/editing notes
-  - Client-side encryption for flagged notes
-  - Unencrypted notes maintain full-text search and wiki-links
-  - Encrypted notes stored as blobs, search disabled
-- **Alternative:** HTTPS + VPN may be sufficient for small team use
-- **Complexity:** Medium - 1-2 days
-- **Challenges:**
-  - Full-text search won't work on encrypted content
-  - Wiki-links won't resolve for encrypted notes
-  - Password management and key derivation
-- **Benefit:** Privacy for truly sensitive information
-
-### Recommended Implementation Order
-1. **Dockerize** ← START HERE - Foundation for deployment
-2. **Production-ready infrastructure** - Secure remote access
-3. **Multi-user (hybrid model)** - Core collaboration features
-4. **Progressive Web App** - Mobile accessibility
-5. **Encryption** - Optional security enhancement
-
-**Strategic Note:** With HTTPS (via nginx) and/or TailScale VPN, encryption becomes less critical for small team use. Focus on convenience and collaboration first.
-
----
-
-## Multi-User Architecture Plan (Detailed)
-
-**Status:** Planning phase - not yet implemented
-**Last Updated:** December 29, 2025
-
-### Database Schema Changes
-
-#### New Table: `users`
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    display_name TEXT,
-    is_admin BOOLEAN DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-**Considerations:**
-- Username: 3-20 characters, alphanumeric + underscore
-- Email: For password recovery (future feature)
-- Password: Hashed with bcrypt (cost factor 12)
-- Display name: Optional friendly name for UI
-- is_admin: First user automatically set to 1 (admin), others default to 0
-
-#### Modified Table: `folders`
-**Add columns:**
-```sql
-ALTER TABLE folders ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
-ALTER TABLE folders ADD COLUMN is_public BOOLEAN DEFAULT 0;
-```
-
-**Privacy Model:**
-- `is_public = 1`: Shared folder (visible to all users)
-- `is_public = 0`: Private folder (visible only to owner)
-- `user_id`: Owner of the folder
-- Notes inherit privacy from parent folder
-
-**Special Folders:**
-- "Uncategorized" folder (id=1) should be user-specific or public (TBD)
-- Each user could have their own "Uncategorized" folder, OR
-- One shared "Uncategorized" for public notes
-
-#### Modified Table: `notes`
-**Add column:**
-```sql
-ALTER TABLE notes ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
-```
-
-**Ownership:**
-- `user_id`: Creator/owner of the note
-- Notes in public folders: Any user can edit
-- Notes in private folders: Only owner can access
-
-#### Modified Table: `tags`
-**No changes needed** - tags remain global and shared across all users
-
-**Rationale:**
-- Tags like #javascript, #work, #ideas are naturally collaborative
-- Users can filter by tags regardless of note ownership
-- Simplifies tag autocomplete (show all tags)
-
-#### New Table: `system_settings`
-```sql
-CREATE TABLE system_settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-**Initial settings:**
-- `registration_enabled`: "true" or "false" (admin can disable new registrations)
-- `max_users`: "5" (default max, admin can adjust)
-- `app_name`: "NoteCottage" (customizable instance name)
-
-### Authentication System
-
-#### Session Management: express-session (Recommended)
-**Why express-session over JWT:**
-- ✅ Simpler for small-scale app (2-5 users)
-- ✅ Server-side session storage (more secure)
-- ✅ Easy session invalidation (logout, security breach)
-- ✅ Built-in CSRF protection patterns
-- ✅ No token refresh complexity
-
-**Implementation:**
-```javascript
-const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
-
-app.use(session({
-    store: new SQLiteStore({
-        db: 'sessions.db',
-        dir: './data'
-    }),
-    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
-        httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    }
-}));
-```
-
-#### Password Hashing: bcrypt
-```javascript
-const bcrypt = require('bcrypt');
-const SALT_ROUNDS = 12;
-
-// Register
-const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-
-// Login
-const isValid = await bcrypt.compare(password, user.password_hash);
-```
-
-#### Authentication Middleware
-```javascript
-function requireAuth(req, res, next) {
-    if (!req.session.userId) {
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-    next();
-}
-
-function requireAdmin(req, res, next) {
-    if (!req.session.userId) {
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-    const user = getUserById(req.session.userId);
-    if (!user || !user.is_admin) {
-        return res.status(403).json({ error: 'Admin access required' });
-    }
-    req.user = user;
-    next();
-}
-
-function attachUser(req, res, next) {
-    if (req.session.userId) {
-        req.user = getUserById(req.session.userId);
-    }
-    next();
-}
-```
-
-### API Changes
-
-#### New Endpoints: Authentication
-```
-POST   /api/auth/register      - Create new user account
-POST   /api/auth/login         - Login (create session)
-POST   /api/auth/logout        - Logout (destroy session)
-GET    /api/auth/me            - Get current user info
-PUT    /api/auth/profile       - Update user profile (display name, password)
-```
-
-#### New Endpoints: Admin Panel (Admin Only)
-```
-GET    /api/admin/users        - List all users
-DELETE /api/admin/users/:id    - Delete user (and all their private content)
-PUT    /api/admin/users/:id/password  - Reset user's password
-PUT    /api/admin/users/:id/admin     - Toggle admin status
-GET    /api/admin/settings     - Get system settings (registration enabled, max users)
-PUT    /api/admin/settings     - Update system settings
-GET    /api/admin/stats        - Get system statistics (user count, note count, etc.)
-```
-
-#### Modified Endpoints: Permission Checks
-
-**Notes API:**
-```javascript
-// GET /api/notes - Filter by visibility
-// Return: Public notes + user's private notes
-SELECT * FROM notes
-WHERE deleted_at IS NULL
-AND (
-    folder_id IN (SELECT id FROM folders WHERE is_public = 1)
-    OR folder_id IN (SELECT id FROM folders WHERE user_id = ?)
-)
-
-// POST /api/notes - Set owner
-// Automatically set user_id to current user
-
-// PUT /api/notes/:id - Check permission
-// Allow if: user owns note OR note is in public folder
-
-// DELETE /api/notes/:id - Check permission
-// Allow if: user owns note OR user owns parent folder
-```
-
-**Folders API:**
-```javascript
-// GET /api/folders - Filter by visibility
-// Return: Public folders + user's private folders
-
-// POST /api/folders - Set owner and privacy
-// Require: name, is_public (boolean)
-// Set user_id to current user
-
-// PUT /api/folders/:id - Check permission
-// Allow if: user owns folder
-
-// DELETE /api/folders/:id - Check permission
-// Allow if: user owns folder
-```
-
-**Tags API:**
-- No changes needed (tags remain global)
-- All users can see all tags
-- Tag filtering shows notes user has permission to see
-
-### Frontend Changes
-
-#### New UI Components
-
-**1. Login/Registration Page** (`/login`)
-- Login form (username/email, password)
-- Registration form (username, email, password, confirm password)
-- "Remember me" checkbox
-- Password strength indicator
-- Form validation
-
-**2. User Indicator in Header**
-- Display current user's name/avatar
-- Dropdown menu: Profile, Settings, Admin Panel (if admin), Logout
-
-**3. Folder Privacy Toggle**
-- When creating/editing folders:
-  - Checkbox: "🔓 Shared folder (visible to all users)"
-  - Or: "🔒 Private folder (only you can see)"
-- Visual indicators:
-  - Public folders: 🌍 globe icon or green badge
-  - Private folders: 🔒 lock icon or blue badge
-
-**4. Note Ownership Display**
-- Show "Created by [username]" in note metadata
-- For public folders only (private folders implied ownership)
-
-**5. User Settings Page** (`/settings`)
-- Change display name
-- Change password
-- Email preferences (future: notifications)
-
-**6. Admin Panel Page** (`/admin`) - Admin Only
-- **User Management Tab:**
-  - Table listing all users (username, email, display name, admin status, created date)
-  - Actions per user: Reset Password, Toggle Admin, Delete User
-  - Delete confirmation modal with warning about private content
-  - Cannot delete yourself or last admin
-- **System Settings Tab:**
-  - Toggle: "Allow new user registrations" (on/off switch)
-  - Number input: "Maximum users allowed" (1-20)
-  - Text input: "Instance name" (customize app name)
-  - Save button to update settings
-- **Statistics Tab:**
-  - Total users count
-  - Total notes count (public vs private breakdown)
-  - Total folders count
-  - Database size
-  - Uptime statistics
-
-#### Authentication Flow
-
-**First-time setup:**
-1. App detects no users in database
-2. Shows "Create Admin Account" screen
-3. First user becomes admin (for future admin features)
-
-**Login flow:**
-1. User visits app → redirected to `/login` if not authenticated
-2. Enters credentials → POST `/api/auth/login`
-3. On success: Create session, redirect to `/`
-4. On failure: Show error message
-
-**Session persistence:**
-- Check session on page load
-- If valid: Load user info, show app
-- If invalid: Redirect to login
-- Session cookie lasts 30 days ("Remember me")
-
-### Permission Logic
-
-#### Folder Visibility Rules
-```
-User can see folder IF:
-  - is_public = 1 (shared folder), OR
-  - user_id = current_user (owns folder)
-```
-
-#### Note Visibility Rules
-```
-User can see note IF:
-  - Parent folder is visible (by folder visibility rules)
-```
-
-#### Edit/Delete Permission Rules
-```
-User can edit/delete note IF:
-  - User owns the note (note.user_id = current_user), OR
-  - Parent folder is public (any user can edit notes in shared folders)
-
-User can edit/delete folder IF:
-  - User owns the folder (folder.user_id = current_user)
-```
-
-#### Tag Visibility Rules
-```
-All tags are visible to all users (global)
-Clicking a tag shows: Notes user has permission to see
-```
-
-### Migration Strategy
-
-**For existing single-user installations:**
-1. Add schema changes (new columns with defaults)
-2. On first run: Detect no users exist
-3. Prompt: "Create your account to continue"
-4. After account creation: Assign all existing content to this user
-5. Default all existing folders to `is_public = 0` (private)
-6. Give user option: "Make all my existing folders shared?"
-
-**Database migration script:**
-```sql
--- Add new columns
-ALTER TABLE users ...;
-ALTER TABLE folders ADD COLUMN user_id INTEGER;
-ALTER TABLE folders ADD COLUMN is_public BOOLEAN DEFAULT 0;
-ALTER TABLE notes ADD COLUMN user_id INTEGER;
-
--- Migrate existing data to first user (id = 1)
-UPDATE folders SET user_id = 1;
-UPDATE notes SET user_id = 1;
-```
-
-### Design Decisions (Finalized)
-
-**Q1: Should "Uncategorized" folder be per-user or shared?**
-- ✅ **DECIDED:** Per-user - Each user has their own "Uncategorized" folder
-- Better privacy defaults, more intuitive ownership model
-
-**Q2: Should tags be private or global?**
-- ✅ **DECIDED:** Global (collaborative by nature)
-
-**Q3: Can users edit notes created by others in public folders?**
-- ✅ **DECIDED:** Full collaboration - any user can edit notes in shared folders
-- True wiki-style collaboration, matches Mealie's model
-
-**Q4: Admin features needed?**
-- ✅ **DECIDED:** Yes, include admin panel in MVP
-- Required features:
-  - User management (view all users, reset passwords, delete users)
-  - System settings (toggle registration on/off, set max users)
-  - Admin role flag in users table (`is_admin` boolean)
-  - Admin-only routes with middleware check
-  - Admin panel UI (accessible from user dropdown menu)
-
-**Q5: Password recovery?**
-- **DECISION:** Defer to post-MVP
-- For small team (2-5 users), admin can manually reset passwords
-- Email-based recovery requires SMTP configuration (added complexity)
-
-### Implementation Checklist (Not Started)
-
-- [ ] Database schema changes
-  - [ ] Create `users` table (with `is_admin` field)
-  - [ ] Create `system_settings` table
-  - [ ] Add `user_id` to `folders` and `notes`
-  - [ ] Add `is_public` to `folders`
-  - [ ] Create migration script for existing data
-  - [ ] Set first user as admin automatically
-- [ ] Authentication backend
-  - [ ] Install dependencies (express-session, bcrypt, connect-sqlite3)
-  - [ ] Create session store (separate sessions.db file)
-  - [ ] Create auth endpoints (register, login, logout, profile)
-  - [ ] Create authentication middleware (`requireAuth`, `requireAdmin`)
-  - [ ] Hash passwords with bcrypt (cost factor 12)
-  - [ ] Check registration_enabled setting during registration
-  - [ ] Check max_users limit during registration
-- [ ] API permission checks
-  - [ ] Update all folder queries (filter by visibility)
-  - [ ] Update all note queries (filter by visibility)
-  - [ ] Add permission checks to PUT/DELETE endpoints
-  - [ ] Update note/folder creation (set user_id)
-  - [ ] Create per-user "Uncategorized" folders on registration
-- [ ] Admin panel backend
-  - [ ] Create admin endpoints (users, settings, stats)
-  - [ ] Implement user management operations
-  - [ ] Implement system settings CRUD
-  - [ ] Add safeguards (can't delete self, can't delete last admin)
-  - [ ] Initialize default system settings
-- [ ] Frontend authentication
-  - [ ] Create login/registration page
-  - [ ] Add session check on app load
-  - [ ] Handle 401/403 responses (redirect to login)
-  - [ ] Add logout functionality
-  - [ ] Show registration disabled message if applicable
-- [ ] Frontend UI updates
-  - [ ] Add user indicator in header with dropdown
-  - [ ] Add privacy toggle to folder form
-  - [ ] Add visual indicators (🌍 public, 🔒 private)
-  - [ ] Show note ownership in public folders
-  - [ ] Create user settings page (profile, password change)
-  - [ ] Create admin panel page (user mgmt, settings, stats)
-  - [ ] Add "Admin Panel" link to user dropdown (admin only)
-- [ ] Testing
-  - [ ] Test multi-user scenarios
-  - [ ] Test permission boundaries
-  - [ ] Test session expiration
-  - [ ] Test migration from single-user
-  - [ ] Test admin operations
-  - [ ] Test registration limits
-
-### Estimated Complexity: 4-6 days
-
-**Breakdown:**
-- Database schema & migrations: 0.5 day
-- Backend authentication system: 1 day
-- API permission logic: 1 day
-- Admin panel backend: 0.5-1 day
-- Frontend login/auth UI: 1 day
-- Frontend privacy indicators: 0.5 day
-- Admin panel UI: 1 day
-- Testing & refinement: 0.5-1 day
-
----
-
-## How to Run
-
-### Option 1: Docker (Recommended for Production)
-
-**Prerequisites:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-1. **Build and start the container:**
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Open browser:**
-   ```
-   http://localhost:3000
-   ```
-
-3. **View logs:**
-   ```bash
-   docker-compose logs -f
-   ```
-
-4. **Stop the container:**
-   ```bash
-   docker-compose down
-   ```
-
-**Notes:**
-- Database stored in `./data/` directory (persists across container restarts)
-- To rebuild after code changes: `docker-compose up -d --build`
-
-### Option 2: Local Development (Node.js)
-
-**Prerequisites:** Node.js 18+ installed
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Start server:**
-   ```bash
-   npm start
-   ```
-
-3. **Open browser:**
-   ```
-   http://localhost:3000
-   ```
-
-4. **Stop server:**
-   - Press `Ctrl+C` in terminal
-   - Or kill process on port 3000: `taskkill //PID <pid> //F`
-
-## Testing
-
-Run test suites to verify functionality:
-
-```bash
-node test-tags.js              # Tag system functionality tests
-node test-tag-fixes.js         # Tag validation rules tests
-```
-
-**Note:** SQL injection protection is verified through prepared statements throughout codebase (see database.js).
-
-All tests include automatic cleanup.
-
-## Database Maintenance
-
-### Repairing Database Corruption
-
-If you encounter FTS corruption errors (`SQLITE_CORRUPT_VTAB`), run the repair script:
-
-```bash
-node fix-database.js           # Repair FTS5 table corruption
-```
-
-This script will:
-- Create a backup of your database (`notecottage.db.backup`)
-- Remove any corrupted database files
-- Rebuild the FTS5 (Full-Text Search) virtual table
-- Re-sync the FTS table with your notes
-- Verify the repair was successful
-
-The server also runs an automatic health check on startup to detect issues early.
-
-## User Preferences
-
-Stored in browser's localStorage:
-- `theme`: `'light'` or `'dark'` (default: `'light'`)
-- `expandedFolders`: JSON array of folder IDs that are expanded in tree view
-- `allNotesExpanded`: Boolean for "All Notes" virtual folder expansion state (default: `false`)
-- `trashExpanded`: Boolean for "Trash" virtual folder expansion state (default: `false`)
-- `sidebarWidth`: Number in pixels for sidebar width (default: `300`)
-
-Persists across browser sessions.
-
-## Notes for Next Session
-
-### What Works Well
-- Traditional file browser UI feels intuitive and familiar (like VS Code/Finder)
-- "All Notes" virtual folder provides convenient overview of all notes
-- Auto-expand to parent folder helps maintain context when navigating
-- Status bar with breadcrumb trail shows location at a glance
-- Drag-and-drop is smooth and intuitive with clear visual feedback
-- Folder hierarchy system with unlimited nesting works smoothly
-- Visual emoji picker makes folder customization quick and fun
-- Context menu with clickable buttons is much better than prompts
-- Component architecture is clean and reusable
-- Full-text search now properly searches both title and content
-- Tag system is robust and well-tested
-- Tag autocomplete provides excellent UX with keyboard navigation
-- Wiki-link autocomplete makes linking notes effortless
-- Backlinks panel shows note connections clearly
-- New notes intelligently created in selected folder (or as subfolders)
-- Recycle bin provides safety net for accidental deletions with easy restore
-- Trash folder integrates seamlessly with existing sidebar UI
-- Dark mode is smooth with good color choices
-- SQL injection protection is solid
-- Timezone handling works correctly
-- CASCADE DELETE properly handles folder/note relationships
-- Position recalculation with transactions ensures data integrity
-- Database health check on startup catches corruption issues early
-- FTS corruption is handled gracefully with helpful error messages
-- Autosave is responsive and unobtrusive with clear visual feedback
-- Manual save (Ctrl/Cmd + S) still works alongside autosave
-- Preview button auto-saves before showing content, ensuring accuracy
-- WAL mode and graceful shutdown prevent database corruption
-- Light mode buttons now have excellent readability and contrast
-- Resizable sidebar provides flexible workspace layout customization
-- Tooltips on hover solve truncated name visibility issues elegantly
-- Double-click folder expansion is intuitive and faster than clicking arrows
-- Folder highlighting behavior is clean and unambiguous
-- Drag-to-trash provides a natural, intuitive way to delete notes
-- Cottage themes provide warm, inviting aesthetics that match the app name
-- Theme system is extensible and easy to maintain with CSS custom properties
-- Compact theme picker saves header space while being easy to use
-- Custom favicon/branding creates a cohesive visual identity
-- The cottage-with-book design perfectly symbolizes the app's purpose
-
-### Recent Updates (December 27, 2024)
-
-**Session 1:**
-- ✅ Implemented full drag-and-drop functionality for folders and notes
-- ✅ Added visual emoji picker with 80+ curated emojis in 7 categories
-- ✅ Replaced prompt-based context menu with beautiful visual button menu
-- ✅ Built reusable component architecture (Modal, EmojiPicker, ContextMenu, DragManager)
-- ✅ Added position tracking and reordering API endpoints
-- ✅ Implemented visual drop zone indicators (above/inside/below)
-- ✅ Enhanced circular dependency prevention (client + server validation)
-- ✅ Removed color picker (simplified UI, improved UX)
-
-**Session 2:**
-- ✅ Implemented tag autocomplete with dropdown suggestions while typing hashtags
-- ✅ Added keyboard navigation for autocomplete (arrow keys, Enter, Tab, Escape)
-- ✅ Fixed cursor position detection for accurate dropdown placement
-- ✅ Added tag deletion feature via right-click context menu for unused tags
-- ✅ Fixed "New Note" to create notes in currently selected folder (not just Uncategorized)
-- ✅ Added server-side validation to prevent deletion of tags in use
-
-**Session 3:**
-- ✅ Implemented folder note count badges with theme-aware styling
-- ✅ Added note export functionality (Markdown, HTML, PDF)
-- ✅ Built export dropdown menu in editor header
-- ✅ Implemented Obsidian-style wiki-links with `[[Note Title]]` syntax
-- ✅ Created marked.js custom extension for wiki-link parsing
-- ✅ Added case-insensitive title lookup with duplicate handling
-- ✅ Implemented clickable wiki-links in preview mode
-- ✅ Added visual distinction for broken links (grayed out, dashed underline)
-- ✅ Configured wiki-links for both server rendering and client exports
-- ✅ Added event delegation for wiki-link navigation
-- ✅ Implemented backlinks panel showing notes that reference current note
-- ✅ Added wiki-link autocomplete with `[[` trigger and keyboard navigation
-- ✅ Implemented word count display in editor header
-
-**Session 4:**
-- ✅ **Rebranded application from NodeNotes to NoteCottage**
-- ✅ Updated welcome page with accurate, user-focused feature descriptions
-- ✅ Removed unused color field from folder creation/update endpoints
-- ✅ **Major UI restructure: Moved to traditional file browser layout**
-  - Created "All Notes" virtual folder at top of sidebar
-  - Implemented inline note display within folders (notes appear under parent folder)
-  - Removed separate notes list panel in favor of integrated tree view
-  - Added CSS styling for inline note items with hover/active states
-- ✅ **Status bar implementation** - Moved timestamps from header to bottom status bar
-  - Added folder breadcrumb showing note's location path
-  - Repositioned word count to status bar
-  - Decluttered editor header for cleaner look
-- ✅ **Folder UI improvements**
-  - Removed global expand all/collapse all buttons
-  - Individual expand/collapse arrows on each folder
-  - New folders default to subfolders of currently selected folder
-- ✅ **Auto-navigation features**
-  - Opening a note automatically expands parent folder tree
-  - Parent folder is highlighted when note is opened
-  - Breadcrumb trail shows full folder path in status bar
-
-**Session 5:**
-- ✅ **Fixed folder_id type mismatch bug** - Notes now correctly display in all subfolders
-  - Ensured consistent string conversion of folder_id values throughout the application
-  - Resolved issue where notes weren't appearing in nested folders due to type comparison failures
-- ✅ **Fixed SQLite FTS5 table corruption** - Resolved `SQLITE_CORRUPT_VTAB` errors
-  - Created `fix-database.js` repair script to rebuild corrupted FTS5 tables
-  - Added automatic database health check on server startup
-  - Added error handling for FTS corruption in note create/update operations
-  - Removed corrupted zero-byte database file that was causing path issues
-- ✅ **Implemented autosave feature** - Automatic saving with visual feedback
-  - Saves automatically 2 seconds after user stops typing (debounced)
-  - Real-time save status indicator in status bar ("Saving...", "All changes saved", "Unsaved changes")
-  - Color-coded status: blue for saving, green for saved, yellow for unsaved
-  - Only autosaves existing notes (new notes require manual save with title first)
-  - Smart content change detection prevents unnecessary saves
-  - Timestamp updates without full sidebar reload
-  - Integrates with manual save button (Ctrl/Cmd + S)
-
-**Session 6:**
-- ✅ **Fixed light mode button readability** - Improved contrast on Preview/Export buttons
-  - Changed secondary button background from `#95a5a6` to `#455a64` (darker blue-gray)
-  - Added explicit white text color to prevent inheritance issues
-  - Better accessibility and readability in light theme
-- ✅ **Database corruption prevention** - Added safeguards to prevent FTS5 table corruption
-  - Implemented graceful shutdown handlers (SIGINT, SIGTERM, exit events)
-  - Database connection now closes properly when server stops
-  - Enabled WAL (Write-Ahead Logging) mode for better concurrency and corruption resistance
-  - Set synchronous mode to NORMAL for optimal performance/safety balance
-  - Prevents corruption from improper shutdowns (Ctrl+C, kill commands, crashes)
-- ✅ **Auto-save on Preview** - Preview button now saves before showing rendered content
-  - Ensures preview always shows the most recent changes
-  - Only saves if there are unsaved changes
-  - Prevents viewing stale preview data
-  - Works seamlessly with existing autosave system
-
-**Session 7 (December 28, 2025):**
-- ✅ **Implemented Recycle Bin** - Soft delete with restore and permanent delete capabilities
-  - Added `deleted_at` column to notes table for soft delete tracking
-  - All note queries now filter `WHERE deleted_at IS NULL` to exclude deleted notes
-  - DELETE operation now sets `deleted_at = CURRENT_TIMESTAMP` instead of permanent deletion
-  - Virtual "Trash" folder in sidebar with expand/collapse functionality
-  - Shows deleted notes with "Deleted X ago" timestamps
-  - Right-click context menu on trash notes to restore or permanently delete
-  - Right-click Trash folder to empty all deleted notes at once
-  - Read-only view for trash notes (prevents accidental editing)
-  - Trash state persists in localStorage
-  - Comprehensive API endpoints:
-    - `GET /api/trash` - List all deleted notes
-    - `PUT /api/trash/:id/restore` - Restore specific note
-    - `DELETE /api/trash/:id` - Permanently delete specific note
-    - `DELETE /api/trash` - Empty entire trash
-  - Updated delete confirmation to mention trash and restore capability
-  - Automatic trash count badge on Trash folder
-- ✅ **Git Integration** - Initialized version control for project
-  - Created `.gitignore` to exclude node_modules, database files, and IDE folders
-  - Initial commit with all source files
-  - Configured git user identity
-
-**Session 8 (December 28, 2025):**
-- ✅ **Tooltips for truncated names** - Improved visibility of long folder/note names
-  - Added `title` attributes to all folder and note name elements
-  - Shows full name on hover when text is truncated with ellipsis
-  - Applied to regular folders, virtual folders, and all note titles
-- ✅ **Resizable Sidebar** - Adjustable sidebar width for better workspace control
-  - Implemented 5px drag handle between sidebar and editor
-  - Smooth drag interaction with visual feedback (blue highlight)
-  - Enforces min/max width constraints (200px - 600px)
-  - Persists user's preferred width to localStorage
-  - Prevents text selection during drag operation
-- ✅ **Simplified note selection highlighting** - Removed parent folder highlighting
-  - When a note is selected, only the note itself is highlighted (not parent folder)
-  - Folder tree still expands to show the note's location
-  - Breadcrumb still displays the folder path
-  - Clearer visual feedback showing exactly what is selected
-  - Fixed "All Notes" folder to only highlight when explicitly clicked, not when viewing notes
-- ✅ **Double-click folder expansion** - More intuitive folder interaction
-  - Double-click any folder to toggle its expand/collapse state
-  - Works on "All Notes", "Trash", and all regular folders
-  - Alternative to clicking the arrow icon for faster navigation
-- ✅ **Drag-to-trash functionality** - Quick note deletion via drag-and-drop
-  - Drag notes directly to the Trash folder to delete them
-  - Performs soft delete (sets deleted_at timestamp)
-  - Visual drop indicator when hovering over Trash
-  - Closes editor if viewing the deleted note
-  - Trash only accepts notes (not folders)
-- ✅ **Comprehensive Theme System** - Four distinct themes with warm cottage aesthetics
-  - Added two new cottage themes alongside original light/dark
-  - Cottage: Warm browns, creams, honey gold accents with 6px rounded corners
-  - Cottage Dark: Cozy dark theme with warm tones (cabin at night feel)
-  - Replaced wide dropdown with compact "Theme" button
-  - Floating theme menu with elevated shadow (drops down with z-depth)
-  - Fixed high-contrast menu colors for readability across all themes
-  - Active theme indicator in menu
-  - All themes use CSS custom properties for easy extension
-- ✅ **Favicon and Branding** - Custom visual identity for NoteCottage
-  - Created custom favicon featuring cozy cabin with open book
-  - Steam from chimney flowing into book symbolizes knowledge and ideas
-  - Color palette matches Cottage theme (warm browns, tans, terracotta)
-  - Added favicon link to HTML for browser tab display
-  - Original PNG artwork stored in public/images/
-
-**Session 9 (December 29, 2025):**
-- ✅ **Strategic Planning** - Defined long-term roadmap and deployment strategy
-  - Established vision as self-hosted, small-scale collaborative tool (Mealie-style)
-  - Decided on hybrid shared/private multi-user model (2-5 users)
-  - Prioritized Dockerization as foundation for all deployment scenarios
-  - Documented mobile strategy: PWA first, then optional native app
-  - Updated PROJECT_STATUS.md with comprehensive implementation roadmap
-- ✅ **Dockerization (COMPLETE)** - Container-based deployment foundation
-  - ✅ Created `.dockerignore` to exclude unnecessary files from image
-  - ✅ Created `Dockerfile` with Node.js 20 Alpine base image
-    - Multi-stage build pattern for optimal image size
-    - Non-root user for security (runs as `node` user)
-    - Creates `/app/data` directory for database persistence
-    - Exposes port 3000
-  - ✅ Created `docker-compose.yml` for easy deployment
-    - Volume mount for database persistence (`./data:/app/data`)
-    - Environment variable configuration (PORT, DATABASE_PATH)
-    - Auto-restart policy
-    - Health check for container monitoring
-    - Removed obsolete `version` field (Docker Compose v2 compatibility)
-  - ✅ Made application Docker-ready
-    - Updated `database.js:9` to use `DATABASE_PATH` environment variable
-    - Updated `server.js:15` to use `PORT` environment variable
-    - Both fallback to local defaults for non-Docker development
-  - ✅ **File Audit & Cleanup** - Optimized git and Docker distributions
-    - Audited all project files and categorized by purpose
-    - Updated `.gitignore` to exclude Docker data directory
-    - Refined `.dockerignore` to minimize image size:
-      - Excludes documentation (PROJECT_STATUS.md, etc.)
-      - Excludes test files (test-*.js, fix-database.js)
-      - Excludes IDE files (.claude/, .vscode/)
-      - Final image size: ~180MB (node:20-alpine base + 101 npm packages)
-  - ✅ **Docker Testing & Validation** - All tests passed successfully
-    - ✅ Built Docker image successfully (Docker v29.1.3, Compose v2.40.3)
-    - ✅ Container starts and runs with healthy status
-    - ✅ Application accessible at http://localhost:3000
-    - ✅ Database migrations run automatically on first start
-    - ✅ Database persistence verified across container restarts
-    - ✅ Volume mount working correctly (`./data/notecottage.db` on host)
-    - ✅ Health check passes (container reports healthy status)
-    - ✅ WAL mode database files persist correctly (db, db-shm, db-wal)
-
-**Session 10 (December 29, 2025):**
-- ✅ **Multi-User Support (IN PROGRESS)** - Session-based authentication with hybrid shared/private folders
-  - ✅ **Database Schema Updates**
-    - Added `users` table (id, username, email, password_hash, display_name, is_admin, created_at)
-    - Added `system_settings` table (key-value storage for app configuration)
-    - Added `user_id` column to notes and folders tables (ownership tracking)
-    - Added `is_public` boolean to folders table (shared vs private)
-    - Per-user Uncategorized folders created automatically on registration
-    - First registered user becomes admin automatically
-  - ✅ **Authentication System**
-    - express-session with SQLite store for persistent sessions
-    - bcrypt password hashing (cost factor 12)
-    - Session middleware with 30-day cookie lifetime
-    - Auth endpoints: register, login, logout, /api/auth/me, profile
-    - Middleware: requireAuth, requireAdmin, attachUser
-    - Proper session management with secure cookies in production
-  - ✅ **API Permission Enforcement**
-    - getAllFoldersForUser() filters folders by visibility (public + owned private)
-    - Permission checking functions: canUserAccessFolder/Note, canUserModifyFolder/Note
-    - All folder/note endpoints protected with requireAuth middleware
-    - Create/update/delete operations validate ownership
-    - Shared folders (is_public=1) visible and editable by all users
-    - Private folders (is_public=0) visible only to owner
-  - ✅ **Admin Panel Backend**
-    - 7 admin-only endpoints for user and settings management
-    - User management: list users, create user, update user, delete user
-    - System settings: get/update registration toggle, max users limit
-    - Statistics endpoint: user count, note count, folder count
-    - Safeguards: can't delete self, can't delete last admin
-  - ✅ **Frontend Authentication UI**
-    - Created login.html with styled login/registration forms
-    - Password strength indicator with visual feedback
-    - First-user detection (automatically shows registration for admin account)
-    - Form validation and error/success messaging
-    - Automatic redirect after successful login/registration
-  - ✅ **Frontend Privacy Indicators**
-    - Folder form includes public/private checkbox with preview badge
-    - Visual badges in folder tree (🌍 for shared, 🔒 for private)
-    - User dropdown menu showing current username
-    - Theme picker consolidated into user menu
-    - Profile and logout options in user menu
-    - Admin panel button (visible only to admins)
-  - ✅ **UX Fixes**
-    - Fixed folder selection toggle (click twice to deselect)
-    - Fixed root-level folder creation when "All Notes" is selected
-    - Fixed user dropdown menu visibility using CSS classes
-    - Consolidated theme picker into user dropdown to reduce header clutter
-  - ✅ **Admin Panel UI (COMPLETE)**
-    - Created admin.html with three tabs: Statistics, User Management, System Settings
-    - Statistics tab displays user count, note count, folder count with visual cards
-    - User Management tab: table listing all users with edit/delete actions
-    - "Create User" button for admin to add users manually
-    - Edit user modal for updating username, email, display name, password, admin status
-    - Delete confirmation dialog for user removal
-    - System Settings tab: toggle registration on/off, set max users, customize app name
-    - Save settings button with visual feedback
-    - Styled with cottage theme for consistency
-    - All API endpoints fully functional and integrated
-  - ✅ **UI Polish and Fixes**
-    - Compact "New User" button (reduced padding and width)
-    - Improved admin panel spacing and layout
-    - Better stat card styling with hover effects
-    - Fixed login page to correctly detect existing users vs first-time setup
-    - Added public /api/auth/status endpoint for proper user detection
-    - Fixed user creation endpoint (folder parameter order)
-    - Fixed Modal component to support both old and new APIs
-  - ✅ **Private/Shared Folder Organization (COMPLETE)**
-    - Implemented virtual root folders: 🔒 Private and 👥 Shared
-    - Modified buildFolderTree() to create two-tier structure
-    - Top-level folders automatically sorted into Private/Shared based on is_public flag
-    - Drag-and-drop between Private/Shared sections to change folder privacy
-    - Virtual folders always expanded by default
-    - Removed redundant privacy badges (organization makes them clear)
-    - Folders now visually separated for better organization
-  - ✅ **Enhanced Folder Creation Dialog**
-    - Added parent folder selector with visual tree view
-    - Tree view shows folder hierarchy with proper indentation
-    - Click to select parent folder (highlighted in accent color)
-    - Smooth hover effects for better UX
-    - Pre-selects currently active folder as default parent
-    - Dark theme compatible with proper text colors
-    - Much more intuitive than dropdown list
-  - ✅ **UX Improvements**
-    - Reduced folder/note indentation from 20px to 12px per level (40% reduction)
-    - Prevents deeply nested folders from being cut off
-    - Better horizontal space usage
-    - Drag folder to itself now silently ignored (no error dialog)
-    - Shared Folder checkbox in creation dialog now properly respected
-  - ✅ **Critical Bug Fixes**
-    - Fixed 403 Forbidden error when editing notes (missing user_id in getNoteById query)
-    - Fixed permission checks for legacy notes (created before multi-user system)
-    - Added proper handling for notes without folders or with missing folders
-    - Legacy notes (user_id = NULL) now properly accessible to all authenticated users
-    - Backward compatibility maintained for pre-multi-user installations
-  - ⏳ **Remaining Tasks**
-    - Comprehensive multi-user testing (permissions, sessions, admin features)
-    - Optional: Invitation system for when registration is disabled
-
-**Session 11 (December 30, 2025):**
-- ✅ **Profile Settings Page (COMPLETE)** - Comprehensive user profile management
-  - Created profile.html with six main sections
-  - Account information display (username, email, account creation date)
-  - Profile settings (editable display name)
-  - Security section (password change with current password verification)
-  - Preferences section (theme selector with live preview)
-  - Statistics section (notes created, folders created)
-  - Danger zone (account deletion with double confirmation)
-  - Beautiful card-based layout matching admin panel styling
-  - All backend endpoints functional (/api/auth/stats, /api/auth/account)
-  - Profile button in user menu now navigates to /profile.html
-- ✅ **Theme System Enhancements (COMPLETE)** - Cottage theme default, full theme support
-  - **Cottage theme now default** across entire application
-    - Changed all 8 instances from 'light' to 'cottage' default
-    - Login/registration pages display in Cottage theme
-    - New users start with Cottage theme automatically
-    - All pages default to Cottage if no preference saved
-  - **Full theme support for all pages**
-    - Replaced hardcoded colors with CSS variables in admin.html
-    - Replaced hardcoded colors with CSS variables in profile.html
-    - Theme applies immediately on page load (inline script in <head>)
-    - Consistent theming across login, notes, profile, admin pages
-  - **Improved theme selector UI**
-    - Hidden radio buttons with card-based selection
-    - Entire theme card is clickable
-    - Checkmark indicator on active theme (✓ badge in corner)
-    - Hover effects with slight elevation
-    - Theme changes apply instantly (no save button needed)
-    - Centered text with emoji indicators
-- ✅ **Database Backup & Restore System (COMPLETE)** - Admin-only disaster recovery
-  - **Backend implementation:**
-    - GET /api/admin/backup - Download complete database file
-    - POST /api/admin/restore - Upload and restore from backup
-    - Installed multer for file upload handling
-    - Validates SQLite database format before restore
-    - Creates safety backup before restore (timestamped)
-    - Server auto-restart after restore for clean reconnection
-  - **Frontend implementation:**
-    - New "Backup & Restore" tab in admin panel
-    - Download backup button with progress feedback
-    - File upload with .db validation
-    - Warning banner about data replacement
-    - Double confirmation dialog before restore
-    - Status messages throughout process
-    - Automatic redirect to login after restore
-  - **Safety features:**
-    - Admin-only access (requireAdmin middleware)
-    - File format validation (SQLite header check)
-    - Safety backup created automatically
-    - Cannot restore invalid files
-    - Clear warnings about data loss
-- ✅ **UI/UX Improvements**
-  - Modern toggle switch for admin settings (replaced checkbox)
-  - Styled number input matching theme (for max users setting)
-  - Fixed authentication flash on index page (hidden until auth confirmed)
-  - Fixed scrolling issues on profile page
-  - Removed double horizontal rule in admin settings
-  - Smooth fade-in transition for authenticated users
-- ✅ **Backend Enhancements**
-  - Added getUserStatistics() function to database.js
-  - Created uploads/ directory for temporary file storage
-  - Added created_at field to user profile endpoint
-  - File cleanup after backup restore operations
-  - Proper error handling for all new endpoints
-
-**Session 12 (December 31, 2025):**
-- ✅ **Image Support for Notes (COMPLETE)** - Dual storage for uploads and external URLs
-  - **Database schema:**
-    - Added attachments table with 15 columns tracking metadata
-    - Supports dual storage types: 'upload' (local files) and 'external' (URLs)
-    - Stores dimensions, MIME type, file size, alt text, position
-    - CASCADE DELETE on note_id and user_id for automatic cleanup
-  - **Backend API:**
-    - Installed image-size package (v2.0.2) for dimension extraction
-    - Configured multer for file uploads (10MB limit, MIME validation)
-    - Added helper functions: sanitizeFilename(), ensureDirectoryExists()
-    - Implemented 5 attachment endpoints:
-      - POST /api/notes/:noteId/attachments/upload - File upload with metadata
-      - POST /api/notes/:noteId/attachments/external - Link external URLs
-      - GET /api/attachments/:id - Serve images with auth (streams or redirects)
-      - GET /api/notes/:noteId/attachments - List note's attachments
-      - DELETE /api/attachments/:id - Delete attachment and file
-    - File organization: /uploads/user_{userId}/note_{noteId}/filename.ext
-    - Permission inheritance: images inherit note/folder privacy settings
-    - Security: MIME validation, size limits, path traversal prevention
-  - **Frontend UI:**
-    - Added 📷 Image button to editor toolbar (line 130)
-    - Created image-gallery.css for thumbnail grid styling
-    - Created image-modal.js - Two-tab modal (Upload File | Link URL)
-      - Drag-drop zone with visual feedback
-      - File preview before upload
-      - Alt text input fields
-      - Progress and status indicators
-    - Created image-upload.js - Upload/gallery logic
-      - uploadImage() - Handles FormData file upload
-      - linkExternalImage() - Handles URL linking
-      - loadAttachments() - Fetches note's images
-      - renderAttachmentsGallery() - Displays thumbnail grid in sidebar
-      - deleteAttachment() - Remove image with confirmation
-      - insertMarkdownAtCursor() - Insert ![](url) syntax at cursor
-    - Added drag-drop support (drop images into editor to upload)
-    - Added clipboard paste support (Ctrl+V to paste screenshots)
-    - Image gallery in sidebar with click-to-insert functionality
-    - Delete button (×) on hover over thumbnails
-    - Gallery shows attachment count badge
-  - **Docker integration:**
-    - Added /app/uploads volume mount to docker-compose.yml
-    - Created uploads directory with proper permissions in Dockerfile
-    - Volume persistence ensures images survive container restarts
-  - **UX improvements:**
-    - Fixed new note creation to automatically switch to edit mode if in preview mode
-    - Confirmed intentional design: new notes don't autosave until first manual save (need title first)
-  - **Documentation:**
-    - Updated PROJECT_STATUS.md with Image Support features section
-    - Added attachments table to Database Schema section
-    - Added attachment endpoints to API Endpoints section
-  - **Git commit:**
-    - Committed all image support changes (commit 926371d)
-    - Updated Docker image with `docker-compose build --no-cache`
-
-**Session 13 (December 31, 2025):**
-- ✅ **Docker Hub Publishing (IN PROGRESS)** - First deployment to Docker Hub for easy installation
-  - Published initial image to leporcbarbu/notecottage:latest
-  - Successfully tested pull and deployment on separate computer
-  - Identified and addressed deployment issues for production use
-- 🔧 **Docker Container Fixes** - Resolved critical deployment issues
-  - **Volume Permissions Fix:**
-    - Created docker-entrypoint.sh script with permission checking
-    - Script validates write access to /app/data before starting app
-    - Provides helpful error messages with fix instructions if permissions fail
-    - Updated Dockerfile to use entrypoint script
-    - Added documentation about chmod 777 requirement for data/uploads directories
-  - **Session Cookie Fix:**
-    - Changed secure cookie logic from NODE_ENV-based to explicit SECURE_COOKIES env var
-    - Allows HTTP access by default (required for http://localhost:3000)
-    - Users can set SECURE_COOKIES=true when behind HTTPS reverse proxy
-    - Fixed login redirect loop issue in production Docker containers
-  - **Cache Control Headers:**
-    - Added no-cache headers for HTML files to prevent stale content
-    - Set 1-hour cache for CSS/JS files (balance between freshness and performance)
-    - Prevents blank page issues after updates
-    - Note: Browser cache issue still partially unresolved (requires investigation)
-  - **Documentation Updates:**
-    - Created comprehensive DOCKER_HUB_GUIDE.md with publishing workflow
-    - Updated docker-compose.yml with helpful comments about permissions and env vars
-    - Added troubleshooting section for common Docker deployment issues
-    - Documented SECURE_COOKIES environment variable
-- ⏳ **Known Issues to Resolve:**
-  - Browser caching issue: Blank page after login on first access (requires hard refresh)
-  - Need to investigate better cache-busting strategies or versioned asset URLs
-
-**Session 14 (January 1, 2026):**
-- ✅ **Browser Caching Issue RESOLVED** - Fixed blank page after login problem
-  - **Root Cause Identified:** API endpoints lacked no-cache headers, causing browsers to cache authentication state
-  - **Backend Fix:**
-    - Added middleware to prevent caching of all `/api/*` endpoints (server.js:104-111)
-    - Middleware sets `Cache-Control: no-cache, no-store, must-revalidate` on all API responses
-    - Prevents stale authentication state from being cached by browsers
-  - **Frontend Enhancement:**
-    - Added cache-busting meta tags to all HTML files (index.html, login.html, admin.html, profile.html)
-    - Meta tags: `Cache-Control`, `Pragma`, `Expires` headers in `<head>` section
-    - Reinforces server-side cache headers at the browser level
-  - **Testing & Validation:**
-    - Verified cache headers locally using curl: API endpoints return proper no-cache headers ✓
-    - Verified HTML files return no-cache headers ✓
-    - Verified CSS/JS files return 1-hour cache headers (unchanged) ✓
-    - Tested in Docker container: All cache headers working correctly ✓
-  - **Docker Hub Deployment:**
-    - Rebuilt Docker image with all caching fixes (no-cache build)
-    - Tagged as version 1.0.1 (patch release for critical bug fix)
-    - Pushed both `leporcbarbu/notecottage:1.0.1` and `latest` to Docker Hub ✓
-    - Updated package.json version from 1.0.0 → 1.0.1
-  - **Result:** Login flow now works smoothly without blank pages or redirect loops
-
-- ✅ **Normal Refresh Bug RESOLVED** - Fixed blank page on F5 refresh (v1.0.2)
-  - **Issue Discovered:** Testing on deployed instance revealed normal refresh (F5) still showed blank pages
-  - **Root Cause:** DOMContentLoaded race condition in index.html inline authentication script
-    - On normal refresh, DOM loads faster than hard refresh (uses cached resources)
-    - Async auth check completes after DOMContentLoaded event has already fired
-    - Event listener never executes, `authenticated` class never added, page stays at opacity: 0
-  - **Fix Applied (public/index.html:37-44):**
-    - Added `document.readyState === 'loading'` check before adding event listener
-    - If DOM already loaded: Add `authenticated` class immediately
-    - If DOM still loading: Add event listener as before (original behavior)
-  - **Testing on http://allura:3002:**
-    - ✅ Normal refresh (F5) now works correctly
-    - ✅ Hard refresh (Ctrl+F5) still works
-    - ✅ Initial login works smoothly
-  - **Docker Hub Deployment:**
-    - Rebuilt Docker image with refresh fix (no-cache build)
-    - Tagged as version 1.0.2 (second patch release)
-    - Pushed both `leporcbarbu/notecottage:1.0.2` and `latest` to Docker Hub ✓
-    - Updated package.json version from 1.0.1 → 1.0.2
-  - **Result:** All refresh scenarios now work perfectly - login experience is smooth and reliable
-
-- ✅ **Database Restore Bug RESOLVED** - Fixed Modal.confirm() missing method (v1.0.3)
-  - **Issue Discovered:** Database restore button in admin panel not working
-  - **Browser Console Error:** `Modal.confirm is not a function`
-  - **Root Cause:** Modal component was missing static `confirm()` helper method
-    - admin.js (line 496) and profile.html both called `Modal.confirm()`
-    - This method didn't exist, causing all confirmation dialogs to fail
-    - Affected features: Database restore, account deletion
-  - **Fix Applied (public/js/components/modal.js:228-250):**
-    - Added static `Modal.confirm(title, message, confirmText, cancelText)` method
-    - Returns a Promise that resolves to true (confirmed) or false (cancelled)
-    - Uses the existing button array API to create two-button modal
-    - Cancel button: resolves with false, closes modal
-    - Confirm button: resolves with true, closes modal
-  - **Docker Hub Deployment:**
-    - Rebuilt Docker image with Modal.confirm fix (no-cache build)
-    - Tagged as version 1.0.3 (third patch release)
-    - Pushed both `leporcbarbu/notecottage:1.0.3` and `latest` to Docker Hub ✓
-    - Updated package.json version from 1.0.2 → 1.0.3
-  - **Result:** Database restore and account deletion now work correctly
-
-- ✅ **Database Restore Complete Flow WORKING** - Fixed Modal.alert() and favicon (v1.0.4)
-  - **Issue Discovered:** Database restore still failing after Modal.confirm fix
-  - **Browser Console Errors:**
-    - `GET /images/notecottage-favicon.png 404 (Not Found)`
-    - `Modal.alert is not a function` (admin.js:528)
-  - **Root Causes:**
-    1. **Missing Favicon:** HTML files referenced `notecottage-favicon.png` but file was named `NoteCottage.png`
-    2. **Missing Modal.alert():** After successful restore, admin.js called `Modal.alert()` to show success message, but method didn't exist
-  - **Fixes Applied:**
-    - **Favicon Fix:** Copied NoteCottage.png → notecottage-favicon.png to match expected filename
-    - **Modal.alert() (public/js/components/modal.js:252-266):**
-      - Added static `alert(title, message, okText = 'OK')` method
-      - Returns Promise that resolves when user clicks OK
-      - Shows single-button information dialog
-      - Consistent with confirm() method implementation
-  - **Testing on http://allura:3002:**
-    - ✅ Favicon loads without 404 error
-    - ✅ Database restore confirmation modal appears
-    - ✅ Database restore completes successfully
-    - ✅ Success alert modal displays properly
-    - ✅ Redirects to login page after restore
-    - ✅ No console errors
-  - **Docker Hub Deployment:**
-    - Rebuilt Docker image with both fixes (no-cache build)
-    - Tagged as version 1.0.4 (fourth patch release)
-    - Pushed both `leporcbarbu/notecottage:1.0.4` and `latest` to Docker Hub ✓
-    - Updated package.json version from 1.0.3 → 1.0.4
-  - **Result:** Database restore now works end-to-end, including success notification
-
-- ⚠️ **CRITICAL SECURITY FIX** - User Privacy Breach Resolved (v1.0.5)
-  - **Issue Discovered:** Users could see ALL notes from ALL users (CRITICAL vulnerability)
-  - **Discovery:** User's wife logged in and could see all his private notes in "All Notes" view
-  - **Root Cause:** `/api/notes` endpoint called `db.getAllNotes()` without any user filtering
-    - Permission system (`canUserAccessNote`, `canUserAccessFolder`) existed but wasn't being used
-    - Endpoint was missing `requireAuth` middleware
-  - **Fixes Applied:**
-    - **database.js: Added `getNotesForUser(userId)` (lines 663-678)**
-      - Filters notes based on folder permissions
-      - Returns only notes user owns OR notes in public folders
-      - Uses existing `canUserAccessNote()` permission checks
-    - **server.js: Fixed `/api/notes` endpoint (line 863)**
-      - Added `requireAuth` middleware (was missing!)
-      - Changed from `db.getAllNotes()` to `db.getNotesForUser(req.session.userId)`
-    - **database.js: Exported new function in module.exports**
-  - **Additional Fixes:**
-    - **Uncategorized Folder Creation Bug (app.js:706):**
-      - Prevented subfolder creation under "Uncategorized" label
-      - Treats folder ID '1' same as virtual folders
-    - **Hide Uncategorized from Parent Selector (folder-form.js:115):**
-      - Removed "Uncategorized" from parent folder dropdown
-      - Doesn't make sense to select Uncategorized as parent
-    - **Prevent Drag-Drop to Uncategorized (app.js:1400):**
-      - Wrapped drag-drop listeners to exclude folder ID '1'
-      - Can't drag folders into Uncategorized anymore
-  - **Testing on http://allura:3002:**
-    - ✅ Users only see their own private notes
-    - ✅ Users can see shared (public) notes
-    - ✅ Uncategorized folder restrictions work correctly
-    - ✅ No subfolder creation under Uncategorized
-    - ✅ Can't drag folders to Uncategorized
-  - **Docker Hub Deployment:**
-    - Rebuilt Docker image with security fixes (no-cache build)
-    - Tagged as version 1.0.5 (critical security patch)
-    - Pushed `leporcbarbu/notecottage:1.0.5` and `latest` to Docker Hub ✓
-    - Updated package.json version from 1.0.4 → 1.0.5
-  - **Result:** CRITICAL privacy vulnerability fixed - multi-user isolation now works correctly
-
-**Session 14 (January 1, 2026):**
-- ✅ **Folder System Improvements** - Uncategorized notes inline at root level (v1.0.6)
-  - **Removed "Uncategorized" Folder Concept:**
-    - Eliminated special folder ID 1 for uncategorized notes
-    - Notes with `folder_id = NULL` now displayed inline at root level
-    - Migration: Automatically moves notes from old Uncategorized folder to root
-    - Database migration removes old Uncategorized folder on startup
-  - **Uncategorized Notes Display:**
-    - Notes without folders appear under Private section (not in separate virtual folder)
-    - Displayed **first**, sorted alphabetically by title
-    - Only shown to owning user (or users with no user_id for legacy notes)
-    - Public notes without folders remain private to owner
-  - **Alphabetical Folder Sorting:**
-    - Implemented case-insensitive alphabetical sorting: `ORDER BY LOWER(name) ASC`
-    - Changed from position-based ordering to alphabetical
-    - Folders displayed **second** (after uncategorized notes), sorted alphabetically
-    - Updated both `getAllFolders` and `getFoldersForUser` queries
-  - **Database Changes (database.js):**
-    - Changed `createNote()` default from `folderId = 1` to `folderId = null` (line 674)
-    - Added migration to move notes from folder ID 1 to NULL (lines 167-184)
-    - Migration deletes old Uncategorized folder after moving notes
-    - Folder sorting queries updated to use `LOWER(name) ASC` (lines 440-451)
-  - **Frontend Changes (public/js/app.js):**
-    - Modified `createFolderElement()` to show uncategorized notes inline (lines 1320-1341)
-    - Filter shows notes owned by current user OR with no user_id (legacy support)
-    - Uncategorized notes sorted alphabetically, then folders alphabetically
-    - Updated new note/folder creation to handle Private/Shared virtual folders
-    - Fixed duplicate variable declaration bug that broke the app
-  - **Testing on http://localhost:3000:**
-    - ✅ Uncategorized notes appear under Private section
-    - ✅ Notes sorted alphabetically at top
-    - ✅ Folders sorted alphabetically below notes
-    - ✅ Migration works automatically on startup
-    - ✅ New notes in Private section created with folder_id = NULL
-  - **Docker Hub Deployment:**
-    - Version bumped from 1.0.5 → 1.0.6
-    - Built Docker image with `--no-cache` flag
-    - Tagged as `leporcbarbu/notecottage:1.0.6` and `latest`
-    - Pushed both tags to Docker Hub ✓
-    - Available: `docker pull leporcbarbu/notecottage:1.0.6`
-  - **Git Commits:**
-    - da257c9 - v1.0.6: Folder improvements - uncategorized notes at root level
-    - 2e62cc7 - Update PROJECT_STATUS.md for v1.0.6
-  - **Bug Fixes:**
-    - Fixed duplicate variable declaration (`hasUncategorizedNotes`) that broke app loading
-    - Fixed uncategorized notes filter to include legacy notes with no user_id
-  - **Result:** Cleaner, more intuitive folder organization with alphabetical sorting and proper uncategorized note display
-
-**Session 15 (January 2, 2026):**
-- ✅ **GitHub Repository Publication (COMPLETE)** - NoteCottage now open source on GitHub
-  - **Documentation Creation:**
-    - Created comprehensive README.md (340 lines) with:
-      - Project overview with Docker Hub badges and shields
-      - Complete feature list organized into 9 categories
-      - Quick start guides for both Docker and Node.js
-      - Configuration reference with environment variables table
-      - Deployment options (LAN, VPN, HTTPS)
-      - Usage tips for all major features
-      - Troubleshooting section
-      - Contributing guidelines
-      - Acknowledgments (Obsidian, Trilium, Mealie)
-    - Created LICENSE file (MIT License)
-    - Updated both files to use real name (Joshua C. Diller) instead of username
-  - **Git Repository Setup:**
-    - Committed documentation files (commits 37d73c2, 3d56204)
-    - Added GitHub remote origin
-    - Pushed all code to https://github.com/leporcbarbu/NoteCottage
-    - Created release tag v1.0.6
-  - **Docker Hub Documentation:**
-    - Created DOCKER_HUB_README.md - Docker Hub-optimized version
-    - Condensed feature list for quick scanning
-    - Emphasized quick start with docker-compose
-    - Added troubleshooting for common container issues
-    - Linked to GitHub repository for full documentation
-  - **Result:** NoteCottage is now a fully open-source project with professional documentation
-
-- ✅ **CRITICAL BUG FIX (v1.0.7)** - Resolved 403 Forbidden error when saving notes
-  - **Issue Discovered:** Users could not save notes, receiving "Failed to save note" error
-  - **Browser Console Error:** `POST /api/notes 403 (Forbidden)`
-  - **Root Cause Analysis:**
-    - v1.0.6 removed "Uncategorized" folder (folder ID 1)
-    - server.js POST /api/notes endpoint still defaulted to `folder_id = 1` for new notes
-    - Permission check failed because folder ID 1 no longer exists
-    - Result: All note creation attempts returned 403 Forbidden
-  - **Fixes Applied (server.js):**
-    - Line 983: Changed default from `folderId = 1` to `folderId = null`
-    - Line 986: Skip permission check for uncategorized notes (folder_id = null)
-    - Line 1401: Removed obsolete folder ID 1 reorder check
-  - **Testing:**
-    - ✅ Notes can now be created without folders (uncategorized)
-    - ✅ Notes can be created in Private folders
-    - ✅ Notes can be created in Shared folders
-    - ✅ Permission checks work correctly for folder-based notes
-  - **Deployment:**
-    - Git commit: a9b9eec
-    - Version bumped: 1.0.6 → 1.0.7
-    - Created release tag v1.0.7
-    - Pushed to GitHub
-    - Built Docker image with --no-cache
-    - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.7 and :latest
-  - **Result:** Critical production blocker resolved - note creation now works correctly
-
-- ✅ **Deployment Documentation (COMPLETE)** - Comprehensive guides for all deployment scenarios
-  - **Production Deployment Guide (production.md - 874 lines):**
-    - Server hardening (firewall, SSH security, automatic updates)
-    - Directory structure and organization
-    - SSL certificate setup with Let's Encrypt (certbot)
-    - Production nginx configuration:
-      - Rate limiting for auth/API endpoints (5/30/60 req/min)
-      - Security headers (HSTS, X-Frame-Options, CSP, Referrer-Policy)
-      - Gzip compression for performance
-      - HTTP to HTTPS redirect
-      - OCSP stapling for certificate validation
-    - Docker Compose with health checks and log rotation
-    - Automated backup script with cron scheduling (daily at 2 AM)
-    - Monitoring setup:
-      - System monitoring (htop, docker stats)
-      - nginx access/error logs analysis
-      - Log rotation with logrotate
-      - External uptime monitoring (UptimeRobot, Pingdom)
-    - Performance optimization:
-      - nginx caching for static assets (1h TTL)
-      - Database optimization (WAL mode, VACUUM for large databases)
-      - Container resource limits
-    - Security hardening:
-      - fail2ban for brute force prevention (5 attempts in 10min = 1hr ban)
-      - Regular security update procedures
-      - Backup verification monthly
-    - Disaster recovery procedures
-    - Maintenance checklists (daily/weekly/monthly/quarterly)
-    - Troubleshooting guide (CPU, memory, SSL, database issues)
-    - Scaling considerations (vertical scaling, future PostgreSQL migration)
-    - Cost estimation ($5-10/month cloud, $1-3/month on-premises)
-  - **All Deployment Guides Complete:**
-    - ✅ basic.md - Simple LAN deployment (197 lines)
-    - ✅ reverse-proxy.md - nginx + SSL with mkcert/Let's Encrypt (360 lines)
-    - ✅ tailscale.md - Secure VPN remote access (414 lines)
-    - ✅ production.md - Enterprise-grade production setup (874 lines)
-  - **Total:** 1,845 lines of deployment documentation
-  - **Result:** Users can now deploy NoteCottage in any scenario from home LAN to production cloud
-
-- ✅ **Create from Broken Link Feature (v1.0.8)** - Instant note creation from wiki-links
-  - **Implementation:**
-    - Added click handler for `.wiki-link-broken` elements (app.js lines 700-720)
-    - Pre-fills note title with broken link text
-    - Focuses on content field for immediate typing
-    - Console log confirmation for debugging
-  - **UI/UX Improvements:**
-    - Changed cursor from `not-allowed` to `pointer` (now clickable)
-    - Added hover effects with smooth transitions (0.2s)
-    - Light theme: broken links darken on hover (#999 → #666)
-    - Dark theme: broken links lighten on hover (#666 → #888)
-    - Dashed underline becomes more visible on hover
-  - **User Workflow:**
-    1. Write: "Check out my [[Project Ideas]] note"
-    2. Broken link appears grayed with dashed underline
-    3. Click the broken link
-    4. New note opens with title "Project Ideas" already filled
-    5. Cursor in content field, ready to type
-    6. Save to complete
-  - **Benefits:**
-    - Natural workflow: create connections first, add content later
-    - Faster than manual "New Note" → type title → start writing
-    - Familiar pattern from Obsidian/Roam Research
-    - Encourages organic knowledge graph building
-  - **Result:** Wiki-link workflow now complete - matches Obsidian UX pattern
-  - **Deployment:**
-    - Git commit: e2c2840
-    - Version bumped: 1.0.7 → 1.0.8
-    - Created release tag v1.0.8
-    - Pushed to GitHub
-    - Built Docker image with --no-cache
-    - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.8 and :latest
-  - **Testing:** Verified working on localhost - smooth UX, instant note creation
-
-- ✅ **Progressive Web App (PWA) - COMPLETE (v1.0.9)** - Full mobile app support with offline capability
-  - **Files Created:**
-    - `public/manifest.json` - Web app manifest with app metadata
-      - App name, description, icons configuration
-      - Standalone display mode for native-like experience
-      - Theme colors matching Cottage theme (#8B6F47)
-      - Background color: #f5f0e8 (cottage cream)
-    - `public/sw.js` - Service worker for offline support (110 lines)
-      - Static asset caching (CSS, JS, libraries)
-      - Dynamic content caching (API responses, images)
-      - Cache versioning (v1.0.9)
-      - Intelligent fetch strategy (cache-first with network fallback)
-      - Old cache cleanup on activation
-      - Message handling for skip waiting
-    - `public/images/icon-192.png` - PWA icon (192x192)
-    - `public/images/icon-512.png` - PWA icon (512x512)
-    - `PWA_TESTING.md` - Comprehensive testing guide
-  - **Integration Changes:**
-    - `public/index.html` - Added PWA meta tags
-      - Manifest link
-      - Theme color meta tag
-      - iOS-specific PWA support (apple-mobile-web-app tags)
-      - Apple touch icon reference
-    - `public/js/app.js` - Service worker registration
-      - Auto-registers on page load (after auth check)
-      - Console logging for debugging
-      - Graceful fallback if unsupported
-  - **Features Enabled:**
-    - ✅ "Add to Home Screen" on mobile devices
-    - ✅ Standalone app mode (no browser UI)
-    - ✅ Offline support (cached pages and assets)
-    - ✅ Fast loading (cached static assets)
-    - ✅ App icon on device home screen
-    - ✅ Theme color in status bar
-    - ✅ Works on Android, iOS, and Desktop
-  - **Testing:**
-    - Verified manifest.json served correctly (200 OK)
-    - Verified sw.js served correctly (200 OK)
-    - Service worker registers on page load
-    - Created comprehensive testing guide (PWA_TESTING.md)
-  - **Deployment:**
-    - Git commit: 9857fa1
-    - Version bumped: 1.0.8 → 1.0.9
-    - Created release tag v1.0.9
-    - Pushed to GitHub
-    - Built Docker image with --no-cache
-    - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.9 and :latest
-  - **Result:** NoteCottage is now a fully functional Progressive Web App - can be installed on mobile devices!
-
-- ✅ **Mobile UI Enhancements - COMPLETE (v1.0.10)** - Production-ready mobile experience
-  - **Problem Solved:** User tested v1.0.9 on Android device - UI too crowded, needed better mobile UX
-  - **Files Created:**
-    - `public/css/components/toast.css` - Toast notification styling
-      - Modern floating notifications positioned bottom-left (desktop) or bottom-center (mobile)
-      - Success, error, info, warning variants with color-coded styling
-      - Auto-dismiss animations with configurable duration
-      - Responsive positioning for all screen sizes
-    - `public/js/components/toast.js` - Toast notification component (142 lines)
-      - Global toast API: `window.toast.success()`, `error()`, `info()`, `warning()`
-      - Saving state management: `saving()` → `saved()` flow
-      - Queue management for multiple simultaneous toasts
-      - Touch-friendly mobile implementation
-  - **Files Modified:**
-    - `public/css/mobile.css` - Comprehensive mobile UI improvements (450+ lines)
-      - Fixed hamburger menu positioning (position: fixed, z-index: 201)
-      - Added touch responsiveness (`touch-action: manipulation`)
-      - Hidden status bar on mobile (no bottom scrollbar)
-      - Transparent Preview/Edit buttons to prevent overlap
-      - Editor header optimized with proper spacing for hamburger button
-      - Mobile overflow menu (⋮) for Save/Export/Delete actions
-      - Admin panel responsive design:
-        - Tabs in 2x2 grid (no horizontal scroll)
-        - User management table converts to cards on small screens (<480px)
-        - Stacked header with full-width "+ New User" button
-        - Stat cards in single column layout
-      - All buttons with 44px minimum touch targets
-    - `public/index.html` - Mobile menu and toast integration
-      - Added toast.css and toast.js links
-      - Added mobile overflow menu (⋮) with nested export submenu
-      - Proper mobile menu structure with actions
-    - `public/admin.html` - Added mobile.css stylesheet for responsive admin panel
-    - `public/js/app.js` - Mobile functionality and toast integration
-      - Replaced status bar save indicators with toast notifications
-      - Mobile hamburger menu with improved touch handling
-      - Mobile overflow menu toggle with outside-click dismissal
-      - Export submenu handling for mobile
-      - Console logging for mobile debugging
-    - `public/js/admin.js` - Added data-label attributes to table cells
-      - Enables card-based layout transformation on mobile
-      - Labels: Username, Email, Display Name, Role, Created, Actions
-    - `public/sw.js` - Service worker updates
-      - Cache version: v1.0.10-mobile3
-      - Added toast.css and toast.js to STATIC_ASSETS
-  - **Features Implemented:**
-    - ✅ Toast notification system (replaces status bar on all devices)
-    - ✅ Working hamburger menu with proper touch handling
-    - ✅ Mobile overflow menu (⋮) for note actions
-    - ✅ Hidden status bar on mobile (eliminated bottom scrollbar)
-    - ✅ Transparent button styling to prevent overlap
-    - ✅ Responsive admin panel with 2x2 tab grid
-    - ✅ Card-based user table on small screens
-    - ✅ Full accessibility with 44px touch targets
-  - **Git Commit:** d355b16 (Mobile UI Enhancements - v1.0.10)
-  - **Deployment:**
-    - Version bumped: 1.0.9 → 1.0.10
-    - Created release tag v1.0.10
-    - Pushed to GitHub
-    - Built Docker image with --no-cache
-    - Pushed to Docker Hub: leporcbarbu/notecottage:1.0.10 and :latest
-  - **Testing:** Verified on Chrome DevTools mobile emulation (Pixel 7, Pixel 8 Pro)
-  - **Result:** NoteCottage now has a fully functional, production-ready mobile UI!
-
-- ✅ **Plain Text Note Type Support - COMPLETE (v1.1.0)** - Flexible note type system
-  - **Problem Solved:** Users need flexibility to choose between simple plain text notes and formatted markdown notes
-  - **Files Modified:**
-    - `database.js` - Database schema migration and type handling
-      - Added `type` column to notes table (default: 'markdown')
-      - Updated all SQL queries to include type field
-      - Modified `createNote()` function to accept type parameter
-      - Backward compatible with existing markdown notes
-    - `server.js` - API updates for note type
-      - POST /api/notes accepts optional `type` parameter
-      - Defaults to 'markdown' for backward compatibility
-      - Returns note type in API responses
-      - Added debug logging for type parameter
-    - `package.json` - Version bump to 1.1.0
-    - `public/index.html` - UI structure for note type selection
-      - New note dropdown menu with text/markdown options
-      - Text editor view (textEditorView with textNoteContent textarea)
-      - Separate text editor component for plain text notes
-    - `public/css/style.css` - Styling for new components (85+ lines)
-      - Text editor styles (.text-editor-view, .text-note-editor)
-      - New note dropdown menu styles (.new-note-dropdown, .new-note-menu)
-      - Note type option styles with hover states
-      - Type icon styles for note list
-    - `public/css/mobile.css` - Mobile optimizations
-      - Responsive text editor with 16px font (prevents iOS zoom)
-      - Mobile-friendly dropdown menu
-    - `public/js/app.js` - Note type functionality (300+ lines modified)
-      - State management for currentNoteType
-      - New note dropdown toggle and type selection
-      - Smart editor switching (text vs markdown)
-      - Type-specific icons in note list (📄 text, 📝 markdown)
-      - Hide markdown features for text notes (Preview, Images, Tags, Wiki-links)
-      - Word count supports both note types
-      - Autosave works for both note types
-      - Export handling:
-        - Text notes → .txt files
-        - Markdown notes → .md files
-        - HTML/PDF export for both types
-      - Fixed mobile save/delete button references
-  - **Features Implemented:**
-    - ✅ Note type selection dropdown (Text Note / Markdown Note)
-    - ✅ Plain text editor (simple textarea, no toolbar)
-    - ✅ Markdown editor (full features: Preview, Images, Tags, Wiki-links)
-    - ✅ Type-specific icons in sidebar (📄 vs 📝)
-    - ✅ Smart feature hiding (no Preview/Image buttons for text notes)
-    - ✅ Export as .txt for text notes
-    - ✅ Backward compatible (all existing notes remain markdown)
-    - ✅ Mobile responsive design
-    - ✅ Word count and autosave for both types
-  - **Git Commit:** bee405f (Implement plain text note type - v1.1.0)
-  - **Deployment:**
-    - Version bumped: 1.0.10 → 1.1.0
-    - Created release tag v1.1.0
-    - Pushed to GitHub
-    - Built Docker image
-    - Pushed to Docker Hub: leporcbarbu/notecottage:1.1.0 and :latest
-  - **Testing:** Verified text note creation, save, and export on desktop and mobile
-  - **Result:** Users can now choose between simple text notes and rich markdown notes!
-  - **Known Issues (to fix next session):**
-    - Text note icon not displaying correctly in sidebar (shows markdown icon)
-    - Mobile sidebar doesn't close automatically when creating note from dropdown
-
-### Planned Improvements (Next Session)
-
-**Priority Fixes:**
-1. **Fix text note icon display** - Ensure 📄 icon shows correctly for text notes in sidebar
-2. **Mobile sidebar auto-close** - Close sidebar immediately when note type is selected on mobile
-
-**Other Topics:**
-1. **Update Docker Hub README**
-   - Copy DOCKER_HUB_README.md content to Docker Hub repository
-   - Verify all links work correctly
-2. **Real-World Mobile Testing**
-   - Test PWA on physical Android device (Pixel 8 Pro)
-   - Test PWA splash screen (may require HTTPS production deployment)
-   - iOS testing when device available
-   - Gather user feedback on mobile UX
-
-**Future Feature Enhancements (Backlog):**
-1. **Graph View** - Visual network of wiki-link connections
-2. **Wiki-Link Enhancements** - Alias support `[[Note|Display]]`, heading links `[[Note#Section]]`
-3. **Search Improvements** - Filter by folder, date ranges
-4. **Keyboard Shortcuts** - Arrow keys for folder navigation, documented shortcuts
-5. **Additional Themes** - Forest, Ocean, Sunset color schemes
-6. **Note Templates & Checklists** - Pre-defined note structures with interactive elements
-   - **Template System:**
-     - Template selector when creating new note
-     - Built-in templates: Meeting Notes, Daily Journal, Project Planning, Checklist
-     - User-created custom templates (save any note as template)
-   - **Interactive Checklists:**
-     - `- [ ]` unchecked tasks → clickable checkboxes
-     - `- [x]` checked tasks → strikethrough styling
-     - Click to toggle checkbox state
-     - Auto-save checkbox state (persist in note content)
-     - Progress indicator (3/10 tasks complete)
-   - **Implementation Ideas:**
-     - Markdown extension for checkbox rendering
-     - Click handler to toggle checkbox state in content
-     - Template library stored in database or JSON
-     - "Save as Template" button in note options
-7. **Note History/Versioning** - Track changes, restore old versions
-8. **Bulk Import** - Import existing Markdown files with folder structure
-9. **Additional Export Formats** - Plain text, JSON, DOCX
-10. **Note Encryption** - Optional per-note encryption for sensitive information
-11. **CSRF Protection** - Security hardening for production deployments
-
-### Technical Debt
-- Code is clean and well-structured with reusable components
-- No significant technical debt identified
-
-## Learning Outcomes
-
-This project successfully demonstrated:
-- Node.js async patterns (async/await, promises)
-- Express.js routing and middleware
+- Node.js async patterns and Express routing
 - SQLite with better-sqlite3 (synchronous API)
-- Many-to-many database relationships (tags)
-- Self-referential foreign keys (nested folders with parent_id)
-- Recursive database queries (CTE for ancestor checking)
-- CASCADE DELETE for referential integrity
-- Prepared statements and SQL injection prevention
-- Tree data structures (hierarchical folder rendering)
-- Recursive DOM rendering (nested folder tree)
-- **HTML5 Drag and Drop API** (dragstart, dragover, drop, dragend events)
-- **Component-based architecture** (reusable Modal, EmojiPicker, ContextMenu, DragManager)
-- **Transaction-based database operations** (atomic position recalculation)
-- **Visual feedback systems** (drop zone indicators, drag ghost images)
+- Many-to-many relationships and self-referential foreign keys
+- Recursive queries (CTEs) and CASCADE DELETE
+- Tree data structures and recursive DOM rendering
+- HTML5 Drag and Drop API
+- Component-based architecture (Modal, EmojiPicker, ContextMenu, etc.)
 - CSS custom properties for theming
-- localStorage API for persistence (theme, expanded folders)
-- Regular expressions for text parsing (hashtag extraction)
-- REST API design (CRUD + search + filtering + reordering)
-- Client-side JavaScript DOM manipulation
-- Event delegation and bubbling (folder tree interactions)
-- **Context menu positioning** (viewport boundary detection)
-- **Data transfer protocols** (JSON serialization in drag events)
-- **Cursor position detection** (mirror div technique for textarea cursor coordinates)
-- **Autocomplete UX patterns** (keyboard navigation, filtered suggestions, real-time updates)
-- **Protected deletion** (server-side validation to prevent deletion of resources in use)
-- **marked.js extensions** (custom inline tokenizers and renderers for wiki-link syntax)
-- **Universal module pattern** (code working in both Node.js and browser environments)
-- **Title-based linking** (case-insensitive note lookup for wiki-links)
-- **Browser file downloads** (Blob API for exporting notes in multiple formats)
-- **Print API integration** (window.print() for PDF generation)
-- **Soft delete pattern** (deleted_at timestamp for recycle bin functionality)
-- **Virtual folders** (UI-only folders like "All Notes" and "Trash" without database entries)
-- **Docker containerization** (Dockerfile, docker-compose, multi-stage builds, volume mounts)
-- **Container orchestration** (environment variables, health checks, restart policies)
-- **Database persistence in containers** (volume mounting for stateful applications)
-- **File upload handling** (multer middleware, FormData API, multipart/form-data processing)
-- **Image metadata extraction** (image-size package for dimension detection)
-- **File system operations** (directory creation, file streaming, path sanitization)
-- **Dual storage patterns** (local file uploads vs external URL references)
-- **Drag-and-drop file handling** (DataTransfer API, file filtering, multiple file support)
-- **Clipboard API** (paste event handling, image blob extraction)
+- Regular expressions for text parsing
+- REST API design and SQL injection prevention
+- marked.js extensions and universal module patterns
+- Docker containerization and volume persistence
+- PWA service workers and offline caching
+- File upload handling and image metadata extraction
 
-**Comparison to Flask:** Very similar patterns, but Node.js is async by default, uses CommonJS modules, and has different idioms for routing and middleware. SQLite operations in Node.js (better-sqlite3) are synchronous unlike typical async database libraries.
+## Running NoteCottage
+
+**Local Development:**
+```bash
+npm install
+npm start
+# Visit http://localhost:3000
+```
+
+**Docker:**
+```bash
+docker-compose up -d
+# Visit http://localhost:3000
+```
+
+**Production Deployment:**
+- Use nginx reverse proxy with SSL/TLS
+- Set secure session secrets in environment
+- Regular database backups recommended
 
 ---
 
-**Status:** NoteCottage is production-ready for multi-user collaborative use. Core features complete: traditional file-browser UI with inline notes, drag-and-drop, nested folders, wiki-links with autocomplete, backlinks panel, tags with autocomplete, note export, full-text search, status bar with breadcrumbs, autosave with preview integration, recycle bin with restore capability, resizable sidebar, tooltips for truncated names, comprehensive theme system with four distinct themes (Light, Dark, Cottage, Cottage Dark - with Cottage as default). Database corruption issues resolved with WAL mode and graceful shutdown handlers. Version control initialized with git. **Dockerization complete:** Application fully containerized with Docker support - tested and validated with database persistence, health checks, and production-ready configuration. **Multi-user support COMPLETE:** Session-based authentication with hybrid Private/Shared folder model - database schema, auth system, API permissions, admin panel UI, folder organization, profile settings, and database backup/restore all implemented and functional. Private/Shared virtual root folders provide clear visual separation. **Profile settings page** provides complete user account management with display name, password changes, theme preferences, statistics, and account deletion. **Database backup/restore system** enables disaster recovery with admin-only access, safety backups, and validation. **Theme system enhancements** ensure consistent Cottage theme across all pages with full CSS variable support. **Image support COMPLETE:** Dual storage system (file uploads + external URLs) with drag-drop, clipboard paste, image gallery, and full metadata tracking - images inherit note/folder privacy settings and persist across Docker restarts. **Docker Hub publishing COMPLETE:** Image published to leporcbarbu/notecottage:1.0.6 with all deployment fixes (volume permissions, session cookies, cache headers). **GitHub publication COMPLETE:** Open-source repository at github.com/leporcbarbu/NoteCottage with comprehensive README, MIT License, and release tag v1.0.6. **Next steps in roadmap:** Update Docker Hub README, complete deployment documentation guides, production-ready infrastructure (nginx reverse proxy, SSL/TLS), PWA for mobile access.
+*Built as a learning project for understanding Node.js fundamentals, coming from a Python/Flask background.*

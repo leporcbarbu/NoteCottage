@@ -156,17 +156,68 @@
         <!-- Main content area -->
         <main class="main-content">
             <div id="welcomeScreen" class="welcome-screen">
-                <h2>Welcome to NoteCottage</h2>
-                <p>Your personal space for notes and ideas.</p>
-                <p class="feature-list">
-                    <strong>Key Features:</strong><br>
-                    • Connect notes with wiki-style [[links]]<br>
-                    • Organize with folders and tags<br>
-                    • See backlinks between related notes<br>
-                    • Markdown formatting with live preview<br>
-                    • Dark mode and multiple export formats
-                </p>
-                <p>Select a note from the sidebar or create a new one to get started.</p>
+                <div class="welcome-header">
+                    <h1>🏡 Welcome to NoteCottage</h1>
+                    <p class="welcome-tagline">Your cozy corner for notes, thoughts, and ideas</p>
+                </div>
+
+                <div class="welcome-content">
+                    <div class="welcome-section">
+                        <h3>⌨️ Keyboard Shortcuts</h3>
+                        <div class="shortcut-grid">
+                            <div class="shortcut-item">
+                                <kbd>Ctrl</kbd> + <kbd>N</kbd>
+                                <span>New Note</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                                <span>Save Note</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl</kbd> + <kbd>P</kbd>
+                                <span>Toggle Preview</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="welcome-section">
+                        <h3>🔗 Connecting Notes</h3>
+                        <div class="tip-item">
+                            <strong>Wiki-Links:</strong> Type <code>[[Note Title]]</code> to link to another note
+                        </div>
+                        <div class="tip-item">
+                            <strong>Hashtags:</strong> Use <code>#tag</code> to organize your notes by topic
+                        </div>
+                        <div class="tip-item">
+                            <strong>Backlinks:</strong> See which notes reference the current one
+                        </div>
+                    </div>
+
+                    <div class="welcome-section">
+                        <h3>📁 Getting Organized</h3>
+                        <div class="tip-item">
+                            <strong>Folders:</strong> Create nested folders with custom emoji icons
+                        </div>
+                        <div class="tip-item">
+                            <strong>Drag & Drop:</strong> Move notes and folders to reorganize
+                        </div>
+                        <div class="tip-item">
+                            <strong>Search:</strong> Find notes quickly with full-text search
+                        </div>
+                    </div>
+
+                    <div class="welcome-section">
+                        <h3>📝 Note Types</h3>
+                        <div class="tip-item">
+                            <strong>Plain Text:</strong> Simple notes without formatting
+                        </div>
+                        <div class="tip-item">
+                            <strong>Markdown:</strong> Rich formatting with images, links, and styles
+                        </div>
+                    </div>
+                </div>
+
+                <p class="welcome-footer">Select a note from the sidebar or press <kbd>Ctrl</kbd>+<kbd>N</kbd> to start writing</p>
             </div>
 
             <div id="editorScreen" class="editor-screen" style="display: none;">
@@ -192,7 +243,6 @@
                         <div class="mobile-overflow-menu">
                             <button id="mobileMenuToggle" class="btn btn-secondary mobile-menu-btn" aria-label="More actions">⋮</button>
                             <div id="mobileActionsMenu" class="mobile-actions-menu" style="display: none;">
-                                <button id="mobileSaveBtn" class="mobile-menu-option">💾 Save</button>
                                 <button id="mobileExportBtn" class="mobile-menu-option">📤 Export ▾</button>
                                 <div id="mobileExportSubmenu" class="mobile-submenu" style="display: none;">
                                     <button class="mobile-menu-option export-option" data-format="markdown">Markdown (.md)</button>

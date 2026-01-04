@@ -1,6 +1,6 @@
 {
   "name": "notecottage",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "A cozy web-based note-taking application with folders, tags, and wiki-links",
   "main": "index.js",
   "scripts": {

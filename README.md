@@ -13,18 +13,22 @@ A cozy, self-hosted note-taking application for small teams (2-5 users) with a w
 ## ✨ Key Features
 
 ### 📝 Note-Taking Essentials
+- **Flexible Note Types** - Choose plain text (📄) or markdown (📝) for each note
 - **Markdown Support** - Write in Markdown, preview rendered HTML
 - **Full-Text Search** - SQLite FTS5 for fast searching across titles and content
 - **Autosave** - Automatic saving with visual feedback
 - **Word Count** - Real-time word counter in status bar
-- **Export** - Download notes as Markdown, HTML, or PDF
+- **Export** - Download notes as .txt, .md, HTML, or PDF
 
 ### 🏡 Cozy User Experience
 - **Four Beautiful Themes** - Light, Dark, Cottage (warm & cozy), Cottage Dark
+- **Progressive Web App (PWA)** - Install on mobile devices, works offline
+- **Mobile Optimized** - Touch-friendly interface with responsive design
 - **Traditional File Browser UI** - Familiar interface like VS Code/Finder
 - **Resizable Sidebar** - Adjustable workspace layout
 - **Status Bar** - Shows folder breadcrumb, word count, and timestamps
 - **Tooltips** - Hover to see full names of truncated items
+- **Toast Notifications** - Clean, modern feedback for save/delete actions
 
 ### 📁 Powerful Organization
 - **Nested Folders** - Unlimited depth folder hierarchy
@@ -321,17 +325,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-**Current Version:** 1.0.6 (January 2026)
+**Current Version:** 1.1.2 (January 2026)
 
 **Status:** Production-ready for multi-user collaborative use
 
 **Recent Updates:**
-- v1.0.6 - Folder improvements: uncategorized notes at root level, alphabetical sorting
-- v1.0.5 - CRITICAL security fix: user privacy breach resolved
-- v1.0.4 - Database restore complete flow working
-- v1.0.3 - Fixed Modal.confirm() missing method
-- v1.0.2 - Fixed blank page on normal refresh
-- v1.0.1 - Browser caching issue resolved
+- v1.1.2 - UX improvements: service worker fix, save button always visible, redesigned welcome screen, empty trash confirmation
+- v1.1.1 - Bug fixes: text note icon display, mobile sidebar auto-close
+- v1.1.0 - Plain text note type support with smart editor switching
+- v1.0.10 - Mobile UI enhancements: toast notifications, overflow menu, responsive admin panel
+- v1.0.9 - Progressive Web App (PWA) support with offline capability
+- v1.0.8 - Clickable broken wiki-links create new notes
+- v1.0.7 - Wiki-link autocomplete with keyboard navigation
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed development history and roadmap.
 

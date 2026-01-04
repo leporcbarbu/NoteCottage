@@ -606,11 +606,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Wire up mobile menu actions to existing functions
-        document.getElementById('mobileSaveBtn')?.addEventListener('click', async () => {
-            mobileActionsMenu.style.display = 'none';
-            await saveCurrentNote(); // Call existing save function
-        });
-
         document.getElementById('mobileDeleteBtn')?.addEventListener('click', async () => {
             mobileActionsMenu.style.display = 'none';
             await deleteCurrentNote(); // Call existing delete function
@@ -741,6 +736,15 @@ function setupEventListeners() {
         option.addEventListener('click', () => {
             const noteType = option.dataset.type;
             newNoteMenu.style.display = 'none';
+
+            // Close mobile sidebar when creating note
+            const sidebar = document.querySelector('.sidebar');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            if (sidebar && mobileOverlay) {
+                sidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+            }
+
             createNewNote(noteType);
         });
     });
@@ -1098,7 +1102,20 @@ async function permanentlyDeleteNote(noteId) {
 
 // Empty trash (delete all notes in trash permanently)
 async function emptyTrash() {
-    if (!confirm(`Empty trash and permanently delete all ${deletedNotes.length} notes? This cannot be undone!`)) {
+    // Show detailed confirmation dialog
+    const noteCount = deletedNotes.length;
+    const confirmed = await Modal.confirm(
+        '⚠️ Empty Trash',
+        `<p>You are about to <strong>permanently delete ${noteCount} note${noteCount !== 1 ? 's' : ''}</strong> from the trash.</p>
+         <p style="color: var(--danger-color); margin-top: 12px;">
+            <strong>⚠️ Warning:</strong> This action cannot be undone! All notes will be permanently removed from the database.
+         </p>
+         <p style="margin-top: 12px;">Are you sure you want to continue?</p>`,
+        'Empty Trash',
+        'Cancel'
+    );
+
+    if (!confirmed) {
         return;
     }
 
@@ -1121,10 +1138,11 @@ async function emptyTrash() {
             showWelcome();
         }
 
-        alert(`Trash emptied! ${result.count} note(s) permanently deleted.`);
+        // Show success toast notification
+        window.toast.success(`Trash emptied! ${result.count} note(s) permanently deleted.`);
     } catch (error) {
         console.error('Error emptying trash:', error);
-        alert('Failed to empty trash. Please try again.');
+        window.toast.error('Failed to empty trash. Please try again.');
     }
 }
 
