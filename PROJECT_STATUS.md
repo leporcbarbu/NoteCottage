@@ -1,7 +1,7 @@
 # NoteCottage - Project Status
 
-**Last Updated:** January 3, 2026
-**Status:** Production-ready multi-user note-taking application with PWA support, mobile-optimized UI, comprehensive profile settings, database backup/restore, full theme support, and image support (COMPLETE)
+**Last Updated:** January 4, 2026
+**Status:** Production-ready multi-user note-taking application with PWA support, mobile-optimized UI, comprehensive profile settings, database backup/restore, full theme support, image support, and flexible note type system (COMPLETE)
 
 ## Project Overview
 
@@ -62,6 +62,7 @@ NoteCottage/
 
 ### Core Functionality
 ✅ **CRUD Operations** - Create, Read, Update, Delete notes
+✅ **Flexible Note Types** - Choose between plain text (📄) or markdown (📝) for each note
 ✅ **Markdown Support** - Write in Markdown, preview rendered HTML
 ✅ **SQLite Database** - Persistent storage with proper schema
 ✅ **Full-Text Search** - SQLite FTS5 for fast searching (searches both title and content)
@@ -1919,9 +1920,75 @@ Persists across browser sessions.
   - **Testing:** Verified on Chrome DevTools mobile emulation (Pixel 7, Pixel 8 Pro)
   - **Result:** NoteCottage now has a fully functional, production-ready mobile UI!
 
+- ✅ **Plain Text Note Type Support - COMPLETE (v1.1.0)** - Flexible note type system
+  - **Problem Solved:** Users need flexibility to choose between simple plain text notes and formatted markdown notes
+  - **Files Modified:**
+    - `database.js` - Database schema migration and type handling
+      - Added `type` column to notes table (default: 'markdown')
+      - Updated all SQL queries to include type field
+      - Modified `createNote()` function to accept type parameter
+      - Backward compatible with existing markdown notes
+    - `server.js` - API updates for note type
+      - POST /api/notes accepts optional `type` parameter
+      - Defaults to 'markdown' for backward compatibility
+      - Returns note type in API responses
+      - Added debug logging for type parameter
+    - `package.json` - Version bump to 1.1.0
+    - `public/index.html` - UI structure for note type selection
+      - New note dropdown menu with text/markdown options
+      - Text editor view (textEditorView with textNoteContent textarea)
+      - Separate text editor component for plain text notes
+    - `public/css/style.css` - Styling for new components (85+ lines)
+      - Text editor styles (.text-editor-view, .text-note-editor)
+      - New note dropdown menu styles (.new-note-dropdown, .new-note-menu)
+      - Note type option styles with hover states
+      - Type icon styles for note list
+    - `public/css/mobile.css` - Mobile optimizations
+      - Responsive text editor with 16px font (prevents iOS zoom)
+      - Mobile-friendly dropdown menu
+    - `public/js/app.js` - Note type functionality (300+ lines modified)
+      - State management for currentNoteType
+      - New note dropdown toggle and type selection
+      - Smart editor switching (text vs markdown)
+      - Type-specific icons in note list (📄 text, 📝 markdown)
+      - Hide markdown features for text notes (Preview, Images, Tags, Wiki-links)
+      - Word count supports both note types
+      - Autosave works for both note types
+      - Export handling:
+        - Text notes → .txt files
+        - Markdown notes → .md files
+        - HTML/PDF export for both types
+      - Fixed mobile save/delete button references
+  - **Features Implemented:**
+    - ✅ Note type selection dropdown (Text Note / Markdown Note)
+    - ✅ Plain text editor (simple textarea, no toolbar)
+    - ✅ Markdown editor (full features: Preview, Images, Tags, Wiki-links)
+    - ✅ Type-specific icons in sidebar (📄 vs 📝)
+    - ✅ Smart feature hiding (no Preview/Image buttons for text notes)
+    - ✅ Export as .txt for text notes
+    - ✅ Backward compatible (all existing notes remain markdown)
+    - ✅ Mobile responsive design
+    - ✅ Word count and autosave for both types
+  - **Git Commit:** bee405f (Implement plain text note type - v1.1.0)
+  - **Deployment:**
+    - Version bumped: 1.0.10 → 1.1.0
+    - Created release tag v1.1.0
+    - Pushed to GitHub
+    - Built Docker image
+    - Pushed to Docker Hub: leporcbarbu/notecottage:1.1.0 and :latest
+  - **Testing:** Verified text note creation, save, and export on desktop and mobile
+  - **Result:** Users can now choose between simple text notes and rich markdown notes!
+  - **Known Issues (to fix next session):**
+    - Text note icon not displaying correctly in sidebar (shows markdown icon)
+    - Mobile sidebar doesn't close automatically when creating note from dropdown
+
 ### Planned Improvements (Next Session)
 
-**Priority Topics:**
+**Priority Fixes:**
+1. **Fix text note icon display** - Ensure 📄 icon shows correctly for text notes in sidebar
+2. **Mobile sidebar auto-close** - Close sidebar immediately when note type is selected on mobile
+
+**Other Topics:**
 1. **Update Docker Hub README**
    - Copy DOCKER_HUB_README.md content to Docker Hub repository
    - Verify all links work correctly
