@@ -161,6 +161,17 @@ function initializeDatabase() {
         }
     }
 
+    // Add type column to notes table if it doesn't exist (v1.1.0)
+    try {
+        db.exec('ALTER TABLE notes ADD COLUMN type TEXT DEFAULT "markdown"');
+        console.log('Added type column to notes table');
+    } catch (error) {
+        // Column already exists, ignore error
+        if (!error.message.includes('duplicate column name')) {
+            throw error;
+        }
+    }
+
     // Note: Uncategorized folder removed in v1.0.6
     // Notes with folder_id = NULL are displayed at root level
 
@@ -325,6 +336,7 @@ const statements = {
         SELECT id, title,
                substr(content, 1, 100) as preview,
                folder_id,
+               type,
                created_at, updated_at
         FROM notes
         WHERE deleted_at IS NULL
@@ -333,7 +345,7 @@ const statements = {
 
     // Get a single note by ID (including deleted for restore purposes)
     getNoteById: db.prepare(`
-        SELECT id, title, content, folder_id, user_id, created_at, updated_at, deleted_at
+        SELECT id, title, content, folder_id, user_id, type, created_at, updated_at, deleted_at
         FROM notes
         WHERE id = ?
     `),
@@ -376,6 +388,7 @@ const statements = {
         SELECT id, title,
                substr(content, 1, 100) as preview,
                folder_id,
+               type,
                created_at, updated_at, deleted_at
         FROM notes
         WHERE deleted_at IS NOT NULL
@@ -393,6 +406,7 @@ const statements = {
         SELECT notes.id, notes.title,
                substr(notes.content, 1, 100) as preview,
                notes.folder_id,
+               notes.type,
                notes.created_at, notes.updated_at
         FROM notes_fts
         JOIN notes ON notes.id = notes_fts.rowid
@@ -443,6 +457,7 @@ const statements = {
         SELECT notes.id, notes.title,
                substr(notes.content, 1, 100) as preview,
                notes.folder_id,
+               notes.type,
                notes.created_at, notes.updated_at
         FROM notes
         JOIN note_tags ON notes.id = note_tags.note_id
@@ -495,6 +510,7 @@ const statements = {
         SELECT id, title,
                substr(content, 1, 100) as preview,
                folder_id,
+               type,
                created_at, updated_at
         FROM notes
         WHERE folder_id = ? AND deleted_at IS NULL
@@ -690,14 +706,14 @@ function getNoteById(id) {
     return statements.getNoteById.get(id);
 }
 
-function createNote(title, content, folderId = null, userId = null) {
+function createNote(title, content, folderId = null, userId = null, type = 'markdown') {
     try {
         const insertNoteWithFolder = db.prepare(`
-            INSERT INTO notes (title, content, folder_id, user_id)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO notes (title, content, folder_id, user_id, type)
+            VALUES (?, ?, ?, ?, ?)
         `);
 
-        const result = insertNoteWithFolder.run(title, content, folderId, userId);
+        const result = insertNoteWithFolder.run(title, content, folderId, userId, type);
         const noteId = result.lastInsertRowid;
 
         // Automatically extract and save tags
@@ -708,7 +724,8 @@ function createNote(title, content, folderId = null, userId = null) {
             title,
             content,
             folder_id: folderId,
-            user_id: userId
+            user_id: userId,
+            type
         };
     } catch (error) {
         // Check if this is an FTS corruption error

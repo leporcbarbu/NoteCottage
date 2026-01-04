@@ -40,6 +40,7 @@ let currentNoteId = null;
 let notes = [];
 let isEditMode = true;
 let currentNoteData = null; // Store current note data including timestamps
+let currentNoteType = 'markdown'; // Track current note type (text or markdown)
 
 // Folder state
 let folders = [];
@@ -112,8 +113,10 @@ const welcomeScreen = document.getElementById('welcomeScreen');
 const editorScreen = document.getElementById('editorScreen');
 const noteTitle = document.getElementById('noteTitle');
 const noteContent = document.getElementById('noteContent');
+const textNoteContent = document.getElementById('textNoteContent');
 const searchInput = document.getElementById('searchInput');
 const newNoteBtn = document.getElementById('newNoteBtn');
+const newNoteMenu = document.getElementById('newNoteMenu');
 const saveBtn = document.getElementById('saveBtn');
 const deleteBtn = document.getElementById('deleteBtn');
 const viewToggle = document.getElementById('viewToggle');
@@ -121,6 +124,7 @@ const insertImageBtn = document.getElementById('insertImageBtn');
 const exportBtn = document.getElementById('exportBtn');
 const exportMenu = document.getElementById('exportMenu');
 const editorView = document.getElementById('editorView');
+const textEditorView = document.getElementById('textEditorView');
 const previewView = document.getElementById('previewView');
 const previewContent = document.getElementById('previewContent');
 const createdDate = document.getElementById('createdDate');
@@ -202,7 +206,8 @@ function updateUserInfo() {
 
 // Word count function
 function updateWordCount() {
-    const text = noteContent.value.trim();
+    // Get text from appropriate editor
+    const text = currentNoteType === 'text' ? textNoteContent.value.trim() : noteContent.value.trim();
 
     if (text.length === 0) {
         wordCount.textContent = '0 words';
@@ -267,12 +272,13 @@ async function autoSave() {
     // Don't autosave if:
     // - No note is currently loaded (new note without save)
     // - Already autosaving
-    // - In preview mode
-    if (!currentNoteId || isAutoSaving || !isEditMode) {
+    // - In preview mode (only for markdown)
+    if (!currentNoteId || isAutoSaving || (currentNoteType === 'markdown' && !isEditMode)) {
         return;
     }
 
-    const content = noteContent.value;
+    // Get content from appropriate editor
+    const content = currentNoteType === 'text' ? textNoteContent.value : noteContent.value;
 
     // Don't autosave if content is empty
     if (!content.trim()) {
@@ -306,8 +312,10 @@ async function autoSave() {
             currentNoteData.content = content;
         }
 
-        // Reload tags in case new ones were added
-        await loadTags();
+        // Reload tags in case new ones were added (only for markdown notes)
+        if (currentNoteType === 'markdown') {
+            await loadTags();
+        }
 
         // Update save status
         updateSaveStatus('saved');
@@ -600,12 +608,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Wire up mobile menu actions to existing functions
         document.getElementById('mobileSaveBtn')?.addEventListener('click', async () => {
             mobileActionsMenu.style.display = 'none';
-            await saveNote(); // Call existing save function
+            await saveCurrentNote(); // Call existing save function
         });
 
         document.getElementById('mobileDeleteBtn')?.addEventListener('click', async () => {
             mobileActionsMenu.style.display = 'none';
-            await deleteNote(); // Call existing delete function
+            await deleteCurrentNote(); // Call existing delete function
         });
 
         // Export options in mobile menu use same handlers as desktop
@@ -714,7 +722,29 @@ function setupImagePaste() {
 
 // Setup event listeners
 function setupEventListeners() {
-    newNoteBtn.addEventListener('click', createNewNote);
+    // New Note dropdown toggle
+    newNoteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = newNoteMenu.style.display === 'block';
+        newNoteMenu.style.display = isVisible ? 'none' : 'block';
+    });
+
+    // Close new note menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!newNoteBtn.contains(e.target) && !newNoteMenu.contains(e.target)) {
+            newNoteMenu.style.display = 'none';
+        }
+    });
+
+    // Handle note type selection
+    document.querySelectorAll('.new-note-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const noteType = option.dataset.type;
+            newNoteMenu.style.display = 'none';
+            createNewNote(noteType);
+        });
+    });
+
     saveBtn.addEventListener('click', saveCurrentNote);
     deleteBtn.addEventListener('click', deleteCurrentNote);
     viewToggle.addEventListener('click', toggleView);
@@ -783,8 +813,18 @@ function setupEventListeners() {
         });
     }
 
-    // Word count update and autosave
+    // Word count update and autosave for markdown editor
     noteContent.addEventListener('input', () => {
+        updateWordCount();
+
+        // Schedule autosave for existing notes
+        if (currentNoteId) {
+            scheduleAutosave();
+        }
+    });
+
+    // Word count update and autosave for text editor
+    textNoteContent.addEventListener('input', () => {
         updateWordCount();
 
         // Schedule autosave for existing notes
@@ -1100,8 +1140,11 @@ function createNoteElement(note, depth) {
     }
 
     const noteIcon = document.createElement('span');
-    noteIcon.className = 'note-icon';
-    noteIcon.textContent = '📝';
+    noteIcon.className = 'note-icon note-type-icon';
+    // Set icon based on note type (default to markdown if type is undefined)
+    const noteType = note.type || 'markdown';
+    noteIcon.textContent = noteType === 'text' ? '📄' : '📝';
+    noteIcon.title = noteType === 'text' ? 'Text Note' : 'Markdown Note';
 
     const noteTitle = document.createElement('span');
     noteTitle.className = 'note-title-inline';
@@ -2090,14 +2133,16 @@ function renderNotesList(notesToRender) {
 }
 
 // Create a new note
-function createNewNote() {
+function createNewNote(noteType = 'markdown') {
     // Cancel any pending autosave
     cancelAutosave();
 
     currentNoteId = null;
     currentNoteData = null;
+    currentNoteType = noteType;
     noteTitle.value = '';
     noteContent.value = '';
+    textNoteContent.value = '';
     updateWordCount();
 
     // Clear timestamps for new note
@@ -2110,27 +2155,41 @@ function createNewNote() {
     // Update folder location for new note
     updateFolderLocation(currentFolderId);
 
-    // Switch to edit mode if currently in preview mode
-    if (!isEditMode) {
+    // Switch to appropriate editor based on note type
+    if (noteType === 'text') {
+        // Text note - hide markdown features, show text editor
         isEditMode = true;
-        viewToggle.textContent = 'Preview';
-        editorView.style.display = 'block';
+        viewToggle.style.display = 'none';
+        insertImageBtn.style.display = 'none';
+        editorView.style.display = 'none';
+        textEditorView.style.display = 'flex';
         previewView.style.display = 'none';
+    } else {
+        // Markdown note - show all features
+        if (!isEditMode) {
+            isEditMode = true;
+            viewToggle.textContent = 'Preview';
+        }
+        viewToggle.style.display = 'inline-block';
+        insertImageBtn.style.display = 'inline-block';
+        editorView.style.display = 'block';
+        textEditorView.style.display = 'none';
+        previewView.style.display = 'none';
+
+        // Initialize tag autocomplete if not already done
+        if (!tagAutocomplete) {
+            const tagNames = allTags.map(tag => tag.name);
+            tagAutocomplete = new TagAutocomplete(noteContent, tagNames);
+        }
+
+        // Initialize wiki-link autocomplete if not already done
+        if (!wikiLinkAutocomplete) {
+            wikiLinkAutocomplete = new WikiLinkAutocomplete(noteContent, notes);
+        }
     }
 
     showEditor();
     noteTitle.focus();
-
-    // Initialize tag autocomplete if not already done
-    if (!tagAutocomplete) {
-        const tagNames = allTags.map(tag => tag.name);
-        tagAutocomplete = new TagAutocomplete(noteContent, tagNames);
-    }
-
-    // Initialize wiki-link autocomplete if not already done
-    if (!wikiLinkAutocomplete) {
-        wikiLinkAutocomplete = new WikiLinkAutocomplete(noteContent, notes);
-    }
 
     // Remove active class from all notes
     document.querySelectorAll('.note-item').forEach(item => {
@@ -2152,8 +2211,54 @@ async function loadNote(noteId) {
         const note = await response.json();
         currentNoteId = note.id;
         currentNoteData = note;
+        currentNoteType = note.type || 'markdown';
         noteTitle.value = note.title;
-        noteContent.value = note.content;
+
+        // Switch editor based on note type
+        if (currentNoteType === 'text') {
+            // Text note
+            textNoteContent.value = note.content;
+            noteContent.value = '';
+
+            // Hide markdown features
+            viewToggle.style.display = 'none';
+            insertImageBtn.style.display = 'none';
+            editorView.style.display = 'none';
+            textEditorView.style.display = 'flex';
+            previewView.style.display = 'none';
+            isEditMode = true;
+        } else {
+            // Markdown note
+            noteContent.value = note.content;
+            textNoteContent.value = '';
+
+            // Show markdown features
+            viewToggle.style.display = 'inline-block';
+            insertImageBtn.style.display = 'inline-block';
+            textEditorView.style.display = 'none';
+
+            // Initialize tag autocomplete if not already done
+            if (!tagAutocomplete) {
+                const tagNames = allTags.map(tag => tag.name);
+                tagAutocomplete = new TagAutocomplete(noteContent, tagNames);
+            }
+
+            // Initialize wiki-link autocomplete if not already done
+            if (!wikiLinkAutocomplete) {
+                wikiLinkAutocomplete = new WikiLinkAutocomplete(noteContent, notes);
+            }
+
+            // If in preview mode, update preview
+            if (!isEditMode) {
+                editorView.style.display = 'none';
+                previewView.style.display = 'block';
+                updatePreview(note.html);
+            } else {
+                editorView.style.display = 'block';
+                previewView.style.display = 'none';
+            }
+        }
+
         updateWordCount();
 
         // Mark as saved (no unsaved changes when first loaded)
@@ -2184,26 +2289,14 @@ async function loadNote(noteId) {
         showEditor();
         updateActiveNote();
 
-        // Load backlinks for this note
-        loadBacklinks(noteId);
-
-        // Load attachments/images for this note
-        loadAttachments(noteId);
-
-        // Initialize tag autocomplete if not already done
-        if (!tagAutocomplete) {
-            const tagNames = allTags.map(tag => tag.name);
-            tagAutocomplete = new TagAutocomplete(noteContent, tagNames);
-        }
-
-        // Initialize wiki-link autocomplete if not already done
-        if (!wikiLinkAutocomplete) {
-            wikiLinkAutocomplete = new WikiLinkAutocomplete(noteContent, notes);
-        }
-
-        // If in preview mode, update preview
-        if (!isEditMode) {
-            updatePreview(note.html);
+        // Load backlinks for this note (only for markdown notes with wiki-links)
+        if (currentNoteType === 'markdown') {
+            loadBacklinks(noteId);
+            loadAttachments(noteId);
+        } else {
+            // Hide backlinks and attachments for text notes
+            document.querySelector('.backlinks-section').style.display = 'none';
+            document.querySelector('.attachments-section').style.display = 'none';
         }
     } catch (error) {
         console.error('Failed to load note:', error);
@@ -2215,7 +2308,8 @@ async function loadNote(noteId) {
 // Save the current note
 async function saveCurrentNote() {
     const title = noteTitle.value.trim();
-    const content = noteContent.value;
+    // Get content from appropriate editor
+    const content = currentNoteType === 'text' ? textNoteContent.value : noteContent.value;
 
     if (!title) {
         alert('Please enter a note title');
@@ -2225,7 +2319,11 @@ async function saveCurrentNote() {
 
     if (!content) {
         alert('Please enter some content');
-        noteContent.focus();
+        if (currentNoteType === 'text') {
+            textNoteContent.focus();
+        } else {
+            noteContent.focus();
+        }
         return;
     }
 
@@ -2248,13 +2346,15 @@ async function saveCurrentNote() {
             });
         } else {
             // Create new note
-            const noteData = { title, content };
+            const noteData = { title, content, type: currentNoteType };
 
             // If a folder is selected, create the note in that folder
             // Handle virtual folders (all-notes, private, shared, trash) - they should create notes without a folder
             if (currentFolderId && currentFolderId !== 'all-notes' && currentFolderId !== 'private' && currentFolderId !== 'shared' && currentFolderId !== 'trash') {
                 noteData.folder_id = currentFolderId;
             }
+
+            console.log('Creating new note with data:', noteData);
 
             response = await fetch('/api/notes', {
                 method: 'POST',
@@ -2337,18 +2437,23 @@ function exportNote(format) {
     }
 
     const title = noteTitle.value || 'untitled';
-    const content = noteContent.value;
+    // Get content from appropriate editor
+    const content = currentNoteType === 'text' ? textNoteContent.value : noteContent.value;
     const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
     switch (format) {
         case 'markdown':
-            exportMarkdown(sanitizedTitle, content);
+            if (currentNoteType === 'text') {
+                exportPlainText(sanitizedTitle, content);
+            } else {
+                exportMarkdown(sanitizedTitle, content);
+            }
             break;
         case 'html':
-            exportHTML(sanitizedTitle, title, content);
+            exportHTML(sanitizedTitle, title, content, currentNoteType);
             break;
         case 'pdf':
-            exportPDF(title, content);
+            exportPDF(title, content, currentNoteType);
             break;
         default:
             alert('Unknown export format');
@@ -2361,10 +2466,23 @@ function exportMarkdown(filename, content) {
     downloadFile(blob, `${filename}.md`);
 }
 
+// Export as plain text file
+function exportPlainText(filename, content) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    downloadFile(blob, `${filename}.txt`);
+}
+
 // Export as HTML file
-function exportHTML(filename, title, content) {
-    configureMarkedForWikiLinks();
-    const htmlContent = marked.parse(content);
+function exportHTML(filename, title, content, noteType = 'markdown') {
+    let htmlContent;
+    if (noteType === 'text') {
+        // For text notes, preserve whitespace and line breaks
+        htmlContent = `<pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(content)}</pre>`;
+    } else {
+        // For markdown notes, parse markdown
+        configureMarkedForWikiLinks();
+        htmlContent = marked.parse(content);
+    }
     const fullHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2423,10 +2541,24 @@ function exportHTML(filename, title, content) {
     downloadFile(blob, `${filename}.html`);
 }
 
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Export as PDF using browser print
-function exportPDF(title, content) {
-    configureMarkedForWikiLinks();
-    const htmlContent = marked.parse(content);
+function exportPDF(title, content, noteType = 'markdown') {
+    let htmlContent;
+    if (noteType === 'text') {
+        // For text notes, preserve whitespace and line breaks
+        htmlContent = `<pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(content)}</pre>`;
+    } else {
+        // For markdown notes, parse markdown
+        configureMarkedForWikiLinks();
+        htmlContent = marked.parse(content);
+    }
 
     // Create a new window for printing
     const printWindow = window.open('', '', 'width=800,height=600');

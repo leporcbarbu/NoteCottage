@@ -972,8 +972,10 @@ app.get('/api/notes/:id/backlinks', (req, res) => {
 // POST /api/notes - Create a new note
 app.post('/api/notes', requireAuth, (req, res) => {
     try {
-        const { title, content, folder_id } = req.body;
+        const { title, content, folder_id, type } = req.body;
         const userId = req.session.userId;
+
+        console.log('POST /api/notes - Received type:', type, 'Full body:', { title, type, folder_id });
 
         if (!title || !content) {
             return res.status(400).json({ error: 'Title and content are required' });
@@ -982,17 +984,22 @@ app.post('/api/notes', requireAuth, (req, res) => {
         // Parse folder_id if provided, otherwise null (uncategorized note)
         const folderId = folder_id ? parseInt(folder_id) : null;
 
+        // Default to 'markdown' if no type specified (backwards compatibility)
+        const noteType = type || 'markdown';
+        console.log('Using noteType:', noteType);
+
         // Check if user has access to the target folder (skip check for uncategorized notes)
         if (folderId !== null && !db.canUserAccessFolder(folderId, userId)) {
             return res.status(403).json({ error: 'You do not have access to this folder' });
         }
 
-        const newNote = db.createNote(title, content, folderId, userId);
+        const newNote = db.createNote(title, content, folderId, userId, noteType);
 
         res.status(201).json({
             id: newNote.id.toString(),
             title: newNote.title,
             user_id: newNote.user_id,
+            type: newNote.type,
             message: 'Note created successfully'
         });
     } catch (error) {

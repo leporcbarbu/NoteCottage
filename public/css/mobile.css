@@ -150,10 +150,21 @@
         padding: 10px;
     }
 
-    #noteContent {
+    #noteContent,
+    #textNoteContent {
         font-size: 16px;
         line-height: 1.6;
         padding: 10px;
+    }
+
+    /* Text editor view adjustments */
+    .text-editor-view {
+        flex: 1;
+        display: flex;
+    }
+
+    .text-note-editor {
+        font-size: 16px; /* Prevents iOS zoom */
     }
 
     /* Toolbar buttons - larger touch targets */
