@@ -159,19 +159,14 @@ NoteCottage is a web-based note-taking application built with Node.js and Expres
 - Real-world mobile testing (Android/iOS devices)
 - PWA splash screen testing (requires HTTPS)
 
-## Future Enhancements (Backlog)
+## Future Development
 
-1. Graph view of wiki-link connections
-2. Wiki-link aliases `[[Note|Display]]` and heading links `[[Note#Section]]`
-3. Search filters (by folder, date range)
-4. Keyboard shortcuts for folder navigation
-5. Additional themes (Forest, Ocean, Sunset)
-6. Note templates and interactive checklists
-7. Note history/versioning
-8. Bulk import of Markdown files
-9. Additional export formats (DOCX, JSON)
-10. Note encryption for sensitive content
-11. CSRF protection for production
+See [ROADMAP.md](ROADMAP.md) for detailed feature plans, enhancements, and improvements organized by priority.
+
+**Quick Links:**
+- High Priority: Note count badges, tooltips with shortcuts, enhanced stats
+- Medium Priority: Search filters, graph view, templates, wiki-link enhancements
+- Long Term: Themes, collaboration, mobile app, API integrations
 
 ## Project Structure
 

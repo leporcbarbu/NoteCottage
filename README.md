@@ -338,7 +338,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - v1.0.8 - Clickable broken wiki-links create new notes
 - v1.0.7 - Wiki-link autocomplete with keyboard navigation
 
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed development history and roadmap.
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed development history and [ROADMAP.md](ROADMAP.md) for future feature plans.
 
 ---
 
