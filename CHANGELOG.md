@@ -5,6 +5,19 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-01-07
+
+### Added
+- Shared slugify utility for heading IDs (works in both Node.js and browser environments)
+- Navigation improvements to roadmap (history stack, tabs, close button, back/forward shortcuts)
+
+### Fixed
+- Slugify utility now properly handles marked.js tokens and HTML tags in headings
+
+### Changed
+- Keyboard shortcut changed from Ctrl+N to Alt+N for new notes (browser compatibility, especially Brave)
+- Updated all documentation to reflect Alt+N keyboard shortcut
+
 ## [1.1.2] - 2026-01-04
 
 ### Added
