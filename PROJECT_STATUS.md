@@ -1,7 +1,7 @@
 # Project Status
 
-**Version:** 1.1.2
-**Updated:** January 4, 2026
+**Version:** 1.1.3
+**Updated:** January 7, 2026
 **Status:** Production-ready
 
 Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Markdown/plain text, wiki-links, tags, folders, and multi-user collaboration. Currently running at https://notes.bytecottage.com via Cloudflare Tunnel.
@@ -62,7 +62,9 @@ Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Ma
 
 ## Version History
 
-**v1.1.2** (Current) - UX improvements, service worker fixes, mobile save button visibility, welcome screen redesign, empty trash confirmation
+**v1.1.3** (Current) - Slugify utility fix for heading IDs, keyboard shortcut changed to Alt+N (browser compatibility)
+
+**v1.1.2** - UX improvements, service worker fixes, mobile save button visibility, welcome screen redesign, empty trash confirmation
 
 **v1.1.1** - Fixed text note icon display, mobile sidebar auto-close
 
