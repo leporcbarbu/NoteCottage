@@ -137,7 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export as Markdown, HTML, PDF
 - Autosave functionality
 - Resizable sidebar
-- Keyboard shortcuts (Ctrl+N, Ctrl+S, Ctrl+P)
+- Keyboard shortcuts (Alt+N, Ctrl+S, Ctrl+P)
 - Word count and breadcrumb navigation
 - Responsive mobile design
 

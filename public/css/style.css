@@ -1157,6 +1157,116 @@ body {
     border-bottom-color: #666;
 }
 
+/* Wiki-link heading links */
+.wiki-link-heading::before {
+    content: '§ ';
+    opacity: 0.5;
+    font-size: 0.9em;
+}
+
+/* Heading highlight animation (for scroll-to-heading) */
+@keyframes heading-highlight {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: rgba(52, 152, 219, 0.2); }
+}
+
+.heading-highlight {
+    animation: heading-highlight 2s ease;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin: -4px -8px;
+}
+
+/* Wiki-link embeds */
+.wiki-embed {
+    border-left: 3px solid var(--primary-color);
+    padding: 12px 16px;
+    margin: 16px 0;
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.wiki-embed-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    color: var(--text-secondary);
+}
+
+.wiki-embed-title::before {
+    content: '📄 ';
+}
+
+.wiki-embed-title .wiki-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: none;
+}
+
+.wiki-embed-title .wiki-link:hover {
+    color: var(--primary-color);
+}
+
+.wiki-embed-content {
+    margin-top: 8px;
+    color: var(--text-primary);
+}
+
+/* Nested embeds - slight visual distinction */
+.wiki-embed .wiki-embed {
+    border-left-color: var(--text-secondary);
+    background-color: var(--bg-primary);
+    opacity: 0.95;
+}
+
+/* Broken/error embeds */
+.wiki-embed-broken,
+.wiki-embed-error {
+    border-left: 3px solid var(--danger-color);
+    padding: 8px 12px;
+    margin: 8px 0;
+    color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: 4px;
+    font-style: italic;
+    font-size: 0.95em;
+}
+
+.wiki-embed-error {
+    font-weight: 600;
+}
+
+/* Embedded images */
+.wiki-embed-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 12px 0;
+    display: block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme adjustments for embeds */
+[data-theme="dark"] .wiki-embed {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .wiki-embed .wiki-embed {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .wiki-embed-image {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Hide keyboard shortcuts on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .welcome-section:has(.shortcut-grid) {
+        display: none;
+    }
+}
+
 /* Buttons */
 .btn {
     padding: 8px 16px;
@@ -1185,6 +1295,13 @@ body {
 
 .btn-secondary {
     background-color: var(--bg-button-secondary);
+    color: #ffffff !important;
+}
+
+/* Editor toolbar buttons - ensure visibility in all themes */
+#viewToggle,
+#insertImageBtn {
+    background-color: var(--bg-button-secondary) !important;
     color: #ffffff !important;
 }
 

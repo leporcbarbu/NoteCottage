@@ -12,6 +12,12 @@ const sizeOf = require('image-size');
 // Import our database module (like: from database import get_all_notes, etc.)
 const db = require('./database');
 
+// Import slugify utility for heading IDs
+const { slugify } = require('./public/js/utils/slugify.js');
+
+// Import jsdom for HTML parsing (needed for heading extraction in embeds)
+const { JSDOM } = require('jsdom');
+
 // Configure multer for file uploads (for database restore)
 const upload = multer({
     dest: 'uploads/',
@@ -137,30 +143,183 @@ function attachUser(req, res, next) {
     next();
 }
 
-// Helper function to render markdown with wiki-links
-function renderMarkdownWithWikiLinks(content, titleMap) {
-    // Create custom renderer for wiki-links
-    const renderer = (token) => {
-        const key = token.noteTitle.toLowerCase();
-        const targetNote = titleMap.get(key);
+// Helper function to extract content from a specific heading onwards
+function extractContentFromHeading(htmlContent, headingSlug) {
+    try {
+        const dom = new JSDOM(htmlContent);
+        const doc = dom.window.document;
 
-        if (targetNote) {
-            // Valid link - render as clickable anchor
-            return `<a href="#" class="wiki-link" data-note-id="${targetNote.id}">${token.displayText}</a>`;
-        } else {
-            // Broken link - render as grayed out span
-            return `<span class="wiki-link-broken" title="Note not found">${token.displayText}</span>`;
+        const headingElement = doc.getElementById(headingSlug);
+        if (!headingElement) {
+            return null;
         }
+
+        const level = parseInt(headingElement.tagName[1]); // H1 -> 1, H2 -> 2, etc.
+        let content = '';
+        let currentElement = headingElement.nextElementSibling;
+
+        // Collect content until next heading of same or higher level
+        while (currentElement) {
+            const isHeading = /^H[1-6]$/.test(currentElement.tagName);
+            if (isHeading && parseInt(currentElement.tagName[1]) <= level) {
+                break; // Stop at next same/higher level heading
+            }
+            content += currentElement.outerHTML;
+            currentElement = currentElement.nextElementSibling;
+        }
+
+        return content;
+    } catch (error) {
+        console.error('Error extracting heading content:', error);
+        return null;
+    }
+}
+
+// Helper function to render markdown with wiki-links, headings, and embeds
+function renderMarkdownWithWikiLinks(content, titleMap, currentNoteId = null, embedChain = []) {
+    const MAX_EMBED_DEPTH = 3;
+
+    // Check embed depth to prevent infinite recursion
+    if (embedChain.length >= MAX_EMBED_DEPTH) {
+        return `<div class="wiki-embed-error">Maximum embed depth (${MAX_EMBED_DEPTH}) exceeded</div>`;
+    }
+
+    // Create custom heading renderer to add IDs
+    const headingRenderer = {
+        heading(text, level) {
+            const slug = slugify(text);
+            return `<h${level} id="${slug}">${text}</h${level}>`;
+        }
+    };
+
+    // Create custom renderer for wiki-links
+    const wikiLinkRenderer = (token) => {
+        const { isEmbed, noteTitle, headingSlug, displayText } = token;
+
+        // Handle embeds
+        if (isEmbed) {
+            // Check if it's an image reference
+            if (noteTitle && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(noteTitle)) {
+                // Image embed - look up in attachments for current note
+                if (!currentNoteId) {
+                    return `<span class="wiki-embed-broken">Image embeds require a note context</span>`;
+                }
+
+                const attachments = db.getAttachmentsByNote(currentNoteId);
+
+                // Find matching attachment by filename
+                const attachment = attachments.find(att =>
+                    att.file_path.toLowerCase().endsWith(noteTitle.toLowerCase())
+                );
+
+                if (attachment) {
+                    const imageUrl = `/uploads/${attachment.file_path}`;
+                    const altText = attachment.alt_text || noteTitle;
+                    return `<img src="${imageUrl}" alt="${altText}" class="wiki-embed-image" loading="lazy">`;
+                } else {
+                    return `<span class="wiki-embed-broken">Image not found: ${noteTitle}</span>`;
+                }
+            }
+
+            // Note embed
+            if (!noteTitle) {
+                return `<div class="wiki-embed-broken">Embed requires a note title</div>`;
+            }
+
+            const key = noteTitle.toLowerCase();
+            const targetNote = titleMap.get(key);
+
+            if (!targetNote) {
+                return `<div class="wiki-embed-broken">Embedded note not found: ${displayText}</div>`;
+            }
+
+            // Check for circular embeds
+            if (embedChain.includes(targetNote.id)) {
+                return `<div class="wiki-embed-error">Circular embed detected: ${displayText}</div>`;
+            }
+
+            // Fetch the note content
+            const embeddedNote = db.getNoteById(targetNote.id);
+            if (!embeddedNote) {
+                return `<div class="wiki-embed-broken">Embedded note not found: ${displayText}</div>`;
+            }
+
+            // Create new embed chain with current note
+            const newEmbedChain = [...embedChain, currentNoteId].filter(id => id !== null);
+
+            // Render embedded content recursively
+            let embeddedHtml = renderMarkdownWithWikiLinks(
+                embeddedNote.content,
+                titleMap,
+                targetNote.id,
+                newEmbedChain
+            );
+
+            // If heading specified, extract only that section
+            if (headingSlug) {
+                const extractedContent = extractContentFromHeading(embeddedHtml, headingSlug);
+                if (!extractedContent) {
+                    return `<div class="wiki-embed-broken">Heading not found in embedded note: ${headingSlug}</div>`;
+                }
+                embeddedHtml = extractedContent;
+            }
+
+            // Wrap in embed container
+            return `
+<div class="wiki-embed" data-note-id="${targetNote.id}">
+    <div class="wiki-embed-title">
+        <a href="#" class="wiki-link" data-note-id="${targetNote.id}">📄 ${embeddedNote.title}</a>
+    </div>
+    <div class="wiki-embed-content">
+        ${embeddedHtml}
+    </div>
+</div>`;
+        }
+
+        // Same-note heading link: [[#Heading]]
+        if (!noteTitle && headingSlug) {
+            return `<a href="#${headingSlug}" class="wiki-link wiki-link-heading" data-heading="${headingSlug}">${displayText}</a>`;
+        }
+
+        // Note with heading: [[Note#Heading]]
+        if (noteTitle && headingSlug) {
+            const key = noteTitle.toLowerCase();
+            const targetNote = titleMap.get(key);
+
+            if (targetNote) {
+                return `<a href="#" class="wiki-link wiki-link-heading" data-note-id="${targetNote.id}" data-heading="${headingSlug}">${displayText}</a>`;
+            } else {
+                return `<span class="wiki-link-broken" title="Note not found">${displayText}</span>`;
+            }
+        }
+
+        // Regular note link: [[Note]]
+        if (noteTitle) {
+            const key = noteTitle.toLowerCase();
+            const targetNote = titleMap.get(key);
+
+            if (targetNote) {
+                return `<a href="#" class="wiki-link" data-note-id="${targetNote.id}">${displayText}</a>`;
+            } else {
+                return `<span class="wiki-link-broken" title="Note not found">${displayText}</span>`;
+            }
+        }
+
+        // Fallback
+        return `<span class="wiki-link-broken">${displayText}</span>`;
     };
 
     // Create extension with custom renderer
     const extension = {
         ...wikiLinkExtension,
-        renderer
+        renderer: wikiLinkRenderer
     };
 
-    // Configure marked with the extension
-    marked.use({ extensions: [extension] });
+    // Configure marked with both the extension and custom heading renderer
+    marked.use({
+        extensions: [extension],
+        renderer: headingRenderer
+    });
 
     // Render markdown to HTML
     return marked(content);

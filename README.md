@@ -1,90 +1,75 @@
-# NoteCottage 🏡
+# NoteCottage
 
 [![Docker Hub](https://img.shields.io/docker/v/leporcbarbu/notecottage?label=Docker%20Hub&logo=docker)](https://hub.docker.com/r/leporcbarbu/notecottage)
 [![Docker Pulls](https://img.shields.io/docker/pulls/leporcbarbu/notecottage)](https://hub.docker.com/r/leporcbarbu/notecottage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A cozy, self-hosted note-taking application for small teams (2-5 users) with a warm, cottage-inspired aesthetic. Built with Node.js and SQLite, NoteCottage combines the simplicity of markdown notes with powerful features like wiki-style linking, folder organization, and collaborative workspaces.
+A self-hosted note-taking app built with Node.js and SQLite. Think Obsidian meets Trilium, but simpler and designed for small teams. Supports Markdown and plain text notes, wiki-style linking, tags, folders, and multi-user collaboration.
 
-**Perfect for:** Family knowledge bases, small team wikis, personal note collections, collaborative documentation
+I built this as a learning project while exploring Node.js (coming from a Python/Flask background). It's designed for 2-5 users - families, small teams, or anyone who wants a lightweight alternative to cloud-based note apps.
 
-**Inspired by:** Obsidian, Trilium, and the comfort of a warm cottage
+## Features
 
-## ✨ Key Features
+**Note-Taking**
+- Flexible note types (plain text or Markdown)
+- Full-text search powered by SQLite FTS5
+- Autosave with visual feedback
+- Word count and character tracking
+- Export to .txt, .md, HTML, or PDF
 
-### 📝 Note-Taking Essentials
-- **Flexible Note Types** - Choose plain text (📄) or markdown (📝) for each note
-- **Markdown Support** - Write in Markdown, preview rendered HTML
-- **Full-Text Search** - SQLite FTS5 for fast searching across titles and content
-- **Autosave** - Automatic saving with visual feedback
-- **Word Count** - Real-time word counter in status bar
-- **Export** - Download notes as .txt, .md, HTML, or PDF
+**Organization**
+- Nested folders with unlimited depth
+- Drag-and-drop for notes and folders
+- Folder icons (80+ emojis to choose from)
+- Recycle bin with restore capability
+- Private and shared folder sections
 
-### 🏡 Cozy User Experience
-- **Four Beautiful Themes** - Light, Dark, Cottage (warm & cozy), Cottage Dark
-- **Progressive Web App (PWA)** - Install on mobile devices, works offline
-- **Mobile Optimized** - Touch-friendly interface with responsive design
-- **Traditional File Browser UI** - Familiar interface like VS Code/Finder
-- **Resizable Sidebar** - Adjustable workspace layout
-- **Status Bar** - Shows folder breadcrumb, word count, and timestamps
-- **Tooltips** - Hover to see full names of truncated items
-- **Toast Notifications** - Clean, modern feedback for save/delete actions
+**Linking & Discovery**
+- Wiki-style links (`[[Note Title]]`) like Obsidian
+- Backlinks panel shows references
+- Autocomplete for wiki-links and hashtags
+- Broken link detection
+- Hashtag tagging with filtering
 
-### 📁 Powerful Organization
-- **Nested Folders** - Unlimited depth folder hierarchy
-- **Drag-and-Drop** - Drag notes/folders to reorganize
-- **Folder Icons** - Visual emoji picker with 80+ curated emojis
-- **Smart Organization** - Private and Shared folder sections
-- **Alphabetical Sorting** - Folders automatically sorted for easy navigation
-- **Recycle Bin** - Soft delete with restore capability
+**Collaboration**
+- Multi-user support (2-5 users recommended)
+- Session-based authentication
+- Private folders (personal notes) and shared folders (team notes)
+- Admin panel for user management
+- Database backup and restore
 
-### 🔗 Linking & Connections
-- **Wiki-Links** - `[[Note Title]]` syntax for linking between notes (Obsidian-style)
-- **Backlinks Panel** - See all notes that reference the current note
-- **Autocomplete** - Smart suggestions while typing wiki-links and hashtags
-- **Broken Link Detection** - Visual indicators for missing note references
+**User Experience**
+- Four themes: Light, Dark, Cottage, and Cottage Dark
+- Progressive Web App (installable on mobile, works offline)
+- Responsive mobile design with touch-friendly UI
+- Resizable sidebar
+- Toast notifications
 
-### 🏷️ Tagging System
-- **Hashtag Detection** - Auto-detect `#tags` in content
-- **Tag Filtering** - Click tags to filter notes
-- **Tag Autocomplete** - Dropdown suggestions while typing hashtags
-- **Tag Management** - Delete unused tags via context menu
+**Images**
+- Upload images or link external URLs
+- Drag-and-drop or paste from clipboard
+- Image gallery per note
+- Supported formats: JPEG, PNG, GIF, WebP, SVG
 
-### 🖼️ Image Support
-- **Dual Storage** - Upload files (JPEG, PNG, GIF, WebP, SVG) or link external URLs
-- **Drag-and-Drop Upload** - Drop images directly into editor
-- **Clipboard Paste** - Ctrl+V to paste screenshots
-- **Image Gallery** - Sidebar panel showing all note images
-- **Click to Insert** - Gallery thumbnails insert markdown syntax at cursor
+**Security**
+- bcrypt password hashing
+- SQL injection protection via prepared statements
+- Session management with HTTPOnly cookies
+- File validation and size limits
 
-### 👥 Multi-User Collaboration
-- **Session-Based Authentication** - Secure login with bcrypt password hashing
-- **Hybrid Privacy Model** - Private folders (personal) + Shared folders (collaborative)
-- **User Permissions** - Notes inherit folder privacy settings
-- **Admin Panel** - User management, system settings, statistics
-- **Profile Settings** - Customize display name, password, theme preferences
-- **Database Backup/Restore** - Admin-only disaster recovery
+## Quick Start
 
-### 🔒 Security & Privacy
-- **SQL Injection Protection** - Prepared statements throughout
-- **Permission System** - Fine-grained access control for folders/notes
-- **Secure Sessions** - HTTPOnly cookies, configurable HTTPS mode
-- **File Validation** - MIME type checking, size limits, path traversal prevention
+### Docker (Recommended)
 
-## 🚀 Quick Start
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-### Using Docker (Recommended)
-
-1. **Install Docker Desktop**
-   Download from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/)
-
-2. **Create directories for persistent data**
+2. Create directories and compose file:
    ```bash
    mkdir -p notecottage/data notecottage/uploads
    cd notecottage
    ```
 
-3. **Create `docker-compose.yml`**
+3. Create `docker-compose.yml`:
    ```yaml
    version: '3.8'
    services:
@@ -102,56 +87,44 @@ A cozy, self-hosted note-taking application for small teams (2-5 users) with a w
        restart: unless-stopped
    ```
 
-4. **Fix permissions** (Linux/macOS only)
+4. Fix permissions (Linux/macOS):
    ```bash
    chmod 777 data uploads
    ```
 
-5. **Start the container**
+5. Start the container:
    ```bash
    docker-compose up -d
    ```
 
-6. **Open browser**
-   Navigate to `http://localhost:3000`
+6. Open `http://localhost:3000` in your browser
 
-7. **Create admin account**
-   First user becomes admin automatically
+7. Create an account (first user becomes admin)
 
-### Using Node.js (Development)
+### Node.js (Development)
 
-**Prerequisites:** Node.js 18+ installed
+Requires Node.js 18+
 
-1. **Clone repository**
-   ```bash
-   git clone https://github.com/leporcbarbu/NoteCottage.git
-   cd NoteCottage
-   ```
+```bash
+git clone https://github.com/leporcbarbu/NoteCottage.git
+cd NoteCottage
+npm install
+npm start
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+Open `http://localhost:3000` in your browser.
 
-3. **Start server**
-   ```bash
-   npm start
-   ```
-
-4. **Open browser**
-   Navigate to `http://localhost:3000`
-
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `3000` | Port for web server |
-| `DATABASE_PATH` | `./notecottage.db` | SQLite database file location |
-| `SECURE_COOKIES` | `false` | Set to `true` when using HTTPS reverse proxy |
+| `PORT` | `3000` | Web server port |
+| `DATABASE_PATH` | `./notecottage.db` | SQLite database location |
+| `SECURE_COOKIES` | `false` | Enable for HTTPS reverse proxy |
 
-### Docker Compose Example
+### Docker Compose with HTTPS
 
 ```yaml
 version: '3.8'
@@ -176,170 +149,83 @@ services:
       retries: 3
 ```
 
-## 🌐 Deployment Options
+## Deployment
 
-### Option 1: Local Network (LAN)
-- Deploy with Docker on home server
-- Access via `http://192.168.x.x:3000`
-- Perfect for family or small team on same network
+**Local Network**
+Run Docker on a home server and access via `http://192.168.x.x:3000`. Works great for families or teams on the same network.
 
-### Option 2: Remote Access via VPN
-- Use Tailscale or WireGuard for secure remote access
-- No port forwarding required
-- Maintains local network security
+**Remote Access (VPN)**
+Use Tailscale or WireGuard to access your instance remotely without exposing it to the internet. No port forwarding needed.
 
-### Option 3: Public Internet (HTTPS Required)
-- Deploy behind nginx reverse proxy with SSL/TLS
-- Use Let's Encrypt for free SSL certificates
-- Configure `SECURE_COOKIES=true`
+**Public Internet (HTTPS)**
+Deploy behind an nginx reverse proxy with Let's Encrypt SSL certificates. Set `SECURE_COOKIES=true` in your environment. You can also use Cloudflare Tunnel for easy HTTPS without opening ports.
 
-See deployment guides in `docs/deployment/` for detailed instructions.
+## Tech Stack
 
-## 🛠️ Technology Stack
+- Node.js + Express.js
+- SQLite with better-sqlite3
+- Vanilla JavaScript, HTML5, CSS3
+- marked.js for Markdown rendering (with custom wiki-link extension)
+- express-session + bcrypt for authentication
+- multer for file uploads
+- Docker for containerization
 
-- **Backend:** Node.js, Express.js
-- **Database:** SQLite with better-sqlite3
-- **Frontend:** Vanilla JavaScript, HTML5, CSS3
-- **Markdown:** marked.js with custom wiki-link extensions
-- **Authentication:** express-session with bcrypt password hashing
-- **File Uploads:** multer with image-size metadata extraction
-- **Containerization:** Docker with multi-stage builds
+## Usage
 
-## 📸 Screenshots
+**Creating Notes**
+Click "New Note", choose plain text or Markdown, and start writing. Press Alt+N for new note, Ctrl+S to save, Ctrl+P to toggle preview. Use `#hashtags` for tagging and `[[Note Title]]` to link between notes.
 
-### Cottage Theme (Default)
-The warm, cozy interface with earthy browns and cream colors
+**Folders**
+Click "New Folder" to create a folder. Choose an emoji icon and set it as Private (personal) or Shared (team). Drag notes and folders to organize them.
 
-### Dark Mode
-Cool, modern dark theme for late-night note-taking
+**Images**
+Click the image button in the editor, or just drag-and-drop images directly into the editor. You can also paste screenshots with Ctrl+V.
 
-### Wiki-Links & Backlinks
-Connect your notes with Obsidian-style `[[wiki-links]]` and see all backlinks
+**Tags**
+Type `#` to start a tag. Use autocomplete or create new tags. Click tags in the sidebar to filter notes.
 
-### Multi-User Organization
-Private folders for personal notes, Shared folders for team collaboration
+## Admin Panel
 
-## 📚 Usage Tips
+The admin panel lets you manage users (create, update, delete), configure system settings (registration, user limits), and backup/restore the database. The first user account becomes admin automatically.
 
-### Creating Your First Note
-1. Click "New Note" button
-2. Add a title and markdown content
-3. Press Ctrl/Cmd + S to save
-4. Use `#hashtags` for tagging
-5. Link to other notes with `[[Note Title]]`
+## Troubleshooting
 
-### Organizing with Folders
-1. Click "New Folder" button
-2. Choose an emoji icon
-3. Select Private (personal) or Shared (team)
-4. Drag notes into folders to organize
-5. Drag folders to nest within each other
-
-### Adding Images
-1. Click 📷 Image button in editor toolbar
-2. Upload files or link external URLs
-3. Drag-drop images directly into editor
-4. Paste screenshots with Ctrl+V
-5. Click gallery thumbnails to insert
-
-### Using Tags
-1. Type `#` in your note to start a tag
-2. Choose from autocomplete suggestions or create new
-3. Click tags in sidebar to filter notes
-4. Right-click unused tags to delete
-
-## 🔐 Admin Features
-
-### User Management
-- View all users with creation dates
-- Create user accounts manually
-- Update usernames, emails, display names
-- Reset user passwords
-- Delete user accounts (removes their private content)
-- Toggle admin status
-
-### System Settings
-- Enable/disable new user registrations
-- Set maximum user limit (1-20)
-- Customize app name
-- View system statistics
-
-### Database Backup & Restore
-- Download complete database backup
-- Restore from backup file
-- Automatic safety backup before restore
-- Disaster recovery capability
-
-## 🐛 Troubleshooting
-
-### Container won't start (Permission errors)
+**Permission errors on Linux/macOS**
 ```bash
 chmod 777 data uploads
 ```
 
-### Blank page after login
-- Clear browser cache (Ctrl+Shift+R)
-- Check browser console for errors
+**Blank page after login**
+Clear your browser cache (Ctrl+Shift+R) or check the console for errors.
 
-### Database corruption
+**Database issues**
 ```bash
 node fix-database.js
 ```
 
-### Images not uploading
-- Check `uploads/` directory permissions
-- Verify 10MB file size limit not exceeded
-- Ensure MIME type is supported (JPEG, PNG, GIF, WebP, SVG)
+**Image uploads failing**
+Check that the `uploads/` directory has write permissions and files are under 10MB.
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! This project was built as a learning experience and is open for improvements.
+Contributions welcome! Open an issue to discuss major changes before submitting a PR. I'm particularly interested in theme contributions, mobile improvements, and performance optimizations.
 
-**Areas for contribution:**
-- Additional themes and color schemes
-- Mobile PWA enhancements
-- Performance optimizations
-- Documentation improvements
-- Bug fixes and security enhancements
+## License
 
-Please open an issue to discuss major changes before submitting a pull request.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## 📝 License
+## Links
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Docker Hub: [leporcbarbu/notecottage](https://hub.docker.com/r/leporcbarbu/notecottage)
+- GitHub: [leporcbarbu/NoteCottage](https://github.com/leporcbarbu/NoteCottage)
+- Maintainer: [leporcbarbu](https://github.com/leporcbarbu)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-**Inspired by:**
-- [Obsidian](https://obsidian.md/) - Wiki-links and backlinks concept
-- [Trilium](https://github.com/zadam/trilium) - Hierarchical note organization
-- [Mealie](https://mealie.io/) - Self-hosted collaborative app model
-
-**Built as a learning project** to understand Node.js fundamentals, coming from a Python/Flask background.
-
-## 🔗 Links
-
-- **Docker Hub:** [leporcbarbu/notecottage](https://hub.docker.com/r/leporcbarbu/notecottage)
-- **GitHub:** [leporcbarbu/NoteCottage](https://github.com/leporcbarbu/NoteCottage)
-- **Maintainer:** [leporcbarbu](https://github.com/leporcbarbu)
-
-## 📊 Project Status
-
-**Current Version:** 1.1.2 (January 2026)
-
-**Status:** Production-ready for multi-user collaborative use
-
-**Recent Updates:**
-- v1.1.2 - UX improvements: service worker fix, save button always visible, redesigned welcome screen, empty trash confirmation
-- v1.1.1 - Bug fixes: text note icon display, mobile sidebar auto-close
-- v1.1.0 - Plain text note type support with smart editor switching
-- v1.0.10 - Mobile UI enhancements: toast notifications, overflow menu, responsive admin panel
-- v1.0.9 - Progressive Web App (PWA) support with offline capability
-- v1.0.8 - Clickable broken wiki-links create new notes
-- v1.0.7 - Wiki-link autocomplete with keyboard navigation
-
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed development history and [ROADMAP.md](ROADMAP.md) for future feature plans.
+Inspired by [Obsidian](https://obsidian.md/) (wiki-links and backlinks), [Trilium](https://github.com/zadam/trilium) (hierarchical notes), and [Mealie](https://mealie.io/) (self-hosted collaboration model).
 
 ---
 
-**Made with ☕ and ❤️ by Joshua C. Diller**
+**Current Version:** 1.1.2 (January 2026)
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and [ROADMAP.md](ROADMAP.md) for planned features.

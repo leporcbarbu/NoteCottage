@@ -432,23 +432,66 @@ function buildClientTitleMap() {
 function configureMarkedForWikiLinks() {
     const titleMap = buildClientTitleMap();
 
-    const renderer = (token) => {
-        const key = token.noteTitle.toLowerCase();
-        const targetNote = titleMap.get(key);
-
-        if (targetNote) {
-            return `<a href="#" class="wiki-link" data-note-id="${targetNote.id}">${token.displayText}</a>`;
-        } else {
-            return `<span class="wiki-link-broken" title="Note not found">${token.displayText}</span>`;
+    // Create custom heading renderer to add IDs
+    const headingRenderer = {
+        heading(text, level) {
+            const slug = slugify(text);
+            return `<h${level} id="${slug}">${text}</h${level}>`;
         }
+    };
+
+    // Create custom wiki-link renderer
+    const wikiLinkRenderer = (token) => {
+        const { isEmbed, noteTitle, headingSlug, displayText } = token;
+
+        // Handle embeds (placeholder for now - server renders these)
+        if (isEmbed) {
+            return `<span class="wiki-embed-placeholder">${displayText}</span>`;
+        }
+
+        // Same-note heading link: [[#Heading]]
+        if (!noteTitle && headingSlug) {
+            return `<a href="#${headingSlug}" class="wiki-link wiki-link-heading" data-heading="${headingSlug}">${displayText}</a>`;
+        }
+
+        // Note with heading: [[Note#Heading]]
+        if (noteTitle && headingSlug) {
+            const key = noteTitle.toLowerCase();
+            const targetNote = titleMap.get(key);
+
+            if (targetNote) {
+                return `<a href="#" class="wiki-link wiki-link-heading" data-note-id="${targetNote.id}" data-heading="${headingSlug}">${displayText}</a>`;
+            } else {
+                return `<span class="wiki-link-broken" title="Note not found">${displayText}</span>`;
+            }
+        }
+
+        // Regular note link: [[Note]]
+        if (noteTitle) {
+            const key = noteTitle.toLowerCase();
+            const targetNote = titleMap.get(key);
+
+            if (targetNote) {
+                return `<a href="#" class="wiki-link" data-note-id="${targetNote.id}">${displayText}</a>`;
+            } else {
+                return `<span class="wiki-link-broken" title="Note not found">${displayText}</span>`;
+            }
+        }
+
+        // Fallback
+        return `<span class="wiki-link-broken">${displayText}</span>`;
     };
 
     const extension = {
         ...window.wikiLinkExtension,
-        renderer
+        renderer: wikiLinkRenderer
     };
 
-    marked.use({ extensions: [extension] });
+    // Configure marked with both the extension and custom heading renderer
+    marked.use({
+        extensions: [extension],
+        renderer: headingRenderer
+    });
 }
 
 // Sidebar resize functionality
@@ -860,12 +903,26 @@ function setupEventListeners() {
     });
 
     // Wiki-link click handler (event delegation)
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         if (e.target.classList.contains('wiki-link')) {
             e.preventDefault();
             const noteId = e.target.getAttribute('data-note-id');
+            const headingSlug = e.target.getAttribute('data-heading');
+
             if (noteId) {
-                loadNote(noteId);
+                // Load the note first
+                await loadNote(noteId);
+
+                // If heading specified, scroll to it after note loads
+                if (headingSlug) {
+                    // Wait for preview to render
+                    setTimeout(() => {
+                        scrollToHeading(headingSlug);
+                    }, 100);
+                }
+            } else if (headingSlug) {
+                // Same-note heading link [[#Heading]]
+                scrollToHeading(headingSlug);
             }
         }
     });
@@ -901,6 +958,34 @@ function setupEventListeners() {
             const parentId = (currentFolderId === 'all-notes' || currentFolderId === 'private' || currentFolderId === 'shared') ? null : currentFolderId;
             createNewFolder(parentId);
         });
+    }
+}
+
+// Scroll to heading with smooth animation and highlight
+function scrollToHeading(slug) {
+    // Look for the heading in the preview pane
+    const previewPane = document.getElementById('notePreview');
+    if (!previewPane) {
+        console.warn('Preview pane not found');
+        return;
+    }
+
+    const targetElement = previewPane.querySelector(`#${slug}`);
+
+    if (targetElement) {
+        // Scroll the preview pane to show the heading
+        targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+
+        // Add temporary highlight effect
+        targetElement.classList.add('heading-highlight');
+        setTimeout(() => {
+            targetElement.classList.remove('heading-highlight');
+        }, 2000);
+    } else {
+        console.warn(`Heading not found: ${slug}`);
     }
 }
 
@@ -2787,8 +2872,8 @@ document.addEventListener('keydown', (e) => {
         saveCurrentNote();
     }
 
-    // Ctrl/Cmd + N to create new note
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    // Alt/Option + N to create new note (Ctrl+N is blocked by some browsers like Brave)
+    if (e.altKey && e.key === 'n') {
         e.preventDefault();
         createNewNote();
     }
@@ -2798,7 +2883,7 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         toggleView();
     }
-});
+}, { passive: false });
 
 // Drag-and-drop handler functions
 

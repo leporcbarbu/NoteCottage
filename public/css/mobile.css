@@ -247,7 +247,7 @@
 
     /* Welcome screen */
     .welcome-screen {
-        padding: 20px;
+        padding: 60px 20px 20px 20px; /* Extra top padding to prevent hamburger overlap */
     }
 
     .welcome-header h1 {
@@ -490,6 +490,7 @@
         gap: 6px;
         flex-wrap: wrap;
         width: 100%;
+        padding-left: 48px; /* Space for hamburger button */
     }
 
     /* Hide some desktop action buttons on mobile */
