@@ -5,6 +5,103 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-10
+
+✅ **Bug Fixed:** Heading renderer issue resolved. Updated to use marked.js v17 API correctly.
+
+### Added - Wiki-Link Power Features
+This release dramatically enhances wiki-links with features that were already implemented in the codebase but never documented or announced!
+
+**Link Aliases** (`[[Note Title|Display Text]]`)
+- Write `[[My Important Document|click here]]` to show "click here" while linking to "My Important Document"
+- Perfect for natural reading flow in sentences
+- Backlinks correctly track the original note title, not the alias
+- Works in both client-side and server-side rendering
+
+**Heading Links** (`[[Note#Section]]`)
+- Jump directly to specific sections within notes: `[[Meeting Notes#Action Items]]`
+- Link to headings in current note: `[[#Summary]]`
+- Smooth scroll animation when navigating to headings
+- Works with all heading levels (H1-H6)
+- Server-side rendering supports heading embeds: `![[Note#Section]]`
+
+**Combined Syntax** (`[[Note#Section|Display Text]]`)
+- Ultimate flexibility: `[[Research#Methodology|our methods]]`
+- Combine all features for maximum expressiveness
+
+**Intelligent Heading Autocomplete**
+- Type `[[NoteName#` to see all headings in that note
+- Real-time filtering as you type more characters
+- Visual distinction: headings shown with `#` prefix
+- Heading suggestions cached for performance
+- Keyboard navigation with arrow keys and Enter
+- Shows helpful messages: "Note not found", "No headings found"
+- Dropdown positioned intelligently near cursor
+
+**Enhanced Autocomplete UI**
+- Sleek dropdown styling with proper dark theme support
+- Smooth transitions and hover effects
+- Better positioning to avoid screen edges
+- Loading states and error handling
+- Maximum 300px height with scroll for long lists
+
+### Fixed
+
+**Heading Renderer for marked.js v17**
+- Fixed `[object Object]` display issue in markdown headings
+- Updated to use `this.parser.parseInline(token.tokens)` instead of `token.text`
+- Applied fix to both client-side (`app.js`) and server-side (`server.js`) rendering
+- Headings now display correctly with proper HTML and slugified IDs
+- See TROUBLESHOOTING-v1.2.0.md for technical details
+
+**Broken Link + Alias Bug**
+- Previously: Clicking `[[Missing Note|Alias]]` would create a note titled "Alias"
+- Now: Correctly creates "Missing Note" using data attribute storage
+- Broken links store `data-note-title` attribute with original note name
+- Click handler prioritizes data attribute over display text
+- Works for both simple links and heading links
+
+**Autocomplete Edge Cases**
+- Better handling of notes with no headings
+- Proper error messages when note doesn't exist
+- Cache invalidation works correctly
+- Dropdown closes properly on blur
+
+### Changed
+
+**Documentation Overhaul**
+- README now documents all wiki-link syntax with examples
+- Usage section includes dedicated wiki-link guide
+- ROADMAP updated to reflect completed features
+- Version bumped to 1.2.0 to reflect significant feature additions
+
+**CSS Improvements**
+- New `.wiki-link-heading-broken` class for missing headings (orange wavy underline)
+- Complete autocomplete dropdown styles
+- `.wikilink-autocomplete-heading` for visual distinction
+- `.wikilink-autocomplete-message` for info/error messages
+- Consistent dark theme support across all new elements
+
+### Technical Details
+
+**Files Modified:**
+- `public/js/app.js` - Added `data-note-title` to broken links, updated click handler
+- `server.js` - Added `data-note-title` to server-rendered broken links
+- `public/js/components/wikilink-autocomplete.js` - Complete heading autocomplete system
+- `public/css/style.css` - New autocomplete and heading-broken styles
+- `README.md` - Comprehensive wiki-link documentation
+- `ROADMAP.md` - Moved completed features, updated status
+
+**Implementation Highlights:**
+- Heading detection regex: `/^#{1,6}\s+(.+)$/gm`
+- Pattern matching: `/\[\[([^\]#]+)#([^\]]*?)$/` for heading mode
+- Caching system with Map for heading storage by note title
+- Async fetch with error handling for note content
+- Graceful degradation for missing notes or headings
+
+### Migration Notes
+No breaking changes. All existing wiki-links continue to work exactly as before. The new features are purely additive.
+
 ## [1.1.3] - 2026-01-07
 
 ### Added

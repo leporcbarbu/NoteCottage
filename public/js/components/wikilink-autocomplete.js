@@ -10,6 +10,9 @@ class WikiLinkAutocomplete {
         this.selectedIndex = 0;
         this.currentQuery = '';
         this.bracketStartPos = -1;
+        this.mode = 'notes'; // 'notes' or 'headings'
+        this.targetNoteTitle = ''; // For heading mode
+        this.headingsCache = new Map(); // Cache headings by note title
 
         this.setupEventListeners();
     }
@@ -37,11 +40,27 @@ class WikiLinkAutocomplete {
         const cursorPos = this.textarea.selectionStart;
         const textBeforeCursor = this.textarea.value.substring(0, cursorPos);
 
-        // Find the last [[ before cursor (not closed with ]])
+        // Check for heading pattern first: [[NoteName#partial
+        const headingMatch = textBeforeCursor.match(/\[\[([^\]#]+)#([^\]]*?)$/);
+
+        if (headingMatch) {
+            // User is typing a heading reference
+            this.mode = 'headings';
+            this.bracketStartPos = cursorPos - headingMatch[0].length;
+            this.targetNoteTitle = headingMatch[1].trim();
+            this.currentQuery = headingMatch[2].toLowerCase();
+
+            // Fetch and show headings for the target note
+            this.showHeadingsForNote(this.targetNoteTitle, cursorPos);
+            return;
+        }
+
+        // Check for regular wiki-link pattern: [[partial
         const wikiLinkMatch = textBeforeCursor.match(/\[\[([^\]]*?)$/);
 
         if (wikiLinkMatch) {
             // User is typing a wiki-link
+            this.mode = 'notes';
             this.bracketStartPos = cursorPos - wikiLinkMatch[0].length;
             this.currentQuery = wikiLinkMatch[1].toLowerCase();
 
@@ -61,7 +80,7 @@ class WikiLinkAutocomplete {
             });
 
             if (filteredNotes.length > 0) {
-                this.show(filteredNotes, cursorPos);
+                this.showNotes(filteredNotes, cursorPos);
             } else {
                 this.hide();
             }
@@ -93,7 +112,14 @@ class WikiLinkAutocomplete {
             case 'Tab':
                 if (items[this.selectedIndex]) {
                     e.preventDefault();
-                    this.selectNote(items[this.selectedIndex].textContent);
+                    const selectedText = items[this.selectedIndex].textContent;
+                    if (this.mode === 'headings') {
+                        // Remove the # prefix from display
+                        const headingText = selectedText.startsWith('#') ? selectedText.substring(1).trim() : selectedText;
+                        this.selectHeading(headingText);
+                    } else {
+                        this.selectNote(selectedText);
+                    }
                 }
                 break;
 
@@ -133,7 +159,26 @@ class WikiLinkAutocomplete {
         this.textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    show(filteredNotes, cursorPos) {
+    selectHeading(headingText) {
+        // Replace the partial heading link with the complete one
+        const before = this.textarea.value.substring(0, this.bracketStartPos);
+        const after = this.textarea.value.substring(this.textarea.selectionStart);
+
+        const completeLink = '[[' + this.targetNoteTitle + '#' + headingText + ']]';
+        this.textarea.value = before + completeLink + after;
+
+        // Set cursor position after the inserted wiki-link
+        const newCursorPos = this.bracketStartPos + completeLink.length;
+        this.textarea.setSelectionRange(newCursorPos, newCursorPos);
+
+        this.hide();
+        this.textarea.focus();
+
+        // Trigger input event to update preview
+        this.textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    showNotes(filteredNotes, cursorPos) {
         if (!this.dropdownElement) {
             this.createDropdown();
         }
@@ -164,6 +209,125 @@ class WikiLinkAutocomplete {
 
         this.isVisible = true;
         this.dropdownElement.style.display = 'block';
+    }
+
+    async showHeadingsForNote(noteTitle, cursorPos) {
+        // Check cache first
+        if (this.headingsCache.has(noteTitle.toLowerCase())) {
+            const headings = this.headingsCache.get(noteTitle.toLowerCase());
+            this.showHeadings(headings, cursorPos);
+            return;
+        }
+
+        // Find note by title
+        const note = this.notes.find(n => n.title.toLowerCase() === noteTitle.toLowerCase());
+
+        if (!note) {
+            this.showMessage('Note not found', cursorPos);
+            return;
+        }
+
+        // Fetch note content to extract headings
+        try {
+            const response = await fetch(`/api/notes/${note.id}`);
+            if (!response.ok) throw new Error('Failed to fetch note');
+
+            const noteData = await response.json();
+            const headings = this.extractHeadings(noteData.content);
+
+            // Cache the headings
+            this.headingsCache.set(noteTitle.toLowerCase(), headings);
+
+            if (headings.length > 0) {
+                this.showHeadings(headings, cursorPos);
+            } else {
+                this.showMessage('No headings found', cursorPos);
+            }
+        } catch (error) {
+            console.error('Error fetching note headings:', error);
+            this.showMessage('Error loading headings', cursorPos);
+        }
+    }
+
+    extractHeadings(content) {
+        // Extract markdown headings (# through ######)
+        const headingRegex = /^#{1,6}\s+(.+)$/gm;
+        const headings = [];
+        let match;
+
+        while ((match = headingRegex.exec(content)) !== null) {
+            headings.push(match[1].trim());
+        }
+
+        return headings;
+    }
+
+    showHeadings(headings, cursorPos) {
+        if (!this.dropdownElement) {
+            this.createDropdown();
+        }
+
+        // Clear previous items
+        this.dropdownElement.innerHTML = '';
+        this.selectedIndex = 0;
+
+        // Filter headings by current query
+        const filteredHeadings = headings.filter(heading =>
+            heading.toLowerCase().includes(this.currentQuery)
+        );
+
+        // Limit to first 10 results
+        const limitedHeadings = filteredHeadings.slice(0, 10);
+
+        if (limitedHeadings.length === 0) {
+            this.showMessage('No matching headings', cursorPos);
+            return;
+        }
+
+        // Add filtered headings with # prefix for visual distinction
+        limitedHeadings.forEach((heading, index) => {
+            const item = document.createElement('div');
+            item.className = 'wikilink-autocomplete-item wikilink-autocomplete-heading';
+            if (index === 0) item.classList.add('selected');
+            item.textContent = '# ' + heading;
+
+            item.addEventListener('click', () => {
+                this.selectHeading(heading);
+            });
+
+            this.dropdownElement.appendChild(item);
+        });
+
+        // Position dropdown near cursor
+        this.positionDropdown(cursorPos);
+
+        this.isVisible = true;
+        this.dropdownElement.style.display = 'block';
+    }
+
+    showMessage(message, cursorPos) {
+        if (!this.dropdownElement) {
+            this.createDropdown();
+        }
+
+        // Clear previous items
+        this.dropdownElement.innerHTML = '';
+        this.selectedIndex = 0;
+
+        const item = document.createElement('div');
+        item.className = 'wikilink-autocomplete-message';
+        item.textContent = message;
+
+        this.dropdownElement.appendChild(item);
+
+        // Position dropdown near cursor
+        this.positionDropdown(cursorPos);
+
+        this.isVisible = true;
+        this.dropdownElement.style.display = 'block';
+
+        // Auto-hide after 2 seconds
+        setTimeout(() => this.hide(), 2000);
     }
 
     hide() {

@@ -2,6 +2,16 @@
 
 Features and improvements I'm considering. Not all of these will happen - just ideas I'm exploring.
 
+## Recently Completed (v1.2.0)
+
+**Wiki-Link Enhancements**
+- ✅ Link aliases: `[[Note Title|Display Text]]` - documented existing feature
+- ✅ Heading links: `[[Note#Section]]` - documented existing feature
+- ✅ Combined syntax: `[[Note#Section|Display]]` - works perfectly
+- ✅ Heading autocomplete: Type `[[Note#` to see heading suggestions
+- ✅ Fixed broken link + alias bug: Clicking `[[Missing|Alias]]` now creates "Missing", not "Alias"
+- ✅ Enhanced autocomplete with caching and better UX
+
 ## Next Up
 
 **Polish**
@@ -20,11 +30,7 @@ Features and improvements I'm considering. Not all of these will happen - just i
 **Search & Discovery**
 - [ ] Search filters (by folder, date, tags)
 - [ ] Graph view of wiki-links (visual network diagram)
-- [ ] "Did you mean..." suggestions for broken links
-
-**Wiki-Links**
-- [ ] Aliases: `[[Actual Note|Display Text]]`
-- [ ] Heading links: `[[Note#Section]]`
+- [ ] "Did you mean..." suggestions for broken links (fuzzy matching)
 
 **Navigation**
 - [ ] Note history stack (back/forward navigation when following wiki-links)
@@ -116,4 +122,4 @@ Features and improvements I'm considering. Not all of these will happen - just i
 
 ---
 
-Open an issue on GitHub to suggest features or join the discussion. Last updated January 4, 2026.
+Open an issue on GitHub to suggest features or join the discussion. Last updated January 8, 2026.

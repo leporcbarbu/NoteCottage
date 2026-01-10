@@ -26,9 +26,14 @@ I built this as a learning project while exploring Node.js (coming from a Python
 
 **Linking & Discovery**
 - Wiki-style links (`[[Note Title]]`) like Obsidian
-- Backlinks panel shows references
-- Autocomplete for wiki-links and hashtags
-- Broken link detection
+- Link aliases for custom display text (`[[Note Title|Display Text]]`)
+- Heading links to jump to sections (`[[Note#Section]]` or `[[#Section]]`)
+- Combined syntax (`[[Note#Section|Custom Text]]`) for maximum flexibility
+- Backlinks panel shows all notes referencing current note
+- Intelligent autocomplete:
+  - Type `[[` for note suggestions
+  - Type `[[Note#` for heading suggestions within that note
+- Broken link detection with click-to-create
 - Hashtag tagging with filtering
 
 **Collaboration**
@@ -173,7 +178,16 @@ Deploy behind an nginx reverse proxy with Let's Encrypt SSL certificates. Set `S
 ## Usage
 
 **Creating Notes**
-Click "New Note", choose plain text or Markdown, and start writing. Press Alt+N for new note, Ctrl+S to save, Ctrl+P to toggle preview. Use `#hashtags` for tagging and `[[Note Title]]` to link between notes.
+Click "New Note", choose plain text or Markdown, and start writing. Press Alt+N for new note, Ctrl+S to save, Ctrl+P to toggle preview.
+
+**Wiki-Links**
+Connect your notes with powerful wiki-style linking:
+- `[[Note Title]]` - Link to another note
+- `[[Note Title|Display Text]]` - Link with custom text (alias)
+- `[[Note#Section]]` - Link to a specific heading in a note
+- `[[#Section]]` - Link to a heading in the current note
+- Autocomplete suggests notes as you type `[[` and headings when you type `[[Note#`
+- Click broken links to instantly create that note
 
 **Folders**
 Click "New Folder" to create a folder. Choose an emoji icon and set it as Private (personal) or Shared (team). Drag notes and folders to organize them.
@@ -226,6 +240,6 @@ Inspired by [Obsidian](https://obsidian.md/) (wiki-links and backlinks), [Triliu
 
 ---
 
-**Current Version:** 1.1.2 (January 2026)
+**Current Version:** 1.2.0 (January 2026)
 
 See [CHANGELOG.md](CHANGELOG.md) for version history and [ROADMAP.md](ROADMAP.md) for planned features.

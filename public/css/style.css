@@ -1164,6 +1164,33 @@ body {
     font-size: 0.9em;
 }
 
+/* Wiki-link with broken/missing heading */
+.wiki-link-heading-broken {
+    color: #ff8c00;
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: #ff8c00;
+    cursor: help;
+    border-bottom: none;
+    padding: 0 2px;
+    transition: all 0.2s ease;
+}
+
+.wiki-link-heading-broken:hover {
+    background-color: rgba(255, 140, 0, 0.1);
+    color: #ff7000;
+}
+
+[data-theme="dark"] .wiki-link-heading-broken {
+    color: #ffa500;
+    text-decoration-color: #ffa500;
+}
+
+[data-theme="dark"] .wiki-link-heading-broken:hover {
+    background-color: rgba(255, 165, 0, 0.15);
+    color: #ffb733;
+}
+
 /* Heading highlight animation (for scroll-to-heading) */
 @keyframes heading-highlight {
     0%, 100% { background-color: transparent; }
@@ -1175,6 +1202,69 @@ body {
     border-radius: 4px;
     padding: 4px 8px;
     margin: -4px -8px;
+}
+
+/* Wiki-link autocomplete dropdown */
+.wikilink-autocomplete-dropdown {
+    position: fixed;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 10000;
+    min-width: 200px;
+    max-width: 400px;
+    display: none;
+}
+
+.wikilink-autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.wikilink-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.wikilink-autocomplete-item:hover,
+.wikilink-autocomplete-item.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.wikilink-autocomplete-heading {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.95em;
+    font-style: italic;
+}
+
+.wikilink-autocomplete-message {
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    font-style: italic;
+    text-align: center;
+}
+
+[data-theme="dark"] .wikilink-autocomplete-dropdown {
+    background: #2a2a2a;
+    border-color: #444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .wikilink-autocomplete-item {
+    border-color: #444;
+}
+
+[data-theme="dark"] .wikilink-autocomplete-item:hover,
+[data-theme="dark"] .wikilink-autocomplete-item.selected {
+    background-color: #4da3ff;
+    color: #1a1a1a;
 }
 
 /* Wiki-link embeds */

@@ -434,9 +434,14 @@ function configureMarkedForWikiLinks() {
 
     // Create custom heading renderer to add IDs
     const headingRenderer = {
-        heading(text, level) {
+        heading(token) {
+            // In marked.js v17+, heading receives a token object
+            // token.tokens contains inline tokens that need to be parsed
+            // token.depth is the heading level (1-6)
+            const text = this.parser.parseInline(token.tokens);
+            const depth = token.depth;
             const slug = slugify(text);
-            return `<h${level} id="${slug}">${text}</h${level}>`;
+            return `<h${depth} id="${slug}">${text}</h${depth}>`;
         }
     };
 
@@ -462,7 +467,7 @@ function configureMarkedForWikiLinks() {
             if (targetNote) {
                 return `<a href="#" class="wiki-link wiki-link-heading" data-note-id="${targetNote.id}" data-heading="${headingSlug}">${displayText}</a>`;
             } else {
-                return `<span class="wiki-link-broken" title="Note not found">${displayText}</span>`;
+                return `<span class="wiki-link-broken" data-note-title="${noteTitle || ''}" title="Note not found">${displayText}</span>`;
             }
         }
 
@@ -474,12 +479,12 @@ function configureMarkedForWikiLinks() {
             if (targetNote) {
                 return `<a href="#" class="wiki-link" data-note-id="${targetNote.id}">${displayText}</a>`;
             } else {
-                return `<span class="wiki-link-broken" title="Note not found">${displayText}</span>`;
+                return `<span class="wiki-link-broken" data-note-title="${noteTitle || ''}" title="Note not found">${displayText}</span>`;
             }
         }
 
         // Fallback
-        return `<span class="wiki-link-broken">${displayText}</span>`;
+        return `<span class="wiki-link-broken" data-note-title="" title="Note not found">${displayText}</span>`;
     };
 
     const extension = {
@@ -931,7 +936,9 @@ function setupEventListeners() {
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('wiki-link-broken')) {
             e.preventDefault();
-            const noteTitle = e.target.textContent.trim();
+            // Use data attribute first (preserves original note title even with aliases)
+            // Fall back to text content for backwards compatibility
+            const noteTitle = e.target.getAttribute('data-note-title') || e.target.textContent.trim();
 
             if (!noteTitle) return;
 
