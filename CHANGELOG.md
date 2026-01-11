@@ -5,6 +5,85 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-10
+
+### Added - UX Improvements & Mobile Enhancements
+
+**Note Count Badges**
+- Folder note counts now display next to each folder name
+- Deep counting: Shows total notes including all subfolders
+- Empty folders display "(0)" for clarity
+- Visual at-a-glance overview of content distribution
+
+**Context Menus for Notes**
+- Right-click any note to access quick actions
+- Desktop: Standard right-click menu
+- Mobile: Long-press (500ms) support with haptic feedback
+- Options: Delete note (move to trash)
+
+**Mobile Long-Press Support**
+- All folders now support long-press on mobile
+- Trash folder menu accessible via long-press
+- Trash notes support long-press for restore/delete
+- 10px movement threshold prevents accidental triggers
+- Vibration feedback on supported devices
+
+### Fixed - Contrast & Readability
+
+**Note Count Badge Contrast**
+- Increased background opacity from 0.2 to 0.5 (150% improvement)
+- Darker text colors for better readability
+- Light theme: Changed from #2980b9 to #0d3d5c (deep blue)
+- Cottage theme: Changed from #8b6f47 to #4a3520 (dark brown)
+
+**Inline Code Contrast (Dark Themes)**
+- Dark theme: Light gray text on dark background (#f8c555 on #2d2d2d)
+- Cottage Dark: Tan text on warm brown background (#d4a574 on #2d2416)
+- Light themes: Added pink/red color (#c7254e) for better visibility
+- No more unreadable light text on light backgrounds
+
+**Code Block Backgrounds (Dark Themes)**
+- Dark theme: Code blocks now match page background (#2d2d2d)
+- Cottage Dark: Code blocks use warm brown background (#3a2f24)
+- Light themes: Keep classic blue-gray background (#2c3e50)
+- Added subtle border for better visual separation
+
+**Sidebar Readability**
+- Removed "last edited" timestamps from sidebar note list
+- Note titles now have significantly more display space
+- Timestamps still visible in status bar when note is open
+- Cleaner, less cluttered interface
+
+### Changed
+
+**Menu System Unification**
+- Trash note menus now use unified contextMenu system
+- Trash folder menu now uses unified contextMenu system
+- Consistent styling, hover effects, and transitions across all menus
+- Reduced code duplication (~50 lines removed)
+
+### Technical Details
+
+**Files Modified:**
+- `public/js/app.js` - Note counts, context menus, long-press support, sidebar cleanup
+- `public/css/style.css` - Badge contrast, code styling, inline code colors
+- `public/index.html` - Cache busting for CSS and JS
+
+**New Functions:**
+- `countNotesInFolder(folder)` - Recursive note counting
+- `addNoteCounts(folderList)` - Populate counts for all folders
+- `addLongPressListener(element, callback)` - Mobile long-press detection
+- `showNoteContextMenu(event, note)` - Note context menu
+
+**Updated Functions:**
+- `showTrashNoteMenu()` - Refactored to use contextMenu.show()
+- `createTrashFolder()` - Added long-press support
+- `createNoteElement()` - Removed timestamp, added context menu
+- `createTrashNoteElement()` - Added long-press support
+
+### Migration Notes
+No breaking changes. All existing functionality preserved. New features are purely additive.
+
 ## [1.2.0] - 2026-01-10
 
 ✅ **Bug Fixed:** Heading renderer issue resolved. Updated to use marked.js v17 API correctly.

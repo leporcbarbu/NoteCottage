@@ -20,10 +20,10 @@
     --bg-button-success: #27ae60;
     --bg-button-danger: #e74c3c;
     --bg-button-secondary: #455a64;
-    --bg-badge: rgba(52, 152, 219, 0.2);
+    --bg-badge: rgba(52, 152, 219, 0.5);
 
     --text-primary: #333;
-    --text-badge: #2980b9;
+    --text-badge: #0d3d5c;
     --text-secondary: #7f8c8d;
     --text-sidebar: #ecf0f1;
     --text-sidebar-muted: #95a5a6;
@@ -110,10 +110,10 @@
     --bg-button-success: #7a9f7a;
     --bg-button-danger: #c46d5e;
     --bg-button-secondary: #a67c52;
-    --bg-badge: rgba(200, 159, 93, 0.2);
+    --bg-badge: rgba(200, 159, 93, 0.5);
 
     --text-primary: #3d2817;
-    --text-badge: #8b6f47;
+    --text-badge: #4a3520;
     --text-secondary: #8b7355;
     --text-sidebar: #f5f1e8;
     --text-sidebar-muted: #bfa98f;
@@ -1074,10 +1074,23 @@ body {
 
 .preview-content code {
     background-color: #f4f4f4;
+    color: #c7254e;
     padding: 2px 6px;
     border-radius: 3px;
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 13px;
+}
+
+/* Dark theme inline code */
+[data-theme="dark"] .preview-content code {
+    background-color: #2d2d2d;
+    color: #f8c555;
+}
+
+/* Cottage Dark theme inline code */
+[data-theme="cottage-dark"] .preview-content code {
+    background-color: #2d2416;
+    color: #d4a574;
 }
 
 .preview-content pre {
@@ -1087,6 +1100,19 @@ body {
     border-radius: 5px;
     overflow-x: auto;
     margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+}
+
+/* Dark theme code blocks - match page background */
+[data-theme="dark"] .preview-content pre {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Cottage Dark theme code blocks - match page background */
+[data-theme="cottage-dark"] .preview-content pre {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .preview-content pre code {

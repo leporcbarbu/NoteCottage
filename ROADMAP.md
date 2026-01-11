@@ -2,9 +2,18 @@
 
 Features and improvements I'm considering. Not all of these will happen - just ideas I'm exploring.
 
-## Recently Completed (v1.2.0)
+## Recently Completed (v1.2.1)
 
-**Wiki-Link Enhancements**
+**UX & Mobile Improvements**
+- ✅ Note count badges: Shows total notes in folders (including subfolders)
+- ✅ Context menus for notes: Right-click or long-press to delete notes
+- ✅ Mobile long-press support: 500ms press with haptic feedback for all menus
+- ✅ Improved sidebar readability: Removed timestamps, more room for note titles
+- ✅ Enhanced contrast: Darker badge colors, better inline code visibility
+- ✅ Dark theme code blocks: Now match page background instead of blue-gray
+- ✅ Unified menu system: All context menus use consistent styling
+
+**Wiki-Link Enhancements (v1.2.0)**
 - ✅ Link aliases: `[[Note Title|Display Text]]` - documented existing feature
 - ✅ Heading links: `[[Note#Section]]` - documented existing feature
 - ✅ Combined syntax: `[[Note#Section|Display]]` - works perfectly
@@ -15,7 +24,6 @@ Features and improvements I'm considering. Not all of these will happen - just i
 ## Next Up
 
 **Polish**
-- [ ] Note count badges ("All Notes (47)")
 - [ ] Keyboard shortcuts in tooltips ("Save (Ctrl+S)")
 - [ ] Update Docker Hub README
 - [ ] Test PWA on actual phones (Android/iOS)
@@ -122,4 +130,4 @@ Features and improvements I'm considering. Not all of these will happen - just i
 
 ---
 
-Open an issue on GitHub to suggest features or join the discussion. Last updated January 8, 2026.
+Open an issue on GitHub to suggest features or join the discussion. Last updated January 10, 2026.

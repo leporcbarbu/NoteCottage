@@ -327,16 +327,7 @@ async function autoSave() {
             const updatedNote = await fetch(`/api/notes/${currentNoteId}`).then(r => r.json());
             note.updated_at = updatedNote.updated_at;
 
-            // Update the inline note time display
-            const noteElement = document.querySelector(`.note-item-inline[data-note-id="${currentNoteId}"]`);
-            if (noteElement) {
-                const timeElement = noteElement.querySelector('.note-time-inline');
-                if (timeElement && updatedNote.updated_at) {
-                    timeElement.textContent = formatRelativeTime(updatedNote.updated_at);
-                }
-            }
-
-            // Update editor timestamp
+            // Update editor timestamp in status bar
             if (updatedNote.updated_at) {
                 updatedDate.textContent = formatFullTimestamp(updatedNote.updated_at, 'Last edited');
             }
@@ -1098,45 +1089,30 @@ function viewTrashNote(note) {
 
 // Show context menu for trash note (restore or permanently delete)
 function showTrashNoteMenu(e, note) {
-    const menu = document.createElement('div');
-    menu.className = 'context-menu trash-context-menu';
-    menu.style.position = 'fixed';
-    menu.style.left = e.clientX + 'px';
-    menu.style.top = e.clientY + 'px';
-    menu.style.zIndex = '10000';
-
-    const restoreBtn = document.createElement('button');
-    restoreBtn.textContent = '♻️ Restore';
-    restoreBtn.className = 'context-menu-button';
-    restoreBtn.addEventListener('click', async () => {
-        await restoreNoteFromTrash(note.id);
-        document.body.removeChild(menu);
-    });
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = '🗑️ Delete Permanently';
-    deleteBtn.className = 'context-menu-button danger';
-    deleteBtn.addEventListener('click', async () => {
-        if (confirm(`Permanently delete "${note.title}"? This cannot be undone!`)) {
-            await permanentlyDeleteNote(note.id);
-        }
-        document.body.removeChild(menu);
-    });
-
-    menu.appendChild(restoreBtn);
-    menu.appendChild(deleteBtn);
-    document.body.appendChild(menu);
-
-    // Remove menu when clicking elsewhere
-    const removeMenu = (event) => {
-        if (!menu.contains(event.target)) {
-            if (document.body.contains(menu)) {
-                document.body.removeChild(menu);
+    const menuItems = [
+        {
+            label: `Restore "${note.title}"`,
+            icon: '♻️',
+            action: async () => {
+                await restoreNoteFromTrash(note.id);
             }
-            document.removeEventListener('click', removeMenu);
+        },
+        {
+            separator: true
+        },
+        {
+            label: `Delete "${note.title}" Permanently`,
+            icon: '🗑️',
+            danger: true,
+            action: async () => {
+                if (confirm(`Permanently delete "${note.title}"? This cannot be undone!`)) {
+                    await permanentlyDeleteNote(note.id);
+                }
+            }
         }
-    };
-    setTimeout(() => document.addEventListener('click', removeMenu), 0);
+    ];
+
+    contextMenu.show(e.clientX, e.clientY, menuItems);
 }
 
 // Restore note from trash
@@ -1261,17 +1237,21 @@ function createNoteElement(note, depth) {
     noteTitle.textContent = note.title;
     noteTitle.title = note.title; // Tooltip for full name on hover
 
-    const noteTime = document.createElement('span');
-    noteTime.className = 'note-time-inline';
-    if (note.updated_at) {
-        noteTime.textContent = formatRelativeTime(note.updated_at);
-    }
-
     noteItem.appendChild(noteIcon);
     noteItem.appendChild(noteTitle);
-    noteItem.appendChild(noteTime);
 
     noteItem.addEventListener('click', () => loadNote(note.id));
+
+    // Add context menu for note operations (right-click)
+    noteItem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showNoteContextMenu(e, note);
+    });
+
+    // Add long-press support for mobile
+    addLongPressListener(noteItem, (e) => {
+        showNoteContextMenu(e, note);
+    });
 
     // Add drag-and-drop functionality
     noteItem.draggable = true;
@@ -1294,12 +1274,43 @@ function createNoteElement(note, depth) {
 }
 
 // Render folder tree in sidebar
+// Recursively count notes in a folder and all its subfolders
+function countNotesInFolder(folder) {
+    // Count notes directly in this folder
+    let count = notes.filter(note =>
+        note.folder_id && String(note.folder_id) === String(folder.id)
+    ).length;
+
+    // Recursively count notes in all subfolders
+    if (folder.children && folder.children.length > 0) {
+        folder.children.forEach(child => {
+            count += countNotesInFolder(child);
+        });
+    }
+
+    return count;
+}
+
+// Add note counts to all folders in the tree
+function addNoteCounts(folderList) {
+    folderList.forEach(folder => {
+        folder.noteCount = countNotesInFolder(folder);
+        // Recursively add counts to children
+        if (folder.children && folder.children.length > 0) {
+            addNoteCounts(folder.children);
+        }
+    });
+}
+
 function renderFolderTree() {
     const foldersSection = document.querySelector('.folders-section');
     const foldersContainer = document.getElementById('foldersTree');
 
     foldersSection.style.display = 'block';
     foldersContainer.innerHTML = '';
+
+    // Add note counts to all folders before rendering
+    addNoteCounts(folders);
 
     // Render "All Notes" virtual folder first
     const allNotesFolder = createAllNotesFolder();
@@ -1461,34 +1472,39 @@ function createTrashFolder() {
             return;
         }
 
-        const menu = document.createElement('div');
-        menu.className = 'context-menu';
-        menu.style.position = 'fixed';
-        menu.style.left = e.clientX + 'px';
-        menu.style.top = e.clientY + 'px';
-        menu.style.zIndex = '10000';
-
-        const emptyBtn = document.createElement('button');
-        emptyBtn.textContent = '🗑️ Empty Trash';
-        emptyBtn.className = 'context-menu-button danger';
-        emptyBtn.addEventListener('click', async () => {
-            document.body.removeChild(menu);
-            await emptyTrash();
-        });
-
-        menu.appendChild(emptyBtn);
-        document.body.appendChild(menu);
-
-        // Remove menu when clicking elsewhere
-        const removeMenu = (event) => {
-            if (!menu.contains(event.target)) {
-                if (document.body.contains(menu)) {
-                    document.body.removeChild(menu);
+        const menuItems = [
+            {
+                label: 'Empty Trash',
+                icon: '🗑️',
+                danger: true,
+                action: async () => {
+                    await emptyTrash();
                 }
-                document.removeEventListener('click', removeMenu);
             }
-        };
-        setTimeout(() => document.addEventListener('click', removeMenu), 0);
+        ];
+
+        contextMenu.show(e.clientX, e.clientY, menuItems);
+    });
+
+    // Add long-press support for mobile
+    addLongPressListener(folderHeader, (e) => {
+        if (deletedNotes.length === 0) {
+            alert('Trash is already empty');
+            return;
+        }
+
+        const menuItems = [
+            {
+                label: 'Empty Trash',
+                icon: '🗑️',
+                danger: true,
+                action: async () => {
+                    await emptyTrash();
+                }
+            }
+        ];
+
+        contextMenu.show(e.clientX, e.clientY, menuItems);
     });
 
     // Make Trash folder a drop target for notes
@@ -1587,6 +1603,11 @@ function createTrashNoteElement(note, depth) {
     // Right-click menu for trash operations
     noteItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
+        showTrashNoteMenu(e, note);
+    });
+
+    // Add long-press support for mobile
+    addLongPressListener(noteItem, (e) => {
         showTrashNoteMenu(e, note);
     });
 
@@ -1697,6 +1718,11 @@ function createFolderElement(folder, depth) {
     if (!folder.isVirtual) {
         folderHeader.addEventListener('contextmenu', (e) => {
             e.preventDefault();
+            showFolderContextMenu(e, folder);
+        });
+
+        // Add long-press support for mobile
+        addLongPressListener(folderHeader, (e) => {
             showFolderContextMenu(e, folder);
         });
     }
@@ -1840,6 +1866,54 @@ function getAncestorFolderIds(folderId) {
     }
 
     return ancestors;
+}
+
+// Helper function to add long-press listener for mobile context menus
+function addLongPressListener(element, callback) {
+    let longPressTimer;
+    let touchStartX, touchStartY;
+    const longPressDuration = 500; // 500ms for long-press
+    const moveThreshold = 10; // 10px movement threshold
+
+    element.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+
+        longPressTimer = setTimeout(() => {
+            // Trigger the callback with a synthetic event that has clientX/Y
+            const syntheticEvent = {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                preventDefault: () => e.preventDefault()
+            };
+            callback(syntheticEvent);
+
+            // Provide haptic feedback if available
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }, longPressDuration);
+    });
+
+    element.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const moveX = Math.abs(touch.clientX - touchStartX);
+        const moveY = Math.abs(touch.clientY - touchStartY);
+
+        // Cancel long-press if user moves finger too much
+        if (moveX > moveThreshold || moveY > moveThreshold) {
+            clearTimeout(longPressTimer);
+        }
+    });
+
+    element.addEventListener('touchend', () => {
+        clearTimeout(longPressTimer);
+    });
+
+    element.addEventListener('touchcancel', () => {
+        clearTimeout(longPressTimer);
+    });
 }
 
 // Helper function to find a folder by ID in the tree
@@ -2081,6 +2155,45 @@ function showFolderContextMenu(event, folder) {
             action: () => deleteFolderFunc(folder.id, folder.name)
         });
     }
+
+    contextMenu.show(event.clientX, event.clientY, menuItems);
+}
+
+function showNoteContextMenu(event, note) {
+    const menuItems = [
+        {
+            label: `Delete "${note.title}"`,
+            icon: '🗑️',
+            danger: true,
+            action: async () => {
+                const confirmDelete = confirm(`Move "${note.title}" to trash? You can restore it later from the Trash folder.`);
+                if (!confirmDelete) return;
+
+                try {
+                    const response = await fetch(`/api/notes/${note.id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to delete note');
+                    }
+
+                    // Reload notes and trash
+                    await loadNotes();
+                    await loadTrash();
+
+                    // Show welcome screen if the deleted note was being viewed
+                    if (currentNoteId === note.id) {
+                        showWelcome();
+                        currentNoteId = null;
+                    }
+                } catch (error) {
+                    console.error('Failed to delete note:', error);
+                    alert('Failed to delete note. Please try again.');
+                }
+            }
+        }
+    ];
 
     contextMenu.show(event.clientX, event.clientY, menuItems);
 }

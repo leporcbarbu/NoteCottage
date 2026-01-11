@@ -81,11 +81,15 @@ Navigate to `http://localhost:3000` and create your admin account!
 
 ## 📊 Latest Version
 
-**v1.0.6** (January 2026)
-- Uncategorized notes now display inline at root level
-- Alphabetical folder sorting for better navigation
-- Improved folder organization and UX
-- Bug fixes and performance improvements
+**v1.2.1** (January 2026)
+
+**Recent Updates:**
+- ✨ Folder note count badges (shows total notes in each folder)
+- 📱 Mobile long-press support for context menus with haptic feedback
+- 🎨 Enhanced contrast and readability improvements
+- 🖱️ Right-click context menus for notes and folders
+- 🔗 Advanced wiki-link features: aliases, heading links, autocomplete
+- 🐛 Bug fixes and performance improvements
 
 See [release notes](https://github.com/leporcbarbu/NoteCottage/releases) for full changelog.
 

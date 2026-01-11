@@ -214,7 +214,7 @@ Clear your browser cache (Ctrl+Shift+R) or check the console for errors.
 
 **Database issues**
 ```bash
-node fix-database.js
+node scripts/fix-database.js
 ```
 
 **Image uploads failing**
@@ -240,6 +240,6 @@ Inspired by [Obsidian](https://obsidian.md/) (wiki-links and backlinks), [Triliu
 
 ---
 
-**Current Version:** 1.2.0 (January 2026)
+**Current Version:** 1.2.1 (January 2026)
 
 See [CHANGELOG.md](CHANGELOG.md) for version history and [ROADMAP.md](ROADMAP.md) for planned features.
