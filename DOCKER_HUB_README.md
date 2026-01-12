@@ -81,15 +81,24 @@ Navigate to `http://localhost:3000` and create your admin account!
 
 ## 📊 Latest Version
 
-**v1.2.1** (January 2026)
+**v1.3.0** (January 2026) - Testing & Quality Release 🧪
 
-**Recent Updates:**
-- ✨ Folder note count badges (shows total notes in each folder)
-- 📱 Mobile long-press support for context menus with haptic feedback
-- 🎨 Enhanced contrast and readability improvements
-- 🖱️ Right-click context menus for notes and folders
-- 🔗 Advanced wiki-link features: aliases, heading links, autocomplete
-- 🐛 Bug fixes and performance improvements
+**What's New:**
+- ✅ **Comprehensive test suite** - 66 automated tests covering all major features
+- 🔒 **Enhanced security** - Fixed note permission checks for better privacy
+- 💾 **Data protection** - Folder deletion now preserves notes/subfolders instead of deleting
+- 🔄 **Cross-device sync** - Auto-refresh with conflict detection (5-second polling)
+- 🐛 **Better error handling** - Improved API responses and status codes
+- 🤖 **CI/CD automation** - GitHub Actions runs tests on every commit
+
+**Previous Updates (v1.2.x):**
+- ✨ Folder note count badges with deep counting
+- 📱 Mobile long-press support with haptic feedback
+- 🎨 Enhanced contrast and readability
+- 🖱️ Context menus for notes and folders
+- 🔗 Advanced wiki-link features (aliases, heading links, autocomplete)
+
+**Stability:** Production-ready with 40% test coverage and automated quality checks.
 
 See [release notes](https://github.com/leporcbarbu/NoteCottage/releases) for full changelog.
 
