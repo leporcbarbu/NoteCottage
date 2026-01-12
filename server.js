@@ -389,28 +389,25 @@ app.post('/api/auth/register', async (req, res) => {
 
         // Create user (first user is admin)
         const isFirstUser = userCount === 0;
-        const user = db.createUser(username, email, passwordHash, displayName || null, isFirstUser);
+        const userId = db.createUser(username, email, passwordHash, displayName || null, isFirstUser);
 
         // If first user, create their personal "Uncategorized" folder
         if (isFirstUser) {
             db.createFolder('Uncategorized', null, null, '📂');
             const folder = db.db.prepare('SELECT id FROM folders WHERE name = ? ORDER BY id DESC LIMIT 1').get('Uncategorized');
-            db.db.prepare('UPDATE folders SET user_id = ?, is_public = 0 WHERE id = ?').run(user.id, folder.id);
+            db.db.prepare('UPDATE folders SET user_id = ?, is_public = 0 WHERE id = ?').run(userId, folder.id);
         } else {
             // Create per-user Uncategorized folder
             const folder = db.createFolder(`${username}'s Notes`, null, null, '📂');
-            db.db.prepare('UPDATE folders SET user_id = ?, is_public = 0 WHERE id = ?').run(user.id, folder.id);
+            db.db.prepare('UPDATE folders SET user_id = ?, is_public = 0 WHERE id = ?').run(userId, folder.id);
         }
 
         // Log them in
-        req.session.userId = user.id;
+        req.session.userId = userId;
 
-        res.json({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            display_name: user.display_name,
-            is_admin: user.is_admin
+        res.status(201).json({
+            userId: userId,
+            message: 'User registered successfully'
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -1220,16 +1217,18 @@ app.delete('/api/notes/:id', requireAuth, (req, res) => {
             return res.status(400).json({ error: 'Invalid note ID' });
         }
 
+        // Check if note exists first
+        const note = db.getNoteById(noteId);
+        if (!note) {
+            return res.status(404).json({ error: 'Note not found' });
+        }
+
         // Check if user has permission to modify this note
         if (!db.canUserModifyNote(noteId, userId)) {
             return res.status(403).json({ error: 'You do not have permission to delete this note' });
         }
 
         const deleted = db.deleteNote(noteId);
-
-        if (!deleted) {
-            return res.status(404).json({ error: 'Note not found' });
-        }
 
         res.json({ message: 'Note moved to trash' });
     } catch (error) {
@@ -1262,12 +1261,18 @@ app.get('/api/trash', (req, res) => {
 });
 
 // PUT /api/trash/:id/restore - Restore a note from trash
-app.put('/api/trash/:id/restore', (req, res) => {
+app.put('/api/trash/:id/restore', requireAuth, (req, res) => {
     try {
         const noteId = parseInt(req.params.id);
+        const userId = req.session.userId;
 
         if (isNaN(noteId)) {
             return res.status(400).json({ error: 'Invalid note ID' });
+        }
+
+        // Check if user has permission to modify this note
+        if (!db.canUserModifyNote(noteId, userId)) {
+            return res.status(403).json({ error: 'You do not have permission to restore this note' });
         }
 
         const restored = db.restoreNote(noteId);
@@ -1964,9 +1969,15 @@ app.delete('/api/attachments/:id', requireAuth, (req, res) => {
 });
 
 // Start server (like Flask's app.run())
-app.listen(PORT, () => {
-    console.log(`NoteCottage server running on http://localhost:${PORT}`);
-    console.log(`Database: SQLite (notecottage.db)`);
-    console.log(`Using full-text search for better searching!`);
-    console.log(`Tags support enabled!`);
-});
+// Only start server if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`NoteCottage server running on http://localhost:${PORT}`);
+        console.log(`Database: SQLite (notecottage.db)`);
+        console.log(`Using full-text search for better searching!`);
+        console.log(`Tags support enabled!`);
+    });
+}
+
+// Export app for testing
+module.exports = app;

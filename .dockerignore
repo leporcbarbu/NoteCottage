@@ -20,8 +20,10 @@ DATABASE_REPAIR_SUMMARY.md
 README.md
 
 # Test and utility files (not needed at runtime)
+tests/
 test-*.js
 fix-database.js
+jest.config.js
 
 # IDE and system files
 .claude/

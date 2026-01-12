@@ -5,6 +5,86 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-12
+
+### Added - Testing Framework & Quality Improvements
+
+**Comprehensive Test Suite**
+- Added Jest testing framework with Supertest for API testing
+- 66 passing tests across 4 test suites (auth, notes, folders, features)
+- Test coverage for authentication, note operations, folder management, and wiki-links
+- Test helpers for database setup and user authentication
+- Serial test execution to prevent race conditions
+- Automated test runs via `npm test`
+
+**Test Categories:**
+- **Authentication Tests (13)**: Registration, login, logout, session management
+- **Notes API Tests (24)**: CRUD operations, permissions, trash/restore functionality
+- **Folders API Tests (16)**: Creation, deletion, sharing, permissions, note moving
+- **Features Tests (19)**: Wiki-links, backlinks, search, tag filtering (6 skipped for future features)
+
+**Developer Tools:**
+- `npm test` - Run all tests
+- `npm run test:watch` - Watch mode for development
+- `npm run test:coverage` - Generate coverage reports
+- `npm run test:verbose` - Detailed test output
+
+### Fixed - Permission & Data Integrity
+
+**Note Access Control**
+- Fixed note permission checking for notes without folders
+- Notes without folders are now private to their creator (previously public)
+- Improved `canUserAccessNote()` logic for better security
+
+**Folder Deletion Behavior**
+- Changed folder deletion to preserve data instead of CASCADE delete
+- Deleted folders now move their notes and subfolders to root level
+- Prevents accidental data loss when reorganizing folder structure
+
+**API Endpoint Improvements**
+- Added authentication requirement to `/api/trash/:id/restore` endpoint
+- Fixed DELETE `/api/notes/:id` to return 404 (not 403) for non-existent notes
+- Improved error handling and status code consistency
+
+**Cross-Device Sync (from v1.2.2)**
+- Fixed mobile save bug where edits disappeared after save (data was saved but UI refreshed incorrectly)
+- Added manual refresh button in note toolbar and mobile menu
+- Implemented smart auto-sync polling (5-second intervals)
+- Conflict detection shows warning banner if note changed on server
+- Sync respects user's active editing (no auto-refresh if typing)
+
+### Changed
+
+**Test Infrastructure**
+- Jest configured to run tests serially (`maxWorkers: 1`) for database safety
+- Test database isolated in memory for fast, clean test runs
+- ESM modules (marked.js, jsdom) mocked for Jest compatibility
+
+### Technical Details
+
+**New Files:**
+- `jest.config.js` - Jest configuration with serial execution
+- `tests/setup.js` - Global test setup and database initialization
+- `tests/teardown.js` - Global test cleanup
+- `tests/helpers/db-helper.js` - Database utilities for tests
+- `tests/helpers/auth-helper.js` - Authentication utilities for tests
+- `tests/mocks/marked.js` - Mock for marked.js markdown parser
+- `tests/mocks/jsdom.js` - Mock for jsdom HTML parser
+- `tests/auth.test.js` - Authentication endpoint tests
+- `tests/notes.test.js` - Notes API tests
+- `tests/folders.test.js` - Folders API tests
+- `tests/features.test.js` - Wiki-links, search, and tag tests
+
+**Files Modified:**
+- `database.js` - Fixed `canUserAccessNote()` and `deleteFolder()` behavior
+- `server.js` - Added auth/permission checks to restore endpoint, improved error responses
+- `package.json` - Added Jest, Supertest, and test scripts
+
+**New Dependencies (devDependencies):**
+- `jest` ^30.2.0 - Testing framework
+- `supertest` ^7.2.2 - HTTP assertion library
+- `@types/jest` ^30.0.0 - TypeScript type definitions for Jest
+
 ## [1.2.1] - 2026-01-10
 
 ### Added - UX Improvements & Mobile Enhancements

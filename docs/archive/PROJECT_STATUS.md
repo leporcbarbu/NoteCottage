@@ -1,7 +1,7 @@
 # Project Status
 
-**Version:** 1.1.3
-**Updated:** January 7, 2026
+**Version:** 1.2.1
+**Updated:** January 11, 2026
 **Status:** Production-ready
 
 Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Markdown/plain text, wiki-links, tags, folders, and multi-user collaboration. Currently running at https://notes.bytecottage.com via Cloudflare Tunnel.
@@ -21,9 +21,13 @@ Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Ma
 
 **Linking & Discovery**
 - Wiki-links (`[[Note Title]]`) with autocomplete
+- Link aliases (`[[Note Title|Display Text]]`)
+- Heading links (`[[Note#Section]]` or `[[#Section]]`)
+- Combined syntax (`[[Note#Section|Custom Text]]`)
+- Intelligent heading autocomplete (type `[[Note#` for suggestions)
 - Backlinks panel
 - Hashtag tags with autocomplete and filtering
-- Broken link detection
+- Broken link detection with click-to-create
 
 **Media**
 - Image uploads or external URLs
@@ -32,7 +36,11 @@ Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Ma
 
 **UI**
 - Four themes (Light, Dark, Cottage, Cottage Dark)
-- Resizable sidebar
+- Note count badges on folders (deep counting)
+- Context menus for notes (right-click or long-press)
+- Mobile long-press support with haptic feedback
+- Resizable sidebar with improved readability
+- Enhanced contrast (badges, inline code, code blocks)
 - Mobile responsive with toast notifications
 - Keyboard shortcuts (Alt+N, Ctrl+S, Ctrl+P)
 - PWA support (installable on mobile, offline mode)
@@ -62,7 +70,11 @@ Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Ma
 
 ## Version History
 
-**v1.1.3** (Current) - Slugify utility fix for heading IDs, keyboard shortcut changed to Alt+N (browser compatibility)
+**v1.2.1** (Current) - Note count badges, context menus for notes, mobile long-press support, improved contrast (badges, inline code, code blocks), sidebar readability enhancements
+
+**v1.2.0** - Wiki-link enhancements (aliases, heading links, combined syntax), intelligent heading autocomplete, fixed heading renderer for marked.js v17, broken link + alias bug fix
+
+**v1.1.3** - Slugify utility fix for heading IDs, keyboard shortcut changed to Alt+N (browser compatibility)
 
 **v1.1.2** - UX improvements, service worker fixes, mobile save button visibility, welcome screen redesign, empty trash confirmation
 
@@ -86,24 +98,27 @@ Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Ma
 
 ## What's Next
 
-See [ROADMAP.md](ROADMAP.md) for the full list. Key priorities:
+See [ROADMAP.md](../ROADMAP.md) for the full list. Key priorities:
 
 **Soon**
-- Note count badges ("All Notes (47)")
-- Keyboard shortcuts in tooltips
+- Keyboard shortcuts in tooltips ("Save (Ctrl+S)")
 - Update Docker Hub README
-- Real-world mobile testing
+- Test PWA on actual phones (Android/iOS)
+- Enhanced word count with character count and reading time
+- Sort notes by "last updated" instead of just alphabetical
 
 **Later**
 - Search filters (by folder, date, tags)
-- Graph view of wiki-links
-- Note templates
-- Enhanced sorting options
+- Graph view of wiki-links (visual network diagram)
+- Note templates (built-in + custom)
+- Note history/versioning with diffs
+- Interactive checkboxes in Markdown
 
 **Eventually**
-- More themes
+- More themes (Forest, Ocean, Sunset, Solarized)
 - Real-time collaboration
-- API integrations
+- Share notes as read-only links
+- API & integrations
 
 ## Project Structure
 

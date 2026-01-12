@@ -119,6 +119,30 @@ npm start
 
 Open `http://localhost:3000` in your browser.
 
+### Running Tests
+
+NoteCottage includes a comprehensive test suite with 66 tests covering authentication, notes, folders, and features:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode (re-runs on file changes)
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+
+# Verbose output with detailed test information
+npm run test:verbose
+```
+
+**Test Coverage:**
+- **Authentication (13 tests)**: Registration, login, logout, session management
+- **Notes API (24 tests)**: CRUD operations, permissions, trash/restore
+- **Folders API (16 tests)**: Creation, deletion, sharing, permissions
+- **Features (19 tests)**: Wiki-links, backlinks, search, tag filtering
+
 ## Configuration
 
 ### Environment Variables

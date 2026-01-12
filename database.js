@@ -741,13 +741,19 @@ function canUserAccessNote(noteId, userId) {
     const note = getNoteById(noteId);
     if (!note) return false;
 
-    // Legacy notes (no folder or no user_id) are accessible to all users
-    if (!note.folder_id) {
-        return true; // Notes without folders are accessible (legacy or uncategorized)
+    // If note has a folder, check folder permissions
+    if (note.folder_id) {
+        return canUserAccessFolder(note.folder_id, userId);
     }
 
-    // Note is accessible if its parent folder is accessible
-    return canUserAccessFolder(note.folder_id, userId);
+    // Notes without folders are owned by the user who created them
+    // If no user_id is set (legacy notes), they're accessible to all
+    if (!note.user_id) {
+        return true; // Legacy notes without user_id are public
+    }
+
+    // Note belongs to a specific user
+    return note.user_id === userId;
 }
 
 function canUserModifyNote(noteId, userId) {
@@ -950,7 +956,18 @@ function canUserModifyFolder(folderId, userId) {
 }
 
 function deleteFolder(id) {
-    // CASCADE will handle subfolders and notes
+    // Move notes and subfolders to root before deleting
+    // This prevents data loss - notes and folders are preserved
+
+    // Move all notes in this folder to root (null folder)
+    const moveNotes = db.prepare('UPDATE notes SET folder_id = NULL WHERE folder_id = ?');
+    moveNotes.run(id);
+
+    // Move all subfolders to root (null parent)
+    const moveSubfolders = db.prepare('UPDATE folders SET parent_id = NULL WHERE parent_id = ?');
+    moveSubfolders.run(id);
+
+    // Now delete the folder itself
     const result = statements.deleteFolder.run(id);
     return result.changes > 0;
 }

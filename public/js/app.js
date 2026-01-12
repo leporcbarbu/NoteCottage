@@ -42,6 +42,11 @@ let isEditMode = true;
 let currentNoteData = null; // Store current note data including timestamps
 let currentNoteType = 'markdown'; // Track current note type (text or markdown)
 
+// Sync polling state
+let syncPollInterval = null; // Interval ID for polling
+const SYNC_POLL_INTERVAL_MS = 5000; // Poll every 5 seconds
+let syncNotificationBanner = null; // Reference to notification banner element
+
 // Folder state
 let folders = [];
 let currentFolderId = null;
@@ -118,6 +123,7 @@ const searchInput = document.getElementById('searchInput');
 const newNoteBtn = document.getElementById('newNoteBtn');
 const newNoteMenu = document.getElementById('newNoteMenu');
 const saveBtn = document.getElementById('saveBtn');
+const refreshBtn = document.getElementById('refreshBtn');
 const deleteBtn = document.getElementById('deleteBtn');
 const viewToggle = document.getElementById('viewToggle');
 const insertImageBtn = document.getElementById('insertImageBtn');
@@ -645,6 +651,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Wire up mobile menu actions to existing functions
+        document.getElementById('mobileRefreshBtn')?.addEventListener('click', async () => {
+            mobileActionsMenu.style.display = 'none';
+            await refreshCurrentNote(); // Reload note from server
+        });
+
         document.getElementById('mobileDeleteBtn')?.addEventListener('click', async () => {
             mobileActionsMenu.style.display = 'none';
             await deleteCurrentNote(); // Call existing delete function
@@ -789,6 +800,7 @@ function setupEventListeners() {
     });
 
     saveBtn.addEventListener('click', saveCurrentNote);
+    refreshBtn.addEventListener('click', refreshCurrentNote);
     deleteBtn.addEventListener('click', deleteCurrentNote);
     viewToggle.addEventListener('click', toggleView);
     insertImageBtn.addEventListener('click', showImageModal);
@@ -2521,6 +2533,9 @@ async function loadNote(noteId) {
             document.querySelector('.backlinks-section').style.display = 'none';
             document.querySelector('.attachments-section').style.display = 'none';
         }
+
+        // Start polling for note updates from other devices
+        startSyncPolling();
     } catch (error) {
         console.error('Failed to load note:', error);
         alert('Failed to load note. It may have been deleted.');
@@ -2599,9 +2614,26 @@ async function saveCurrentNote() {
         await loadNotes();
         await loadTags(); // Reload tags in case new ones were added
 
-        // Reload note to get updated timestamps and tags
-        await loadNote(currentNoteId);
+        // Update the active note in sidebar (highlight)
         updateActiveNote();
+
+        // Fetch updated timestamps without reloading editor content
+        // This prevents the mobile bug where editor content disappears after save
+        const noteResponse = await fetch(`/api/notes/${currentNoteId}`);
+        if (noteResponse.ok) {
+            const updatedNote = await noteResponse.json();
+            currentNoteData = updatedNote;
+
+            // Update timestamps display
+            if (updatedNote.created_at) {
+                createdDate.textContent = formatFullTimestamp(updatedNote.created_at, 'Created');
+            }
+            if (updatedNote.updated_at) {
+                updatedDate.textContent = formatFullTimestamp(updatedNote.updated_at, 'Last edited');
+            }
+
+            // Don't touch editor content - keep what user has typed
+        }
 
         // Update save status
         updateSaveStatus('saved');
@@ -2617,6 +2649,163 @@ async function saveCurrentNote() {
         console.error('Failed to save note:', error);
         updateSaveStatus('unsaved');
         alert('Failed to save note. Please try again.');
+    }
+}
+
+// Refresh the current note from the server
+async function refreshCurrentNote() {
+    if (!currentNoteId) {
+        showToast('No note to refresh', 'info');
+        return;
+    }
+
+    // Check if there are unsaved changes
+    const currentContent = currentNoteType === 'text' ? textNoteContent.value : noteContent.value;
+    const hasUnsavedChanges = currentNoteData && currentContent !== currentNoteData.content;
+
+    if (hasUnsavedChanges) {
+        const confirmRefresh = confirm('You have unsaved changes. Refreshing will discard them. Continue?');
+        if (!confirmRefresh) {
+            return;
+        }
+    }
+
+    try {
+        // Reload the note from server
+        await loadNote(currentNoteId);
+        showToast('Note refreshed', 'success');
+    } catch (error) {
+        console.error('Failed to refresh note:', error);
+        showToast('Failed to refresh note', 'error');
+    }
+}
+
+// Sync polling: Check if note has been updated on server
+async function checkForNoteUpdates() {
+    // Only poll if we have a note open
+    if (!currentNoteId || !currentNoteData) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/notes/${currentNoteId}`);
+        if (!response.ok) {
+            // Note might have been deleted
+            stopSyncPolling();
+            return;
+        }
+
+        const serverNote = await response.json();
+
+        // Check if server version is newer than our local version
+        if (serverNote.updated_at !== currentNoteData.updated_at) {
+            // Note has been updated on server
+            const currentContent = currentNoteType === 'text' ? textNoteContent.value : noteContent.value;
+            const hasLocalChanges = currentContent !== currentNoteData.content;
+
+            if (hasLocalChanges) {
+                // User has unsaved changes - show notification banner
+                showSyncNotificationBanner();
+            } else {
+                // No local changes - auto-refresh silently
+                currentNoteData = serverNote;
+                currentNoteType = serverNote.type || 'markdown';
+
+                // Update editor content
+                if (currentNoteType === 'text') {
+                    textNoteContent.value = serverNote.content;
+                } else {
+                    noteContent.value = serverNote.content;
+                    if (!isEditMode) {
+                        updatePreview(serverNote.html);
+                    }
+                }
+
+                // Update timestamps
+                if (serverNote.created_at) {
+                    createdDate.textContent = formatFullTimestamp(serverNote.created_at, 'Created');
+                }
+                if (serverNote.updated_at) {
+                    updatedDate.textContent = formatFullTimestamp(serverNote.updated_at, 'Last edited');
+                }
+
+                console.log('Note auto-refreshed from server');
+            }
+        }
+    } catch (error) {
+        console.error('Failed to check for note updates:', error);
+        // Don't show error to user - polling will retry
+    }
+}
+
+// Start polling for note updates
+function startSyncPolling() {
+    // Stop any existing polling first
+    stopSyncPolling();
+
+    // Only start polling if we have a note open
+    if (currentNoteId) {
+        syncPollInterval = setInterval(checkForNoteUpdates, SYNC_POLL_INTERVAL_MS);
+        console.log('Started sync polling');
+    }
+}
+
+// Stop polling for note updates
+function stopSyncPolling() {
+    if (syncPollInterval) {
+        clearInterval(syncPollInterval);
+        syncPollInterval = null;
+        console.log('Stopped sync polling');
+    }
+    hideSyncNotificationBanner();
+}
+
+// Show notification banner when note has been updated elsewhere with local changes
+function showSyncNotificationBanner() {
+    // Don't show duplicate banners
+    if (syncNotificationBanner) {
+        return;
+    }
+
+    // Create banner element
+    const banner = document.createElement('div');
+    banner.className = 'sync-notification-banner';
+    banner.innerHTML = `
+        <span class="sync-notification-text">
+            ⚠️ This note was updated on another device. You have unsaved changes.
+        </span>
+        <div class="sync-notification-actions">
+            <button id="syncRefreshBtn" class="sync-btn sync-btn-primary">Refresh (discard changes)</button>
+            <button id="syncIgnoreBtn" class="sync-btn sync-btn-secondary">Keep editing</button>
+        </div>
+    `;
+
+    // Insert banner at top of editor
+    const editorHeader = document.querySelector('.editor-header');
+    editorHeader.insertAdjacentElement('afterend', banner);
+    syncNotificationBanner = banner;
+
+    // Wire up button handlers
+    document.getElementById('syncRefreshBtn').addEventListener('click', async () => {
+        hideSyncNotificationBanner();
+        await loadNote(currentNoteId);
+        showToast('Note refreshed from server', 'success');
+    });
+
+    document.getElementById('syncIgnoreBtn').addEventListener('click', () => {
+        hideSyncNotificationBanner();
+        // Stop polling to avoid showing the banner again
+        // User can manually refresh if they want the latest version
+        stopSyncPolling();
+        showToast('Sync paused. Click Refresh to get latest version.', 'info');
+    });
+}
+
+// Hide notification banner
+function hideSyncNotificationBanner() {
+    if (syncNotificationBanner) {
+        syncNotificationBanner.remove();
+        syncNotificationBanner = null;
     }
 }
 
@@ -2958,6 +3147,9 @@ async function filterNotes() {
 
 // Show welcome screen
 function showWelcome() {
+    // Stop sync polling when no note is open
+    stopSyncPolling();
+
     welcomeScreen.style.display = 'flex';
     editorScreen.style.display = 'none';
 }
