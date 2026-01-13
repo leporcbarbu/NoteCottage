@@ -12,6 +12,9 @@ const sizeOf = require('image-size');
 // Import our database module (like: from database import get_all_notes, etc.)
 const db = require('./database');
 
+// Import package.json for version info
+const packageJson = require('./package.json');
+
 // Import slugify utility for heading IDs
 const { slugify } = require('./public/js/utils/slugify.js');
 
@@ -335,6 +338,14 @@ function renderMarkdownWithWikiLinks(content, titleMap, currentNoteId = null, em
 // ============================================
 // Authentication Routes
 // ============================================
+
+// GET /api/appinfo - Get application version (public endpoint - NO AUTH)
+app.get('/api/appinfo', function(req, res) {
+    return res.status(200).json({
+        version: packageJson.version,
+        name: packageJson.name
+    });
+});
 
 // POST /api/auth/register - Create new user account
 app.post('/api/auth/register', async (req, res) => {

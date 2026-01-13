@@ -496,6 +496,7 @@
     /* Hide some desktop action buttons on mobile */
     /* Keep #saveBtn visible - it's crucial for new notes */
     #deleteBtn,
+    #refreshBtn,
     .export-dropdown {
         display: none !important;
     }

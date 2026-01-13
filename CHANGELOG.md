@@ -5,7 +5,48 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2026-01-12
+## [1.3.1] - 2026-01-12
+
+### Added - UX & Admin Improvements
+
+**Session Persistence**
+- App now remembers and reopens the last edited note on refresh/reload
+- Last opened note ID stored in localStorage
+- Graceful fallback to welcome screen if note no longer exists
+- Clears saved note when note is deleted or moved to trash
+
+**Admin Panel Enhancements**
+- Added application version display in System Settings tab
+- Version automatically syncs with package.json via `/api/appinfo` endpoint
+- New public API endpoint `/api/appinfo` returns version and app name
+- Force Reload button to clear all caches and ensure latest version
+  - Unregisters service workers
+  - Clears cache storage
+  - Clears localStorage (preserves theme preference)
+  - Clears sessionStorage
+  - Performs hard reload
+
+**Button Styling Improvements**
+- Added refresh button to editor toolbar with consistent styling
+- Refresh button hidden on mobile to save space
+- Improved button visibility across all themes
+
+### Technical Details
+
+**Files Modified:**
+- `public/js/app.js` - Added localStorage persistence for last opened note
+- `server.js` - Added `/api/appinfo` endpoint for version information
+- `public/admin.html` - Added Application Information section with version display and force reload
+- `public/js/admin.js` - Added `loadVersion()` and `forceReload()` functions
+- `public/css/style.css` - Added `#refreshBtn` to button styling
+- `public/css/mobile.css` - Hide refresh button on mobile
+- `package.json` - Version bump to 1.3.1
+
+**New Functions:**
+- `loadVersion()` - Fetches and displays app version from API
+- `forceReload()` - Clears all caches and performs hard reload
+
+## [1.3.0] - 2026-01-11
 
 ### Added - Testing Framework & Quality Improvements
 

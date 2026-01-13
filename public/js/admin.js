@@ -393,6 +393,59 @@ function formatDate(dateString) {
     });
 }
 
+// Fetch and display application version
+async function loadVersion() {
+    try {
+        const response = await fetch('/api/appinfo');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        document.getElementById('app-version').textContent = `v${data.version}`;
+    } catch (error) {
+        console.error('Error loading version:', error);
+        document.getElementById('app-version').textContent = `Unable to load version (${error.message})`;
+    }
+}
+
+// Force reload the application by clearing all caches
+async function forceReload() {
+    try {
+        // Unregister all service workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.unregister();
+            }
+        }
+
+        // Clear all caches
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+        }
+
+        // Clear localStorage (except theme preference)
+        const theme = localStorage.getItem('theme');
+        localStorage.clear();
+        if (theme) {
+            localStorage.setItem('theme', theme);
+        }
+
+        // Clear sessionStorage
+        sessionStorage.clear();
+
+        // Show success message
+        alert('Cache cleared! The page will now reload to get the latest version.');
+
+        // Force hard reload (bypass cache)
+        window.location.reload(true);
+    } catch (error) {
+        console.error('Error during force reload:', error);
+        alert('An error occurred while clearing cache. Please try manually clearing your browser cache.');
+    }
+}
+
 // Apply theme immediately (synchronously before DOMContentLoaded)
 const currentTheme = localStorage.getItem('theme') || 'cottage';
 document.documentElement.dataset.theme = currentTheme;
@@ -407,10 +460,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initTabs();
     loadStatistics();
+    loadVersion();
 
     // Event listeners
     document.getElementById('createUserBtn').addEventListener('click', createUser);
     document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+    document.getElementById('forceReloadBtn').addEventListener('click', forceReload);
 
     // Backup & Restore event listeners
     document.getElementById('downloadBackupBtn').addEventListener('click', downloadBackup);

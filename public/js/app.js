@@ -704,11 +704,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize sidebar resize functionality
     initializeSidebarResize();
 
-    loadFolders();
-    loadNotes();
-    loadTags();
-    loadTrash();
+    await loadFolders();
+    await loadNotes();
+    await loadTags();
+    await loadTrash();
     setupEventListeners();
+
+    // Restore last opened note if available
+    const lastNoteId = localStorage.getItem('lastOpenedNoteId');
+    if (lastNoteId) {
+        try {
+            await loadNote(parseInt(lastNoteId, 10));
+        } catch (error) {
+            // If note fails to load (e.g., was deleted), clear from localStorage
+            console.log('Could not restore last note, showing welcome screen');
+            localStorage.removeItem('lastOpenedNoteId');
+            showWelcome();
+        }
+    }
 });
 
 // Setup image drag-and-drop
@@ -1170,6 +1183,7 @@ async function permanentlyDeleteNote(noteId) {
 
         // Clear editor if this note was being viewed
         if (currentNoteId === noteId) {
+            localStorage.removeItem('lastOpenedNoteId');
             showWelcome();
         }
 
@@ -2198,6 +2212,7 @@ function showNoteContextMenu(event, note) {
                     if (currentNoteId === note.id) {
                         showWelcome();
                         currentNoteId = null;
+                        localStorage.removeItem('lastOpenedNoteId');
                     }
                 } catch (error) {
                     console.error('Failed to delete note:', error);
@@ -2448,6 +2463,9 @@ async function loadNote(noteId) {
         currentNoteData = note;
         currentNoteType = note.type || 'markdown';
         noteTitle.value = note.title;
+
+        // Save last opened note to localStorage
+        localStorage.setItem('lastOpenedNoteId', note.id);
 
         // Switch editor based on note type
         if (currentNoteType === 'text') {
@@ -2833,6 +2851,7 @@ async function deleteCurrentNote() {
         currentNoteId = null;
         await loadNotes();
         await loadTrash(); // Reload trash to update count
+        localStorage.removeItem('lastOpenedNoteId');
         showWelcome();
 
     } catch (error) {

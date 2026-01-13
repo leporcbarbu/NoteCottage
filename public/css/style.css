@@ -1496,7 +1496,8 @@ body {
 
 /* Editor toolbar buttons - ensure visibility in all themes */
 #viewToggle,
-#insertImageBtn {
+#insertImageBtn,
+#refreshBtn {
     background-color: var(--bg-button-secondary) !important;
     color: #ffffff !important;
 }
