@@ -2187,8 +2187,13 @@ function showFolderContextMenu(event, folder) {
             label: `New Note in "${folder.name}"`,
             icon: '📝',
             action: () => {
+                // Set folder without toggling selection
                 currentFolderId = folder.id;
-                selectFolder(folder.id);
+                // Expand folder if not already expanded
+                if (!expandedFolders.has(folder.id)) {
+                    expandedFolders.add(folder.id);
+                }
+                renderFolderTree();
                 createNewNote('markdown');
             }
         },

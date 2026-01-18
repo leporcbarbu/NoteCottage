@@ -43,8 +43,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "New Note" option to folder right-click menu
 - Quickly create notes directly within a folder without selecting it first
 - Appears at the top of the context menu with separator for visual grouping
+- Works on both desktop (right-click) and mobile (long-press)
 
 ### Fixed - Markdown & Caching Issues
+
+**Folder Context Menu Bug**
+- Fixed "New Note" in folder context menu saving to root instead of selected folder
+- Issue: Calling `selectFolder()` was toggling selection, clearing `currentFolderId`
+- Solution: Set folder ID directly without toggle, expand folder, re-render tree
 
 **GitHub Flavored Markdown Line Breaks**
 - Single newline (Enter) now creates `<br>` tag in Markdown preview
@@ -68,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Files Modified:**
 - `public/js/app.js` - Line 496: Added `breaks: true` to marked.js config
-- `public/js/app.js` - Line 2160-2183: Added "New Note" to folder context menu
+- `public/js/app.js` - Lines 2160-2174: Added "New Note" to folder context menu with proper folder persistence
 - `public/js/app.js` - Line 2531: Changed `updateSaveStatus('saved')` to `updateSaveStatus('')`
 - `public/js/app.js` - Line 296: Removed unnecessary "saved" status on no changes
 - `server.js` - Line 330: Added `breaks: true` to marked.js config
