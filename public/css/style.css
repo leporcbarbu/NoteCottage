@@ -1741,6 +1741,7 @@ body {
     background: var(--bg-secondary);
     color: var(--text-primary);
     outline: none;
+    overflow-y: auto;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 

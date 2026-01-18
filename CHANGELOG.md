@@ -5,6 +5,29 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2026-01-18
+
+### Fixed - Mobile & Sync Issues
+
+**Mobile Scrolling**
+- Fixed inability to scroll to bottom of long notes on mobile devices
+- Added `overflow-y: auto` to text editor textarea
+- Text notes now scroll properly when content exceeds screen height
+
+**Sync Conflict False Positives**
+- Fixed spurious "another version found" warnings during normal editing
+- Sync now compares actual content, not just timestamps
+- Warning only appears when server content truly differs from loaded version
+- Timestamp-only changes no longer trigger conflict warnings
+
+### Technical Details
+
+**Files Modified:**
+- `public/css/style.css` - Line 1744: Added `overflow-y: auto` to `.text-note-editor`
+- `public/js/app.js` - Lines 2763-2797: Improved sync detection to compare content
+- `public/sw.js` - Updated cache version to 1.3.4
+- `package.json` - Version bump to 1.3.4
+
 ## [1.3.3] - 2026-01-17
 
 ### Fixed - PWA Service Worker Updates

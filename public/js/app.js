@@ -2760,14 +2760,15 @@ async function checkForNoteUpdates() {
 
         // Check if server version is newer than our local version
         if (serverNote.updated_at !== currentNoteData.updated_at) {
-            // Note has been updated on server
+            // Check if server content actually changed (not just timestamp)
+            const serverContentChanged = serverNote.content !== currentNoteData.content;
             const currentContent = currentNoteType === 'text' ? textNoteContent.value : noteContent.value;
             const hasLocalChanges = currentContent !== currentNoteData.content;
 
-            if (hasLocalChanges) {
-                // User has unsaved changes - show notification banner
+            if (serverContentChanged && hasLocalChanges) {
+                // Server content changed AND user has unsaved changes - show conflict warning
                 showSyncNotificationBanner();
-            } else {
+            } else if (serverContentChanged) {
                 // No local changes - auto-refresh silently
                 currentNoteData = serverNote;
                 currentNoteType = serverNote.type || 'markdown';
@@ -2791,6 +2792,9 @@ async function checkForNoteUpdates() {
                 }
 
                 console.log('Note auto-refreshed from server');
+            } else {
+                // Only timestamp changed, not content - just update our local timestamp
+                currentNoteData.updated_at = serverNote.updated_at;
             }
         }
     } catch (error) {
