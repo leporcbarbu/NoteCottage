@@ -5,6 +5,36 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2026-01-17
+
+### Fixed - PWA Service Worker Updates
+
+**Automatic Service Worker Updates**
+- Added automatic service worker update detection on page load
+- New service workers now activate immediately without manual intervention
+- Page automatically reloads when new service worker activates
+- Fixes issue where mobile PWA users had to manually clear cache to get updates
+- Service worker now checks for updates every time the app is opened
+
+**How it works:**
+1. App checks for service worker updates on every load
+2. When a new version is found, it installs in the background
+3. New service worker skips waiting and activates immediately
+4. Page automatically reloads to use the new service worker
+5. Users always get the latest version without manual cache clearing
+
+### Technical Details
+
+**Files Modified:**
+- `public/js/app.js` - Lines 570-603: Added SW update detection and auto-reload
+- `public/sw.js` - Lines 2-6: Updated cache version to 1.3.3
+- `package.json` - Version bump to 1.3.3
+
+**Impact:**
+- Mobile PWA users will now automatically get updates
+- No more stale service workers causing sync issues
+- Seamless update experience across all devices
+
 ## [1.3.2] - 2026-01-17
 
 ### Added - UX Improvements

@@ -1,9 +1,9 @@
 // NoteCottage Service Worker
-// Version: 1.3.2
+// Version: 1.3.3
 
-const CACHE_NAME = 'notecottage-v1.3.2';
-const STATIC_CACHE = 'notecottage-static-v1.3.2';
-const DYNAMIC_CACHE = 'notecottage-dynamic-v1.3.2';
+const CACHE_NAME = 'notecottage-v1.3.3';
+const STATIC_CACHE = 'notecottage-static-v1.3.3';
+const DYNAMIC_CACHE = 'notecottage-dynamic-v1.3.3';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
