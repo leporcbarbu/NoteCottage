@@ -1,7 +1,7 @@
 # Project Status
 
-**Version:** 1.2.1
-**Updated:** January 11, 2026
+**Version:** 1.3.2
+**Updated:** January 17, 2026
 **Status:** Production-ready
 
 Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Markdown/plain text, wiki-links, tags, folders, and multi-user collaboration. Currently running at https://notes.bytecottage.com via Cloudflare Tunnel.
@@ -70,7 +70,13 @@ Self-hosted note-taking app built with Node.js, Express, and SQLite. Supports Ma
 
 ## Version History
 
-**v1.2.1** (Current) - Note count badges, context menus for notes, mobile long-press support, improved contrast (badges, inline code, code blocks), sidebar readability enhancements
+**v1.3.2** (Current) - GFM line breaks, service worker caching fixes (network-first for code, network-only for API), folder context menu "New Note" option, quiet save notifications
+
+**v1.3.1** - Session persistence (remembers last note), admin panel version display, force reload button
+
+**v1.3.0** - Comprehensive test suite (66 tests), CI/CD, bug fixes (note permissions, folder deletion, restore auth), cross-device sync
+
+**v1.2.1** - Note count badges, context menus for notes, mobile long-press support, improved contrast (badges, inline code, code blocks), sidebar readability enhancements
 
 **v1.2.0** - Wiki-link enhancements (aliases, heading links, combined syntax), intelligent heading autocomplete, fixed heading renderer for marked.js v17, broken link + alias bug fix
 

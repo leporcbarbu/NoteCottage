@@ -326,7 +326,8 @@ function renderMarkdownWithWikiLinks(content, titleMap, currentNoteId = null, em
     // Configure marked with both the extension and custom heading renderer
     marked.use({
         extensions: [extension],
-        renderer: headingRenderer
+        renderer: headingRenderer,
+        breaks: true  // Enable GFM line breaks (single Enter = <br>)
     });
 
     // Render markdown to HTML

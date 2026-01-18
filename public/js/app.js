@@ -293,7 +293,7 @@ async function autoSave() {
 
     // Check if content actually changed
     if (currentNoteData && currentNoteData.content === content) {
-        updateSaveStatus('saved');
+        // No changes to save - silently return without showing notification
         return;
     }
 
@@ -492,7 +492,8 @@ function configureMarkedForWikiLinks() {
     // Configure marked with both the extension and custom heading renderer
     marked.use({
         extensions: [extension],
-        renderer: headingRenderer
+        renderer: headingRenderer,
+        breaks: true  // Enable GFM line breaks (single Enter = <br>)
     });
 }
 
@@ -2158,6 +2159,18 @@ async function deleteFolderFunc(folderId, folderName) {
 function showFolderContextMenu(event, folder) {
     const menuItems = [
         {
+            label: `New Note in "${folder.name}"`,
+            icon: '📝',
+            action: () => {
+                currentFolderId = folder.id;
+                selectFolder(folder.id);
+                createNewNote('markdown');
+            }
+        },
+        {
+            separator: true
+        },
+        {
             label: `New Subfolder in "${folder.name}"`,
             icon: '+',
             action: () => createNewFolder(folder.id)
@@ -2514,8 +2527,8 @@ async function loadNote(noteId) {
 
         updateWordCount();
 
-        // Mark as saved (no unsaved changes when first loaded)
-        updateSaveStatus('saved');
+        // Clear save status (no unsaved changes when first loaded, but don't show notification)
+        updateSaveStatus('');
 
         // Display timestamps
         if (note.created_at) {

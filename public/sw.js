@@ -1,9 +1,9 @@
 // NoteCottage Service Worker
-// Version: 1.2.0-fixed
+// Version: 1.3.2
 
-const CACHE_NAME = 'notecottage-v1.2.0-fixed';
-const STATIC_CACHE = 'notecottage-static-v1.2.0-fixed';
-const DYNAMIC_CACHE = 'notecottage-dynamic-v1.2.0-fixed';
+const CACHE_NAME = 'notecottage-v1.3.2';
+const STATIC_CACHE = 'notecottage-static-v1.3.2';
+const DYNAMIC_CACHE = 'notecottage-dynamic-v1.3.2';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -71,7 +71,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for code, cache-first for assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
@@ -85,6 +85,53 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Network-first strategy for JS and CSS files (always get latest code)
+  if (request.url.match(/\.(js|css)$/i)) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          // Don't cache non-successful responses
+          if (!response || response.status !== 200 || response.type === 'error') {
+            return response;
+          }
+
+          // Clone and cache the fresh response
+          const responseToCache = response.clone();
+          caches.open(STATIC_CACHE)
+            .then(cache => {
+              cache.put(request, responseToCache);
+            });
+
+          return response;
+        })
+        .catch(error => {
+          console.log('[Service Worker] Network failed for code file, trying cache:', request.url);
+          // Network failed (offline), fallback to cache
+          return caches.match(request)
+            .then(cachedResponse => {
+              if (cachedResponse) {
+                console.log('[Service Worker] Serving stale code from cache:', request.url);
+                return cachedResponse;
+              }
+              // No cache available either
+              return new Response('Not found', {
+                status: 404,
+                statusText: 'Not Found',
+                headers: { 'Content-Type': 'text/plain' }
+              });
+            });
+        })
+    );
+    return;
+  }
+
+  // Network-only for API calls (never cache dynamic data)
+  if (request.url.includes('/api/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Cache-first strategy for everything else (images, HTML, etc.)
   event.respondWith(
     caches.match(request)
       .then(cachedResponse => {
@@ -104,9 +151,8 @@ self.addEventListener('fetch', (event) => {
             // Clone the response
             const responseToCache = response.clone();
 
-            // Cache dynamic content (API responses, images)
-            if (request.url.includes('/api/') ||
-                request.url.includes('/uploads/') ||
+            // Cache uploaded images only (not API responses)
+            if (request.url.includes('/uploads/') ||
                 request.url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
               caches.open(DYNAMIC_CACHE)
                 .then(cache => {

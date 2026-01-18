@@ -264,6 +264,6 @@ Inspired by [Obsidian](https://obsidian.md/) (wiki-links and backlinks), [Triliu
 
 ---
 
-**Current Version:** 1.2.1 (January 2026)
+**Current Version:** 1.3.2 (January 2026)
 
 See [CHANGELOG.md](CHANGELOG.md) for version history and [ROADMAP.md](ROADMAP.md) for planned features.

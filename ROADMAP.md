@@ -2,9 +2,24 @@
 
 Features and improvements I'm considering. Not all of these will happen - just ideas I'm exploring.
 
-## Recently Completed (v1.2.1)
+## Recently Completed (v1.3.2)
 
-**UX & Mobile Improvements**
+**Markdown & Caching Fixes**
+- ✅ GFM line breaks: Single Enter now creates line breaks in preview
+- ✅ Service worker caching strategy: Network-first for code, network-only for API
+- ✅ Folder context menu: "New Note" option for quick note creation
+- ✅ Quiet notifications: No more "saved" toast when switching notes
+
+**Testing & Quality (v1.3.0)**
+- ✅ Comprehensive test suite: 66 tests with 40% coverage
+- ✅ CI/CD pipeline: GitHub Actions running on every commit
+- ✅ Bug fixes: Note permissions, folder deletion, restore auth
+
+**Session & Admin (v1.3.1)**
+- ✅ Session persistence: Remembers last opened note
+- ✅ Admin panel version display and force reload button
+
+**UX & Mobile Improvements (v1.2.1)**
 - ✅ Note count badges: Shows total notes in folders (including subfolders)
 - ✅ Context menus for notes: Right-click or long-press to delete notes
 - ✅ Mobile long-press support: 500ms press with haptic feedback for all menus
@@ -51,6 +66,11 @@ Features and improvements I'm considering. Not all of these will happen - just i
 - [ ] Folder color coding
 
 **Note Features**
+- [ ] Note renaming with automatic wiki-link updates
+  - Allow editing note titles after creation
+  - Automatically update all `[[Old Title]]` references across all notes
+  - Handle aliases, heading links, and combined syntax
+  - Prevents orphaned links when organizing notes
 - [ ] Templates (built-in + custom)
 - [ ] Interactive checkboxes in Markdown (`- [ ]` becomes clickable)
 - [ ] Note history/versioning with diffs
@@ -130,4 +150,4 @@ Features and improvements I'm considering. Not all of these will happen - just i
 
 ---
 
-Open an issue on GitHub to suggest features or join the discussion. Last updated January 10, 2026.
+Open an issue on GitHub to suggest features or join the discussion. Last updated January 17, 2026.

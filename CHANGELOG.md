@@ -5,6 +5,53 @@ All notable changes to NoteCottage will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-01-17
+
+### Added - UX Improvements
+
+**Folder Context Menu Enhancement**
+- Added "New Note" option to folder right-click menu
+- Quickly create notes directly within a folder without selecting it first
+- Appears at the top of the context menu with separator for visual grouping
+
+### Fixed - Markdown & Caching Issues
+
+**GitHub Flavored Markdown Line Breaks**
+- Single newline (Enter) now creates `<br>` tag in Markdown preview
+- Enabled `breaks: true` option in marked.js configuration
+- Applied to both client-side and server-side rendering
+- More intuitive behavior matching GitHub and modern Markdown editors
+
+**Service Worker Caching Strategy**
+- Fixed stale code issue: JavaScript and CSS now use network-first strategy
+- Fixed stale data issue: API responses now bypass cache entirely (network-only)
+- Updated service worker cache version to 1.3.2
+- Code updates picked up immediately on refresh without manual cache clearing
+- Note data always fresh, no more reverting to old saves after server restart
+
+**Save Notification Noise**
+- Removed "All changes saved" notification when switching between notes
+- Notification only appears when actually saving changes
+- Silent status clearing when loading notes
+
+### Technical Details
+
+**Files Modified:**
+- `public/js/app.js` - Line 496: Added `breaks: true` to marked.js config
+- `public/js/app.js` - Line 2160-2183: Added "New Note" to folder context menu
+- `public/js/app.js` - Line 2531: Changed `updateSaveStatus('saved')` to `updateSaveStatus('')`
+- `public/js/app.js` - Line 296: Removed unnecessary "saved" status on no changes
+- `server.js` - Line 330: Added `breaks: true` to marked.js config
+- `public/sw.js` - Lines 2-6: Updated cache version to 1.3.2
+- `public/sw.js` - Lines 88-126: Network-first strategy for JS/CSS files
+- `public/sw.js` - Lines 129-132: Network-only for API endpoints
+- `package.json` - Version bump to 1.3.2
+
+**Caching Strategy Summary:**
+- **JavaScript/CSS**: Network-first (always try for fresh code, fallback to cache if offline)
+- **API endpoints**: Network-only (never cache dynamic data)
+- **Images/Assets**: Cache-first (fast loading, offline support)
+
 ## [1.3.1] - 2026-01-12
 
 ### Added - UX & Admin Improvements
